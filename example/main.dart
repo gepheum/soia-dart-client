@@ -1,15 +1,11 @@
-import 'package:soia_client/soia_client.dart';
+// Example usage of the Soia serialization library
+void main() {
+  // This would typically be generated code for your specific types
+  // For demonstration purposes, we'll show the API usage
 
-void main() async {
-  final client = SoiaClient(baseUrl: 'https://api.example.com');
-
-  try {
-    final response = await client.sendRequest('test');
-    print('Status: ${response.statusCode}');
-    print('Data: ${response.data}');
-  } catch (e) {
-    print('Error: $e');
-  } finally {
-    client.dispose();
-  }
+  print('Soia Dart Client Library Example');
+  print('This library provides serialization capabilities for Soia types');
+  print('- JSON serialization with readable and compact formats');
+  print('- Binary serialization for efficient storage');
+  print('- Type descriptors for reflection and introspection');
 }
