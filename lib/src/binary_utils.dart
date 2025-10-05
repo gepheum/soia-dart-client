@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-import 'package:typed_data/typed_buffers.dart';
+part of "../soia_client.dart";
 
-class BinaryWriter {
+class _BinaryWriter {
   static void encodeInt32(int value, Uint8Buffer buffer) {
     if (value >= 0 && value < 232) {
       buffer.add(value);
@@ -57,30 +56,30 @@ class BinaryWriter {
   }
 }
 
-class BinaryReader {
+class _BinaryReader {
   final Uint8List _buffer;
-  int _position = 0;
+  int position = 0;
 
-  BinaryReader(this._buffer);
+  _BinaryReader(this._buffer);
 
   int readByte() {
-    if (_position >= _buffer.length) {
+    if (position >= _buffer.length) {
       throw StateError('Buffer underflow');
     }
-    return _buffer[_position++];
+    return _buffer[position++];
   }
 
   Uint8List readBytes(int count) {
-    if (_position + count > _buffer.length) {
+    if (position + count > _buffer.length) {
       throw StateError('Buffer underflow');
     }
-    final result = _buffer.sublist(_position, _position + count);
-    _position += count;
+    final result = _buffer.sublist(position, position + count);
+    position += count;
     return result;
   }
 
   Uint8List get remainingBytes {
-    return _buffer.sublist(_position);
+    return _buffer.sublist(position);
   }
 
   num decodeNumber() {

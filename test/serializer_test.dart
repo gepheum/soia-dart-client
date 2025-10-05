@@ -23,9 +23,5 @@ void main() {
       expect(testBytes[2], equals('i'.codeUnitAt(0)));
       expect(testBytes[3], equals('a'.codeUnitAt(0)));
     });
-
-    test('indentation unit is defined', () {
-      expect(indentUnit, equals('  '));
-    });
   });
 }

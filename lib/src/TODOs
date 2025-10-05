@@ -1,0 +1,4 @@
+// TODO: asJson: make it a getter?
+// TODO: make sure the type parameters of StructSerializer are in the right order
+// TODO: make sure to not expose stuff from SerializerImpl in visible StructSerializer and EnumSerializer
+// TODO: add unit tests
