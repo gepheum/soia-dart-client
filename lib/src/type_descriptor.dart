@@ -2,18 +2,18 @@ part of "../soia_client.dart";
 
 /// Base interface for all type descriptors
 abstract class _TypeDescriptorBase {
-  dynamic asJson();
+  dynamic get asJson;
 
-  String asJsonCode();
+  String get asJsonCode;
 }
 
 /// Describes a Soia type.
 sealed class TypeDescriptor implements _TypeDescriptorBase {
   /// Converts this type descriptor to its JSON representation.
-  dynamic asJson() => _typeDescriptorAsJsonImpl(this);
+  dynamic get asJson => _typeDescriptorAsJsonImpl(this);
 
   /// Converts this type descriptor to a JSON string representation.
-  String asJsonCode() => _typeDescriptorAsJsonCodeImpl(this);
+  String get asJsonCode => _typeDescriptorAsJsonCodeImpl(this);
 
   static TypeDescriptor parseFromJson(dynamic json) {
     return _parseTypeDescriptor(json);
@@ -30,10 +30,10 @@ sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
   TypeDescriptor get notReflective => _notReflectiveImpl(this);
 
   /// Converts this type descriptor to its JSON representation.
-  dynamic asJson() => notReflective.asJson();
+  dynamic get asJson => notReflective.asJson;
 
   /// Converts this type descriptor to a JSON string representation.
-  String asJsonCode() => notReflective.asJsonCode();
+  String get asJsonCode => notReflective.asJsonCode;
 }
 
 /// Enumeration of all primitive types supported by Soia.

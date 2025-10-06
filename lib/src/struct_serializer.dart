@@ -1,15 +1,58 @@
 part of "../soia_client.dart";
 
+class StructSerializerBuilder<Frozen, Mutable> {
+  final _StructSerializerImpl<Frozen, Mutable> _impl;
+
+  StructSerializerBuilder({
+    required String recordId,
+    required Frozen defaultInstance,
+    required Mutable Function(Frozen?) newMutableFn,
+    required Frozen Function(Mutable) toFrozenFn,
+    required UnrecognizedFields<Frozen>? Function(Frozen) getUnrecognizedFields,
+    required void Function(Mutable, UnrecognizedFields<Frozen>)
+        setUnrecognizedFields,
+  }) : _impl = _StructSerializerImpl(
+          recordId: recordId,
+          defaultInstance: defaultInstance,
+          newMutableFn: newMutableFn,
+          toFrozenFn: toFrozenFn,
+          getUnrecognizedFields: getUnrecognizedFields,
+          setUnrecognizedFields: setUnrecognizedFields,
+        );
+
+  Serializer<Frozen> get serializer => Serializer._(_impl);
+
+  void addField<Value>(
+    String name,
+    String kotlinName,
+    int number,
+    Serializer<Value> serializer,
+    Value Function(Frozen) getter,
+    void Function(Mutable, Value) setter,
+  ) {
+    _impl.addField(name, kotlinName, number, serializer, getter, setter);
+  }
+
+  void addRemovedNumber(int number) {
+    _impl.addRemovedNumber(number);
+  }
+
+  void finalize() {
+    _impl.finalize();
+  }
+}
+
 /// Implementation of struct field
-class _StructFieldImpl<T, M, V> implements ReflectiveStructField<T, M, V> {
+class _StructFieldImpl<Frozen, Mutable, Value>
+    implements ReflectiveStructField<Frozen, Mutable, Value> {
   @override
   final String name;
   final String kotlinName;
   @override
   final int number;
-  final Serializer<V> serializer;
-  final V Function(T) getter;
-  final void Function(M, V) setter;
+  final Serializer<Value> serializer;
+  final Value Function(Frozen) getter;
+  final void Function(Mutable, Value) setter;
 
   _StructFieldImpl({
     required this.name,
@@ -20,30 +63,32 @@ class _StructFieldImpl<T, M, V> implements ReflectiveStructField<T, M, V> {
     required this.setter,
   });
 
-  bool valueIsDefault(T input) {
+  bool valueIsDefault(Frozen input) {
     return serializer._impl.isDefault(getter(input));
   }
 
-  dynamic valueToJson(T input, bool readableFlavor) {
+  dynamic valueToJson(Frozen input, bool readableFlavor) {
     return serializer.toJson(getter(input), readableFlavor: readableFlavor);
   }
 
-  void valueFromJson(M mutable, dynamic json, bool keepUnrecognizedFields) {
+  void valueFromJson(
+      Mutable mutable, dynamic json, bool keepUnrecognizedFields) {
     final value = serializer.fromJson(json,
         keepUnrecognizedFields: keepUnrecognizedFields);
     setter(mutable, value);
   }
 
-  void encodeValue(T input, Uint8Buffer buffer) {
+  void encodeValue(Frozen input, Uint8Buffer buffer) {
     serializer._impl.encode(getter(input), buffer);
   }
 
-  void decodeValue(M mutable, Uint8List buffer, bool keepUnrecognizedFields) {
+  void decodeValue(
+      Mutable mutable, Uint8List buffer, bool keepUnrecognizedFields) {
     final value = serializer._impl.decode(buffer, keepUnrecognizedFields);
     setter(mutable, value);
   }
 
-  void appendString(T input, StringBuffer out, String eolIndent) {
+  void appendString(Frozen input, StringBuffer out, String eolIndent) {
     serializer._impl.appendString(getter(input), out, eolIndent);
   }
 
@@ -51,32 +96,35 @@ class _StructFieldImpl<T, M, V> implements ReflectiveStructField<T, M, V> {
   ReflectiveTypeDescriptor get type => serializer._impl.typeDescriptor;
 
   @override
-  void set(M struct, V value) => setter(struct, value);
+  void set(Mutable struct, Value value) => setter(struct, value);
 
   @override
-  V get(T struct) => getter(struct);
+  Value get(Frozen struct) => getter(struct);
 }
 
 /// Struct serializer implementation
-class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
-    implements _SerializerImpl<T> {
+class _StructSerializerImpl<Frozen, Mutable>
+    extends ReflectiveStructDescriptor<Frozen, Mutable>
+    implements _SerializerImpl<Frozen> {
   final _RecordId _recordId;
-  final T defaultInstance;
-  final M Function(T?) newMutableFn;
-  final T Function(M) toFrozenFn;
-  final UnrecognizedFields<T>? Function(T) getUnrecognizedFields;
-  final void Function(M, UnrecognizedFields<T>) setUnrecognizedFields;
+  final Frozen defaultInstance;
+  final Mutable Function(Frozen?) newMutableFn;
+  final Frozen Function(Mutable) toFrozenFn;
+  final UnrecognizedFields<Frozen>? Function(Frozen) getUnrecognizedFields;
+  final void Function(Mutable, UnrecognizedFields<Frozen>)
+      setUnrecognizedFields;
 
-  final List<_StructFieldImpl<T, M, dynamic>> _mutableFields = [];
+  final List<_StructFieldImpl<Frozen, Mutable, dynamic>> _mutableFields = [];
   final Set<int> _mutableRemovedNumbers = <int>{};
-  final Map<String, _StructFieldImpl<T, M, dynamic>> _nameToField = {};
-  List<_StructFieldImpl<T, M, dynamic>?> _slotToField = [];
+  final Map<String, _StructFieldImpl<Frozen, Mutable, dynamic>> _nameToField =
+      {};
+  List<_StructFieldImpl<Frozen, Mutable, dynamic>?> _slotToField = [];
   List<dynamic> _zeros = [];
   int _recognizedSlotCount = 0;
   int _maxRemovedNumber = -1;
   bool _finalized = false;
 
-  StructSerializer({
+  _StructSerializerImpl({
     required String recordId,
     required this.defaultInstance,
     required this.newMutableFn,
@@ -94,16 +142,16 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   @override
   String get modulePath => _recordId.modulePath;
 
-  void addField<V>(
+  void addField<Value>(
     String name,
     String kotlinName,
     int number,
-    Serializer<V> serializer,
-    V Function(T) getter,
-    void Function(M, V) setter,
+    Serializer<Value> serializer,
+    Value Function(Frozen) getter,
+    void Function(Mutable, Value) setter,
   ) {
     _checkNotFinalized();
-    final field = _StructFieldImpl<T, M, V>(
+    final field = _StructFieldImpl<Frozen, Mutable, Value>(
       name: name,
       kotlinName: kotlinName,
       number: number,
@@ -121,7 +169,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
     _maxRemovedNumber = _maxRemovedNumber > number ? _maxRemovedNumber : number;
   }
 
-  void finalizeStruct() {
+  void finalize() {
     _checkNotFinalized();
     _finalized = true;
     _mutableFields.sort((a, b) => a.number.compareTo(b.number));
@@ -144,7 +192,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  bool isDefault(T value) {
+  bool isDefault(Frozen value) {
     if (identical(value, defaultInstance)) {
       return true;
     } else {
@@ -154,7 +202,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  dynamic toJson(T input, bool readableFlavor) {
+  dynamic toJson(Frozen input, bool readableFlavor) {
     if (readableFlavor) {
       return identical(input, defaultInstance)
           ? <String, dynamic>{}
@@ -166,7 +214,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
     }
   }
 
-  List<dynamic> _toDenseJson(T input) {
+  List<dynamic> _toDenseJson(Frozen input) {
     final unrecognizedFields = getUnrecognizedFields(input);
     if (unrecognizedFields?._jsonElements != null) {
       // Some unrecognized fields
@@ -188,7 +236,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
     }
   }
 
-  Map<String, dynamic> _toReadableJson(T input) {
+  Map<String, dynamic> _toReadableJson(Frozen input) {
     final nameToElement = <String, dynamic>{};
     for (final field in _mutableFields) {
       if (field.valueIsDefault(input)) {
@@ -200,7 +248,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  T fromJson(dynamic json, bool keepUnrecognizedFields) {
+  Frozen fromJson(dynamic json, bool keepUnrecognizedFields) {
     if (json is int && json == 0) {
       return defaultInstance;
     } else if (json is List) {
@@ -212,13 +260,13 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
     }
   }
 
-  T _fromDenseJson(List<dynamic> jsonArray, bool keepUnrecognizedFields) {
+  Frozen _fromDenseJson(List<dynamic> jsonArray, bool keepUnrecognizedFields) {
     final mutable = newMutableFn(null);
     final int numSlotsToFill;
     if (jsonArray.length > _recognizedSlotCount) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
-        final unrecognizedFields = UnrecognizedFields<T>._fromJson(
+        final unrecognizedFields = UnrecognizedFields<Frozen>._fromJson(
           jsonArray.length,
           jsonArray
               .sublist(_recognizedSlotCount)
@@ -241,7 +289,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
     return toFrozenFn(mutable);
   }
 
-  T _fromReadableJson(Map<String, dynamic> jsonObject) {
+  Frozen _fromReadableJson(Map<String, dynamic> jsonObject) {
     final mutable = newMutableFn(null);
     for (final entry in jsonObject.entries) {
       _nameToField[entry.key]?.valueFromJson(mutable, entry.value, false);
@@ -250,7 +298,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  void encode(T input, Uint8Buffer buffer) {
+  void encode(Frozen input, Uint8Buffer buffer) {
     // Total number of slots to write. Includes removed and unrecognized fields.
     final int totalSlotCount;
     final int recognizedSlotCount;
@@ -289,7 +337,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  T decode(Uint8List buffer, bool keepUnrecognizedFields) {
+  Frozen decode(Uint8List buffer, bool keepUnrecognizedFields) {
     final reader = _BinaryReader(buffer);
     final wire = reader.readByte();
     if (wire == 0 || wire == 246) {
@@ -318,7 +366,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
           _decodeUnused(reader);
           // In a real implementation, we'd capture the bytes
         }
-        final unrecognizedFields = UnrecognizedFields<T>._fromBytes(
+        final unrecognizedFields = UnrecognizedFields<Frozen>._fromBytes(
           encodedSlotCount,
           unrecognizedBuffer.buffer.asUint8List(),
         );
@@ -338,7 +386,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
   }
 
   @override
-  void appendString(T input, StringBuffer out, String eolIndent) {
+  void appendString(Frozen input, StringBuffer out, String eolIndent) {
     final defaultFieldNumbers = <int>{};
     for (final field in _mutableFields) {
       if (field.valueIsDefault(input)) {
@@ -370,7 +418,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
 
   /// Returns the length of the JSON array for the given input.
   /// Assumes that `input` does not contain unrecognized fields.
-  int _getSlotCount(T input) {
+  int _getSlotCount(Frozen input) {
     for (int i = _mutableFields.length - 1; i >= 0; i--) {
       final field = _mutableFields[i];
       if (!field.valueIsDefault(input)) {
@@ -392,7 +440,7 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
 
   // Reflection methods
   @override
-  Iterable<_StructFieldImpl<T, M, dynamic>> get fields =>
+  Iterable<_StructFieldImpl<Frozen, Mutable, dynamic>> get fields =>
       List.unmodifiable(_mutableFields);
 
   @override
@@ -400,20 +448,20 @@ class StructSerializer<T, M> extends ReflectiveStructDescriptor<T, M>
       UnmodifiableSetView(_mutableRemovedNumbers);
 
   @override
-  _StructFieldImpl<T, M, dynamic>? getFieldByName(String name) {
+  _StructFieldImpl<Frozen, Mutable, dynamic>? getFieldByName(String name) {
     return _nameToField[name];
   }
 
   @override
-  _StructFieldImpl<T, M, dynamic>? getFieldByNumber(int number) {
+  _StructFieldImpl<Frozen, Mutable, dynamic>? getFieldByNumber(int number) {
     return number < _slotToField.length ? _slotToField[number] : null;
   }
 
   @override
-  M newMutable([T? initializer]) => newMutableFn(initializer);
+  Mutable newMutable([Frozen? initializer]) => newMutableFn(initializer);
 
   @override
-  T toFrozen(M mutable) => toFrozenFn(mutable);
+  Frozen toFrozen(Mutable mutable) => toFrozenFn(mutable);
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor => this;

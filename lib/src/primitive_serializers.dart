@@ -72,13 +72,16 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  dynamic toJson(int input, bool readableFlavor) => input;
+  dynamic toJson(int input, bool readableFlavor) => input.toSigned(32);
 
   @override
   int fromJson(dynamic json, bool keepUnrecognizedFields) {
-    if (json is int) return json;
-    if (json is String) return int.parse(json);
-    return (json as num).toInt();
+    final int number = switch (json) {
+      int() => json,
+      String() => int.parse(json),
+      _ => (json as num).toInt(),
+    };
+    return number.toSigned(32);
   }
 
   @override
@@ -121,14 +124,17 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   dynamic toJson(int input, bool readableFlavor) {
     return (input >= minSafeJavaScriptInt && input <= maxSafeJavaScriptInt)
         ? input
-        : input.toString();
+        : input.toSigned(64).toString();
   }
 
   @override
   int fromJson(dynamic json, bool keepUnrecognizedFields) {
-    if (json is int) return json;
-    if (json is String) return int.parse(json);
-    return (json as num).toInt();
+    final int number = switch (json) {
+      int() => json,
+      String() => int.parse(json),
+      _ => (json as num).toInt(),
+    };
+    return number.toSigned(64);
   }
 
   @override
@@ -176,14 +182,21 @@ class Uint64Serializer extends _PrimitiveSerializer<int> {
 
   @override
   dynamic toJson(int input, bool readableFlavor) {
-    return input <= maxSafeJavaScriptInt ? input : input.toString();
+    if (0 <= input && input <= maxSafeJavaScriptInt) {
+      return input;
+    } else {
+      return input.toUnsigned(64).toString();
+    }
   }
 
   @override
   int fromJson(dynamic json, bool keepUnrecognizedFields) {
-    if (json is int) return json;
-    if (json is String) return int.parse(json);
-    return (json as num).toInt();
+    final int number = switch (json) {
+      int() => json,
+      String() => int.parse(json),
+      _ => (json as num).toInt(),
+    };
+    return number.toUnsigned(64);
   }
 
   @override
@@ -512,7 +525,7 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
     out.write(')');
   }
 
-  int _clampUnixMillis(int unixMillis) {
+  static int _clampUnixMillis(int unixMillis) {
     return unixMillis.clamp(-8640000000000000, 8640000000000000);
   }
 

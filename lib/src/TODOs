@@ -1,5 +1,2 @@
 // TODO: read back all the serializers, look at what we do in Python for values which are out of the int32/int64/uint64 range
-// TODO: asJson: make it a getter?
-// TODO: make sure the type parameters of StructSerializer are in the right order
-// TODO: make sure to not expose stuff from SerializerImpl in visible StructSerializer and EnumSerializer
 // TODO: add unit tests
