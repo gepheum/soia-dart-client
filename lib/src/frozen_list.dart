@@ -5,28 +5,27 @@ class _FrozenList<E> extends UnmodifiableListView<E> {
 }
 
 sealed class KeyedIterable<E, K> implements Iterable<E> {
-  factory KeyedIterable(List<E> elements, K Function(E) getKey) {
-    return KeyedIterable.internalCreate(elements, '', (it) => it, getKey);
-  }
-
   factory KeyedIterable.empty() {
-    return _emptyFrozenList as KeyedIterable<E, K>;
+    return _EmptyFrozenList();
   }
 
-  static KeyedIterable<E, K> internalCreate<E, K, M>(List<M> elements,
+  factory KeyedIterable.copy(Iterable<E> elements, K Function(E) getKey) {
+    return KeyedIterable.internalCopy(elements, '', (it) => it, getKey);
+  }
+
+  static KeyedIterable<E, K> internalCopy<E, K, M>(Iterable<M> elements,
       String getKeySpec, E Function(M) toFrozen, K Function(E) getKey) {
-    if (elements is _KeyedIterableImpl &&
-        (elements as _KeyedIterableImpl)._getKeySpec.isNotEmpty &&
-        (elements as _KeyedIterableImpl)._getKey == getKey) {
-      return elements as KeyedIterable<E, K>;
-    } else {
-      final result = _KeyedIterableImpl<E, K>(
-        elements.map(toFrozen).toList(),
-        getKeySpec,
-        getKey,
-      );
-      return result.isEmpty ? KeyedIterable.empty() : result;
+    if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
+      if (keyedIterable._getKeySpec == getKeySpec &&
+          keyedIterable._getKey == getKey) {
+        return keyedIterable;
+      }
     }
+    return _KeyedIterableImpl<E, K>(
+      elements.map(toFrozen).toList(growable: false),
+      getKeySpec,
+      getKey,
+    );
   }
 
   E? findByKey(K key);
@@ -48,12 +47,18 @@ class _KeyedIterableImpl<E, K> extends _FrozenList<E>
   }
 }
 
-class _EmptyFrozenList extends _FrozenList<dynamic>
-    implements KeyedIterable<dynamic, dynamic> {
+class _EmptyFrozenList<E, K> extends _FrozenList<E>
+    implements KeyedIterable<E, K> {
   _EmptyFrozenList() : super([]);
 
   @override
-  dynamic findByKey(dynamic key) => null;
+  E? findByKey(K key) => null;
 }
 
-final _emptyFrozenList = _EmptyFrozenList();
+Iterable<E> internalFrozenCopy<E>(Iterable<E> elements) {
+  if (elements case final _FrozenList<E> frozenList) {
+    return frozenList;
+  } else {
+    return _FrozenList(elements.toList(growable: false));
+  }
+}
