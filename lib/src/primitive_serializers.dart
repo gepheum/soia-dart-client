@@ -485,7 +485,7 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   DateTime decode(Uint8List buffer, bool keepUnrecognizedFields) {
     final reader = _BinaryReader(buffer);
     final unixMillis = _clampUnixMillis(reader.decodeNumber().toInt());
-    return DateTime.fromMillisecondsSinceEpoch(unixMillis);
+    return DateTime.fromMillisecondsSinceEpoch(unixMillis, isUtc: true);
   }
 
   @override
@@ -494,8 +494,9 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
     return readableFlavor
         ? {
             'unix_millis': unixMillis,
-            'formatted': DateTime.fromMillisecondsSinceEpoch(unixMillis)
-                .toIso8601String(),
+            'formatted':
+                DateTime.fromMillisecondsSinceEpoch(unixMillis, isUtc: true)
+                    .toIso8601String(),
           }
         : unixMillis;
   }
@@ -508,7 +509,10 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
     } else {
       unixMillis = (json as num).toInt();
     }
-    return DateTime.fromMillisecondsSinceEpoch(_clampUnixMillis(unixMillis));
+    return DateTime.fromMillisecondsSinceEpoch(
+      _clampUnixMillis(unixMillis),
+      isUtc: true,
+    );
   }
 
   @override

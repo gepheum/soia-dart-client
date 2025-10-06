@@ -103,6 +103,7 @@ class _BinaryReader {
       case 237:
         return _readSignedIntLe();
       case 238:
+      case 239:
         return _readSignedLongLe();
       case 240:
         return _readFloatLe();
