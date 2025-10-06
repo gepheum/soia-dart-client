@@ -1,4 +1,4 @@
 // TODO: internalToString
-// TODO: read back all the serializers, look at what we do in Python for values which are out of the int32/int64/uint64 range
+//   TODO: make sure matches generated code
 // TODO: s/internal/internal__
 // TODO: add unit tests
