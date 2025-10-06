@@ -41,11 +41,10 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
   @override
   bool fromJson(dynamic json, bool keepUnrecognizedFields) {
     if (json is bool) return json;
-    if (json is num) return json != 0;
     if (json is String) {
       return json != '0' && json != 'false';
     }
-    return true;
+    return (json as num) != 0;
   }
 
   @override
