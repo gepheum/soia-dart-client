@@ -1081,6 +1081,369 @@ void main() {
       expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.BYTES));
     });
   });
+
+  group('OptionalSerializer', () {
+    test('basic functionality - JSON serialization', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+
+      // Test non-null values - should be the same as underlying serializer
+      expect(intOptional.toJson(42, readableFlavor: true), equals(42));
+      expect(intOptional.toJson(42, readableFlavor: false), equals(42));
+      expect(intOptional.toJsonCode(42, readableFlavor: true), equals('42'));
+      expect(intOptional.toJsonCode(42, readableFlavor: false), equals('42'));
+
+      expect(stringOptional.toJson('hello', readableFlavor: true), equals('hello'));
+      expect(stringOptional.toJson('hello', readableFlavor: false), equals('hello'));
+      expect(stringOptional.toJsonCode('hello', readableFlavor: true), equals('"hello"'));
+      expect(stringOptional.toJsonCode('hello', readableFlavor: false), equals('"hello"'));
+
+      // Test null values - should be null in both flavors
+      expect(intOptional.toJson(null, readableFlavor: true), equals(null));
+      expect(intOptional.toJson(null, readableFlavor: false), equals(null));
+      expect(intOptional.toJsonCode(null, readableFlavor: true), equals('null'));
+      expect(intOptional.toJsonCode(null, readableFlavor: false), equals('null'));
+
+      expect(stringOptional.toJson(null, readableFlavor: true), equals(null));
+      expect(stringOptional.toJson(null, readableFlavor: false), equals(null));
+      expect(stringOptional.toJsonCode(null, readableFlavor: true), equals('null'));
+      expect(stringOptional.toJsonCode(null, readableFlavor: false), equals('null'));
+    });
+
+    test('JSON deserialization - non-null values', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+      final boolOptional = Serializers.optional(Serializers.bool);
+
+      // Test non-null JSON values
+      expect(intOptional.fromJson(42), equals(42));
+      expect(intOptional.fromJson(-1), equals(-1));
+      expect(intOptional.fromJsonCode('42'), equals(42));
+      expect(intOptional.fromJsonCode('-1'), equals(-1));
+
+      expect(stringOptional.fromJson('hello'), equals('hello'));
+      expect(stringOptional.fromJson('world'), equals('world'));
+      expect(stringOptional.fromJsonCode('"hello"'), equals('hello'));
+      expect(stringOptional.fromJsonCode('"world"'), equals('world'));
+
+      expect(boolOptional.fromJson(true), equals(true));
+      expect(boolOptional.fromJson(false), equals(false));
+      expect(boolOptional.fromJsonCode('true'), equals(true));
+      expect(boolOptional.fromJsonCode('false'), equals(false));
+    });
+
+    test('JSON deserialization - null values', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+      final boolOptional = Serializers.optional(Serializers.bool);
+      final bytesOptional = Serializers.optional(Serializers.bytes);
+      final timestampOptional = Serializers.optional(Serializers.timestamp);
+
+      // Test null JSON values
+      expect(intOptional.fromJson(null), equals(null));
+      expect(intOptional.fromJsonCode('null'), equals(null));
+
+      expect(stringOptional.fromJson(null), equals(null));
+      expect(stringOptional.fromJsonCode('null'), equals(null));
+
+      expect(boolOptional.fromJson(null), equals(null));
+      expect(boolOptional.fromJsonCode('null'), equals(null));
+
+      expect(bytesOptional.fromJson(null), equals(null));
+      expect(bytesOptional.fromJsonCode('null'), equals(null));
+
+      expect(timestampOptional.fromJson(null), equals(null));
+      expect(timestampOptional.fromJsonCode('null'), equals(null));
+    });
+
+    test('binary serialization - null optimization', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+
+      // Test that null uses wire code 255 (0xFF)
+      final nullBytes = intOptional.toBytes(null);
+      expect(_bytesToHex(nullBytes), equals('736f6961ff')); // "soia" + 0xFF
+
+      // Test non-null values use underlying serializer encoding
+      final nonNullBytes = intOptional.toBytes(42);
+      expect(_bytesToHex(nonNullBytes), equals('736f69612a')); // "soia" + int32(42)
+    });
+
+    test('binary deserialization roundtrip', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+      final boolOptional = Serializers.optional(Serializers.bool);
+      final bytesOptional = Serializers.optional(Serializers.bytes);
+      final timestampOptional = Serializers.optional(Serializers.timestamp);
+
+      final testValues = [
+        // (serializer, non-null value, null value)
+        (intOptional, 42, null),
+        (intOptional, -1, null),
+        (intOptional, 0, null),
+        (stringOptional, 'hello', null),
+        (stringOptional, '', null),
+        (boolOptional, true, null),
+        (boolOptional, false, null),
+        (bytesOptional, Uint8List.fromList([1, 2, 3]), null),
+        (bytesOptional, Uint8List(0), null),
+        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), null),
+        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(0, isUtc: true), null),
+      ];
+
+      for (final (serializer, nonNullValue, nullValue) in testValues) {
+        // Test non-null roundtrip
+        final nonNullBytes = serializer.toBytes(nonNullValue);
+        final restoredNonNull = serializer.fromBytes(nonNullBytes);
+        expect(restoredNonNull, equals(nonNullValue),
+            reason: 'Failed roundtrip for non-null value: $nonNullValue');
+
+        // Test null roundtrip
+        final nullBytes = serializer.toBytes(nullValue);
+        final restoredNull = serializer.fromBytes(nullBytes);
+        expect(restoredNull, equals(nullValue),
+            reason: 'Failed roundtrip for null value');
+      }
+    });
+
+    test('JSON flavor differences for underlying types', () {
+      final boolOptional = Serializers.optional(Serializers.bool);
+      final timestampOptional = Serializers.optional(Serializers.timestamp);
+
+      // Test bool flavor differences (dense vs readable)
+      final testBool = true;
+      final denseBoolJson = boolOptional.toJsonCode(testBool, readableFlavor: false);
+      final readableBoolJson = boolOptional.toJsonCode(testBool, readableFlavor: true);
+      expect(denseBoolJson, equals('1')); // Dense should be "1"
+      expect(readableBoolJson, equals('true')); // Readable should be "true"
+
+      // Both should roundtrip correctly
+      expect(boolOptional.fromJsonCode(denseBoolJson), equals(testBool));
+      expect(boolOptional.fromJsonCode(readableBoolJson), equals(testBool));
+
+      // Test timestamp flavor differences
+      final testTimestamp = DateTime.fromMillisecondsSinceEpoch(1756117845000, isUtc: true);
+      final denseTimestampJson = timestampOptional.toJsonCode(testTimestamp, readableFlavor: false);
+      final readableTimestampJson = timestampOptional.toJsonCode(testTimestamp, readableFlavor: true);
+
+      // Dense should be a number, readable should be an object
+      expect(denseTimestampJson, equals('1756117845000'));
+      expect(readableTimestampJson, contains('unix_millis'));
+      expect(readableTimestampJson, contains('formatted'));
+
+      // Both should roundtrip correctly
+      expect(timestampOptional.fromJsonCode(denseTimestampJson), equals(testTimestamp));
+      expect(timestampOptional.fromJsonCode(readableTimestampJson), equals(testTimestamp));
+
+      // Test null with different flavors (should always be "null")
+      final nullDense = boolOptional.toJsonCode(null, readableFlavor: false);
+      final nullReadable = boolOptional.toJsonCode(null, readableFlavor: true);
+      expect(nullDense, equals('null'));
+      expect(nullReadable, equals('null'));
+    });
+
+    test('idempotency - optional of optional', () {
+      // Test that calling optional on an already optional serializer returns the same instance
+      final intOptional = Serializers.optional(Serializers.int32);
+      final doubleOptional = Serializers.optional(intOptional);
+
+      // They should be the same instance (idempotent)
+      expect(identical(intOptional, doubleOptional), isTrue);
+
+      // Test functionality is preserved
+      final testValue = 123;
+      expect(intOptional.fromJsonCode(intOptional.toJsonCode(testValue)), equals(testValue));
+      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(testValue)), equals(testValue));
+      expect(intOptional.fromJsonCode(intOptional.toJsonCode(null)), equals(null));
+      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(null)), equals(null));
+
+      // Binary serialization should also work the same
+      final testBytes = intOptional.toBytes(testValue);
+      final doubleBytes = doubleOptional.toBytes(testValue);
+      expect(_bytesToHex(testBytes), equals(_bytesToHex(doubleBytes)));
+
+      expect(intOptional.fromBytes(testBytes), equals(testValue));
+      expect(doubleOptional.fromBytes(doubleBytes), equals(testValue));
+    });
+
+    test('type descriptor', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final typeDescriptor = intOptional.typeDescriptor;
+      
+      expect(typeDescriptor, isA<ReflectiveOptionalDescriptor>());
+
+      final optionalDescriptor = typeDescriptor as ReflectiveOptionalDescriptor;
+      expect(optionalDescriptor.otherType, isA<PrimitiveDescriptor>());
+      
+      final innerDescriptor = optionalDescriptor.otherType as PrimitiveDescriptor;
+      expect(innerDescriptor.primitiveType, equals(PrimitiveType.INT_32));
+    });
+
+    test('binary format specifics', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+
+      // Test specific binary encodings (includes "soia" prefix)
+      final testCases = [
+        (null, '736f6961ff'), // null -> 0xFF
+        (0, '736f696100'), // 0 -> 0x00 (from int32)
+        (42, '736f69612a'), // 42 -> 0x2A (from int32)
+        (-1, '736f6961ebff'), // -1 -> 0xEB + 0xFF (from int32 varint encoding)
+      ];
+
+      for (final (value, expectedHex) in testCases) {
+        final bytes = intOptional.toBytes(value);
+        expect(_bytesToHex(bytes), equals(expectedHex),
+            reason: 'Failed encoding for value: $value');
+        expect(intOptional.fromBytes(bytes), equals(value),
+            reason: 'Failed roundtrip for value: $value');
+      }
+    });
+
+    test('edge cases and special values', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+      final bytesOptional = Serializers.optional(Serializers.bytes);
+
+      // Test edge case values that could be confused with null
+      final testCases = [
+        (intOptional, [0, -1, 2147483647, -2147483648]), // int32 edge cases
+        (stringOptional, ['', '0', 'false', 'null', 'undefined']), // string edge cases
+        (bytesOptional, [Uint8List(0), Uint8List.fromList([255]), Uint8List.fromList([0, 255])]), // bytes edge cases
+      ];
+
+      for (final (serializer, values) in testCases) {
+        for (final value in values) {
+          // Test JSON roundtrip
+          final json = serializer.toJsonCode(value);
+          final restoredFromJson = serializer.fromJsonCode(json);
+          expect(restoredFromJson, equals(value),
+              reason: 'JSON roundtrip failed for edge case value: $value');
+
+          // Test binary roundtrip
+          final bytes = serializer.toBytes(value);
+          final restoredFromBytes = serializer.fromBytes(bytes);
+          expect(restoredFromBytes, equals(value),
+              reason: 'Binary roundtrip failed for edge case value: $value');
+        }
+      }
+    });
+
+    test('all primitive types with optional', () {
+      // Test that optional works correctly with all primitive serializers
+      final testData = [
+        (Serializers.optional(Serializers.bool), true, false),
+        (Serializers.optional(Serializers.int32), 42, 0),
+        (Serializers.optional(Serializers.int64), 42, 0),
+        (Serializers.optional(Serializers.uint64), 42, 0),
+        (Serializers.optional(Serializers.float32), 1.5, 0.0),
+        (Serializers.optional(Serializers.float64), 3.14159, 0.0),
+        (Serializers.optional(Serializers.string), 'hello', ''),
+        (Serializers.optional(Serializers.bytes), Uint8List.fromList([1, 2, 3]), Uint8List(0)),
+        (Serializers.optional(Serializers.timestamp), DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),
+      ];
+
+      for (final (serializer, nonDefaultValue, defaultValue) in testData) {
+        // Test non-null values
+        final nonNullJson = serializer.toJsonCode(nonDefaultValue);
+        expect(serializer.fromJsonCode(nonNullJson), equals(nonDefaultValue),
+            reason: 'Failed JSON roundtrip for non-null value: $nonDefaultValue');
+
+        final nonNullBytes = serializer.toBytes(nonDefaultValue);
+        final restoredNonNull = serializer.fromBytes(nonNullBytes);
+        
+        // Special handling for float32 precision loss
+        if (nonDefaultValue is double && serializer.toString().contains('float32')) {
+          expect(((restoredNonNull as double) - nonDefaultValue).abs(), lessThan(1e-6),
+              reason: 'Failed binary roundtrip for float32 value: $nonDefaultValue (got $restoredNonNull)');
+        } else {
+          expect(restoredNonNull, equals(nonDefaultValue),
+              reason: 'Failed binary roundtrip for non-null value: $nonDefaultValue');
+        }
+
+        // Test default values
+        final defaultJson = serializer.toJsonCode(defaultValue);
+        expect(serializer.fromJsonCode(defaultJson), equals(defaultValue),
+            reason: 'Failed JSON roundtrip for default value: $defaultValue');
+
+        final defaultBytes = serializer.toBytes(defaultValue);
+        expect(serializer.fromBytes(defaultBytes), equals(defaultValue),
+            reason: 'Failed binary roundtrip for default value: $defaultValue');
+
+        // Test null values
+        final nullJson = serializer.toJsonCode(null);
+        expect(nullJson, equals('null'));
+        expect(serializer.fromJsonCode(nullJson), equals(null),
+            reason: 'Failed JSON roundtrip for null');
+
+        final nullBytes = serializer.toBytes(null);
+        expect(_bytesToHex(nullBytes), endsWith('ff')); // Should end with 0xFF
+        expect(serializer.fromBytes(nullBytes), equals(null),
+            reason: 'Failed binary roundtrip for null');
+      }
+    });
+
+    test('default value detection', () {
+      final intOptional = Serializers.optional(Serializers.int32);
+
+      // Test that null is considered the default value for optional types
+      final nullBytes = intOptional.toBytes(null);
+      final nonNullBytes = intOptional.toBytes(42);
+
+      // Null should use optimized encoding (just 0xFF)
+      expect(_bytesToHex(nullBytes), equals('736f6961ff')); // "soia" + 0xFF
+      expect(nullBytes.length, equals(5)); // Should be exactly 5 bytes
+
+      // Non-null should use underlying serializer
+      expect(nonNullBytes.length, greaterThanOrEqualTo(nullBytes.length));
+      expect(_bytesToHex(nonNullBytes), isNot(endsWith('ff')));
+    });
+
+    test('complex nested scenarios', () {
+      // Test combinations of optional serializers with different types
+      final intOptional = Serializers.optional(Serializers.int32);
+      final stringOptional = Serializers.optional(Serializers.string);
+      final timestampOptional = Serializers.optional(Serializers.timestamp);
+
+      final testScenarios = [
+        (intOptional, 42, null),
+        (intOptional, null, 42),
+        (stringOptional, 'test', null),
+        (stringOptional, null, 'test'),
+        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), null),
+        (timestampOptional, null, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true)),
+      ];
+
+      for (final (serializer, value1, value2) in testScenarios) {
+        // Test that different values produce different results
+        final json1 = serializer.toJsonCode(value1);
+        final json2 = serializer.toJsonCode(value2);
+
+        if (value1 != value2) {
+          expect(json1, isNot(equals(json2)),
+              reason: 'Different values should produce different JSON: $value1 vs $value2');
+        }
+
+        // Test roundtrip for both values
+        expect(serializer.fromJsonCode(json1), equals(value1),
+            reason: 'Failed JSON roundtrip for value1: $value1');
+        expect(serializer.fromJsonCode(json2), equals(value2),
+            reason: 'Failed JSON roundtrip for value2: $value2');
+
+        // Test binary serialization
+        final bytes1 = serializer.toBytes(value1);
+        final bytes2 = serializer.toBytes(value2);
+
+        if (value1 != value2) {
+          expect(_bytesToHex(bytes1), isNot(equals(_bytesToHex(bytes2))),
+              reason: 'Different values should produce different binary: $value1 vs $value2');
+        }
+
+        expect(serializer.fromBytes(bytes1), equals(value1),
+            reason: 'Failed binary roundtrip for value1: $value1');
+        expect(serializer.fromBytes(bytes2), equals(value2),
+            reason: 'Failed binary roundtrip for value2: $value2');
+      }
+    });
+  });
 }
 
 /// Helper function to convert bytes to hex string
