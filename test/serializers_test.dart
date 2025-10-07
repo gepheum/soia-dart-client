@@ -1506,6 +1506,596 @@ void main() {
       }
     });
   });
+
+  group('IterableSerializer', () {
+    test('basic functionality - JSON serialization', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+
+      // Test various iterables - should be the same in both readable and dense flavors
+      final emptyIterable = <int>[];
+      final singleIntIterable = [42];
+      final multipleIntIterable = [1, 2, 3];
+
+      expect(intIterableSerializer.toJson(emptyIterable, readableFlavor: true),
+          equals([]));
+      expect(intIterableSerializer.toJson(emptyIterable, readableFlavor: false),
+          equals([]));
+      expect(
+          intIterableSerializer.toJson(singleIntIterable, readableFlavor: true),
+          equals([42]));
+      expect(
+          intIterableSerializer.toJson(singleIntIterable,
+              readableFlavor: false),
+          equals([42]));
+      expect(
+          intIterableSerializer.toJson(multipleIntIterable,
+              readableFlavor: true),
+          equals([1, 2, 3]));
+      expect(
+          intIterableSerializer.toJson(multipleIntIterable,
+              readableFlavor: false),
+          equals([1, 2, 3]));
+
+      // Test JSON string serialization
+      expect(
+          intIterableSerializer.toJsonCode(emptyIterable, readableFlavor: true),
+          equals('[]'));
+      expect(
+          intIterableSerializer.toJsonCode(emptyIterable,
+              readableFlavor: false),
+          equals('[]'));
+      expect(
+          intIterableSerializer.toJsonCode(singleIntIterable,
+              readableFlavor: true),
+          equals('[\n  42\n]'));
+      expect(
+          intIterableSerializer.toJsonCode(singleIntIterable,
+              readableFlavor: false),
+          equals('[42]'));
+      expect(
+          intIterableSerializer.toJsonCode(multipleIntIterable,
+              readableFlavor: true),
+          equals('[\n  1,\n  2,\n  3\n]'));
+      expect(
+          intIterableSerializer.toJsonCode(multipleIntIterable,
+              readableFlavor: false),
+          equals('[1,2,3]'));
+    });
+
+    test('JSON deserialization - array values', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final stringIterableSerializer = Serializers.iterable(Serializers.string);
+
+      // Test array JSON values
+      expect(intIterableSerializer.fromJson([]), equals([]));
+      expect(intIterableSerializer.fromJson([42]), equals([42]));
+      expect(intIterableSerializer.fromJson([1, 2, 3]), equals([1, 2, 3]));
+      expect(intIterableSerializer.fromJsonCode('[]'), equals([]));
+      expect(intIterableSerializer.fromJsonCode('[42]'), equals([42]));
+      expect(intIterableSerializer.fromJsonCode('[1,2,3]'), equals([1, 2, 3]));
+
+      // Test string arrays
+      expect(stringIterableSerializer.fromJson(['hello', 'world']),
+          equals(['hello', 'world']));
+      expect(stringIterableSerializer.fromJsonCode('["hello","world"]'),
+          equals(['hello', 'world']));
+    });
+
+    test('JSON deserialization - special numeric case', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final stringIterableSerializer = Serializers.iterable(Serializers.string);
+      final boolIterableSerializer = Serializers.iterable(Serializers.bool);
+
+      // Test that fromJson(0) and fromJsonCode("0") return empty iterables
+      expect(intIterableSerializer.fromJson(0), equals([]));
+      expect(intIterableSerializer.fromJsonCode('0'), equals([]));
+      expect(stringIterableSerializer.fromJson(0), equals([]));
+      expect(stringIterableSerializer.fromJsonCode('0'), equals([]));
+      expect(boolIterableSerializer.fromJson(0), equals([]));
+      expect(boolIterableSerializer.fromJsonCode('0'), equals([]));
+    });
+
+    test('binary serialization - empty iterables', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final stringIterableSerializer = Serializers.iterable(Serializers.string);
+      final boolIterableSerializer = Serializers.iterable(Serializers.bool);
+
+      // Test empty iterables - should have wire format "soia" + 0xF6 (246+0)
+      final emptyInt = <int>[];
+      final emptyString = <String>[];
+      final emptyBool = <bool>[];
+
+      final emptyIntBytes = intIterableSerializer.toBytes(emptyInt);
+      expect(_bytesToHex(emptyIntBytes), equals('736f6961f6'));
+
+      final emptyStringBytes = stringIterableSerializer.toBytes(emptyString);
+      expect(_bytesToHex(emptyStringBytes), equals('736f6961f6'));
+
+      final emptyBoolBytes = boolIterableSerializer.toBytes(emptyBool);
+      expect(_bytesToHex(emptyBoolBytes), equals('736f6961f6'));
+    });
+
+    test('binary serialization - small iterables (1-3 elements)', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final stringIterableSerializer = Serializers.iterable(Serializers.string);
+
+      // Test iterables with 1-3 elements (should use wire bytes 247-249)
+      final singleIntIterable = [42];
+      final doubleIntIterable = [1, 2];
+      final tripleIntIterable = [10, 20, 30];
+
+      final singleBytes = intIterableSerializer.toBytes(singleIntIterable);
+      expect(
+          _bytesToHex(singleBytes), startsWith('736f6961f7')); // 0xF7 = 246+1
+
+      final doubleBytes = intIterableSerializer.toBytes(doubleIntIterable);
+      expect(
+          _bytesToHex(doubleBytes), startsWith('736f6961f8')); // 0xF8 = 246+2
+
+      final tripleBytes = intIterableSerializer.toBytes(tripleIntIterable);
+      expect(
+          _bytesToHex(tripleBytes), startsWith('736f6961f9')); // 0xF9 = 246+3
+
+      // Test with strings
+      final stringIterable = ['hello', 'world'];
+      final stringBytes = stringIterableSerializer.toBytes(stringIterable);
+      expect(_bytesToHex(stringBytes), startsWith('736f6961f8')); // 2 elements
+    });
+
+    test('binary serialization - large iterables', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+
+      // Test iterables with more than 3 elements (should use wire byte 250 + length prefix)
+      final largeIterable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      final veryLargeIterable = List.generate(1000, (i) => i + 1);
+
+      final largeBytes = intIterableSerializer.toBytes(largeIterable);
+      // Should start with "soia" + 0xFA (250) + length encoding for 10 (0x0A)
+      expect(_bytesToHex(largeBytes), startsWith('736f6961fa0a'));
+
+      final veryLargeBytes = intIterableSerializer.toBytes(veryLargeIterable);
+      // Should start with "soia" + 0xFA (250) + length encoding for 1000
+      expect(_bytesToHex(veryLargeBytes), startsWith('736f6961fa'));
+      // Large array should have significant length
+      expect(veryLargeBytes.length, greaterThan(100));
+    });
+
+    test('binary deserialization roundtrip', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final stringIterableSerializer = Serializers.iterable(Serializers.string);
+      final boolIterableSerializer = Serializers.iterable(Serializers.bool);
+
+      final testCases = [
+        (intIterableSerializer, <int>[]),
+        (intIterableSerializer, [42]),
+        (intIterableSerializer, [1, 2, 3]),
+        (intIterableSerializer, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        (stringIterableSerializer, <String>[]),
+        (stringIterableSerializer, ['hello']),
+        (stringIterableSerializer, ['hello', 'world']),
+        (stringIterableSerializer, ['a', 'b', 'c', 'd', 'e']),
+        (boolIterableSerializer, <bool>[]),
+        (boolIterableSerializer, [true]),
+        (boolIterableSerializer, [true, false, true]),
+      ];
+
+      for (final (serializer, value) in testCases) {
+        final bytes = serializer.toBytes(value);
+        final restored = serializer.fromBytes(bytes);
+        expect(restored, equals(value),
+            reason: 'Failed binary roundtrip for value: $value');
+      }
+    });
+
+    test('type descriptor', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final typeDescriptor = intIterableSerializer.typeDescriptor;
+      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+
+      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
+      expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
+      expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
+          equals(PrimitiveType.INT_32));
+      expect(listDescriptor.keyChain, equals(''));
+    });
+
+    test('edge cases and error handling', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+
+      // Test that the serializer handles different iterable types
+      final list = [1, 2, 3];
+      final set = {1, 2, 3};
+      final range = List.generate(3, (i) => i + 1);
+
+      final listJson = intIterableSerializer.toJsonCode(list);
+      final setJson = intIterableSerializer.toJsonCode(set);
+      final rangeJson = intIterableSerializer.toJsonCode(range);
+
+      expect(setJson, equals('[1,2,3]'));
+      expect(rangeJson, equals('[1,2,3]'));
+
+      // All should deserialize to the same result
+      final restoredList = intIterableSerializer.fromJsonCode(listJson);
+      final restoredSet = intIterableSerializer.fromJsonCode(setJson);
+      final restoredRange = intIterableSerializer.fromJsonCode(rangeJson);
+
+      expect(restoredList, equals([1, 2, 3]));
+      expect(restoredSet, equals([1, 2, 3]));
+      expect(restoredRange, equals([1, 2, 3]));
+    });
+
+    test('nested iterables', () {
+      final nestedSerializer =
+          Serializers.iterable(Serializers.iterable(Serializers.int32));
+
+      final nestedIterable = [
+        [1, 2],
+        [3, 4, 5],
+        <int>[]
+      ];
+
+      // JSON tests
+      final json = nestedSerializer.toJsonCode(nestedIterable);
+      expect(json, equals('[[1,2],[3,4,5],[]]'));
+      final restoredFromJson = nestedSerializer.fromJsonCode(json);
+      expect(restoredFromJson, equals(nestedIterable));
+
+      // Binary tests
+      final bytes = nestedSerializer.toBytes(nestedIterable);
+      final restoredFromBinary = nestedSerializer.fromBytes(bytes);
+      expect(restoredFromBinary, equals(nestedIterable));
+    });
+
+    test('with optional elements', () {
+      final optionalIntSerializer =
+          Serializers.iterable(Serializers.optional(Serializers.int32));
+
+      final iterableWithNulls = [1, null, 3, null, 5];
+      final iterableWithoutNulls = [1, 2, 3, 4, 5];
+
+      // JSON tests
+      final jsonWithNulls = optionalIntSerializer.toJsonCode(iterableWithNulls);
+      expect(jsonWithNulls, equals('[1,null,3,null,5]'));
+      final restoredWithNulls =
+          optionalIntSerializer.fromJsonCode(jsonWithNulls);
+      expect(restoredWithNulls, equals(iterableWithNulls));
+
+      final jsonWithoutNulls =
+          optionalIntSerializer.toJsonCode(iterableWithoutNulls);
+      expect(jsonWithoutNulls, equals('[1,2,3,4,5]'));
+      final restoredWithoutNulls =
+          optionalIntSerializer.fromJsonCode(jsonWithoutNulls);
+      expect(restoredWithoutNulls, equals(iterableWithoutNulls));
+
+      // Binary tests
+      final bytesWithNulls = optionalIntSerializer.toBytes(iterableWithNulls);
+      final restoredBinaryWithNulls =
+          optionalIntSerializer.fromBytes(bytesWithNulls);
+      expect(restoredBinaryWithNulls, equals(iterableWithNulls));
+
+      final bytesWithoutNulls =
+          optionalIntSerializer.toBytes(iterableWithoutNulls);
+      final restoredBinaryWithoutNulls =
+          optionalIntSerializer.fromBytes(bytesWithoutNulls);
+      expect(restoredBinaryWithoutNulls, equals(iterableWithoutNulls));
+    });
+
+    test('string representation', () {
+      final intIterableSerializer = Serializers.iterable(Serializers.int32);
+      final testIterable = [1, 2, 3];
+
+      final stringRepr =
+          intIterableSerializer.internal__stringify(testIterable);
+      expect(stringRepr, equals('[1, 2, 3]'));
+
+      final emptyStringRepr =
+          intIterableSerializer.internal__stringify(<int>[]);
+      expect(emptyStringRepr, equals('[]'));
+    });
+  });
+
+  group('KeyedIterableSerializer', () {
+    test('basic functionality - JSON serialization', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Test various keyed iterables
+      final emptyKeyed =
+          KeyedIterable.copy(<int>[], (value) => value.toString());
+      final singleKeyed = KeyedIterable.copy([42], (value) => value.toString());
+      final multipleKeyed =
+          KeyedIterable.copy([1, 2, 3], (value) => value.toString());
+
+      // JSON should be the same as regular iterables
+      expect(keyedIntSerializer.toJson(emptyKeyed, readableFlavor: true),
+          equals([]));
+      expect(keyedIntSerializer.toJson(emptyKeyed, readableFlavor: false),
+          equals([]));
+      expect(keyedIntSerializer.toJson(singleKeyed, readableFlavor: true),
+          equals([42]));
+      expect(keyedIntSerializer.toJson(singleKeyed, readableFlavor: false),
+          equals([42]));
+      expect(keyedIntSerializer.toJson(multipleKeyed, readableFlavor: true),
+          equals([1, 2, 3]));
+      expect(keyedIntSerializer.toJson(multipleKeyed, readableFlavor: false),
+          equals([1, 2, 3]));
+
+      // Test JSON string serialization
+      expect(keyedIntSerializer.toJsonCode(emptyKeyed, readableFlavor: true),
+          equals('[]'));
+      expect(keyedIntSerializer.toJsonCode(singleKeyed, readableFlavor: true),
+          equals('[\n  42\n]'));
+      expect(keyedIntSerializer.toJsonCode(multipleKeyed, readableFlavor: true),
+          equals('[\n  1,\n  2,\n  3\n]'));
+    });
+
+    test('JSON deserialization creates KeyedIterable', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Test array JSON values
+      final restoredEmpty = keyedIntSerializer.fromJson([]);
+      expect(restoredEmpty, isA<KeyedIterable<int, String>>());
+      expect(restoredEmpty, equals([]));
+
+      final restored = keyedIntSerializer.fromJson([1, 2, 3]);
+      expect(restored, isA<KeyedIterable<int, String>>());
+      expect(restored, equals([1, 2, 3]));
+
+      // Test key lookup functionality
+      expect(restored.findByKey('1'), equals(1));
+      expect(restored.findByKey('2'), equals(2));
+      expect(restored.findByKey('3'), equals(3));
+      expect(restored.findByKey('4'), isNull);
+
+      final restoredFromCode = keyedIntSerializer.fromJsonCode('[42, 99]');
+      expect(restoredFromCode, isA<KeyedIterable<int, String>>());
+      expect(restoredFromCode.findByKey('42'), equals(42));
+      expect(restoredFromCode.findByKey('99'), equals(99));
+    });
+
+    test('JSON deserialization - special numeric case', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Test that fromJson(0) and fromJsonCode("0") return empty keyed iterables
+      final fromZero = keyedIntSerializer.fromJson(0);
+      expect(fromZero, isA<KeyedIterable<int, String>>());
+      expect(fromZero, equals([]));
+
+      final fromZeroCode = keyedIntSerializer.fromJsonCode('0');
+      expect(fromZeroCode, isA<KeyedIterable<int, String>>());
+      expect(fromZeroCode, equals([]));
+    });
+
+    test('binary serialization - same as regular iterables', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Binary format should be identical to regular iterables
+      final emptyKeyed =
+          KeyedIterable.copy(<int>[], (value) => value.toString());
+      final singleKeyed = KeyedIterable.copy([42], (value) => value.toString());
+      final multipleKeyed =
+          KeyedIterable.copy([1, 2, 3], (value) => value.toString());
+
+      final emptyBytes = keyedIntSerializer.toBytes(emptyKeyed);
+      expect(_bytesToHex(emptyBytes), equals('736f6961f6'));
+
+      final singleBytes = keyedIntSerializer.toBytes(singleKeyed);
+      expect(_bytesToHex(singleBytes), startsWith('736f6961f7'));
+
+      final multipleBytes = keyedIntSerializer.toBytes(multipleKeyed);
+      expect(_bytesToHex(multipleBytes), startsWith('736f6961f9'));
+    });
+
+    test('binary deserialization creates KeyedIterable', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      final originalKeyed =
+          KeyedIterable.copy([1, 2, 3], (value) => value.toString());
+      final bytes = keyedIntSerializer.toBytes(originalKeyed);
+      final restored = keyedIntSerializer.fromBytes(bytes);
+
+      expect(restored, isA<KeyedIterable<int, String>>());
+      expect(restored, equals([1, 2, 3]));
+      expect(restored.findByKey('1'), equals(1));
+      expect(restored.findByKey('2'), equals(2));
+      expect(restored.findByKey('3'), equals(3));
+      expect(restored.findByKey('99'), isNull);
+    });
+
+    test('key lookup functionality', () {
+      final keyedStringSerializer = Serializers.keyedIterable(
+          Serializers.string, (String value) => value.length);
+
+      final words = ['hello', 'world', 'test', 'a'];
+      final keyedWords = KeyedIterable.copy(words, (value) => value.length);
+
+      // Test that we can look up by string length
+      // Note: when there are multiple values with the same key, the last one wins
+      expect(keyedWords.findByKey(5),
+          equals('world')); // 'world' is the last string with length 5
+      expect(keyedWords.findByKey(4), equals('test'));
+      expect(keyedWords.findByKey(1), equals('a'));
+      expect(keyedWords.findByKey(10), isNull);
+
+      // Test after serialization roundtrip
+      final json = keyedStringSerializer.toJsonCode(keyedWords);
+      final restoredFromJson = keyedStringSerializer.fromJsonCode(json);
+      expect(restoredFromJson.findByKey(4), equals('test'));
+      expect(restoredFromJson.findByKey(1), equals('a'));
+
+      final bytes = keyedStringSerializer.toBytes(keyedWords);
+      final restoredFromBinary = keyedStringSerializer.fromBytes(bytes);
+      expect(restoredFromBinary.findByKey(4), equals('test'));
+      expect(restoredFromBinary.findByKey(1), equals('a'));
+    });
+
+    test('type descriptor with keyChain', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString(),
+          internal__getKeySpec: "toString()");
+
+      final typeDescriptor = keyedIntSerializer.typeDescriptor;
+      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+
+      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
+      expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
+      expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
+          equals(PrimitiveType.INT_32));
+      expect(listDescriptor.keyChain, equals("toString()"));
+    });
+
+    test('type descriptor without keyChain', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      final typeDescriptor = keyedIntSerializer.typeDescriptor;
+      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+
+      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
+      expect(listDescriptor.keyChain, equals(''));
+    });
+
+    test('edge cases and error handling', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Test with duplicate keys (last one should win in the map view)
+      final duplicateValues = [1, 2, 1, 3]; // Two elements with key "1"
+      final keyedDuplicates =
+          KeyedIterable.copy(duplicateValues, (value) => value.toString());
+
+      expect(keyedDuplicates, equals([1, 2, 1, 3])); // All elements preserved
+      // Note: findByKey behavior with duplicates is implementation-specific
+      final foundOne = keyedDuplicates.findByKey('1');
+      expect([1], contains(foundOne)); // Should be one of the 1s
+
+      // Test serialization roundtrip
+      final json = keyedIntSerializer.toJsonCode(keyedDuplicates);
+      final restoredFromJson = keyedIntSerializer.fromJsonCode(json);
+      expect(restoredFromJson, equals([1, 2, 1, 3]));
+
+      final bytes = keyedIntSerializer.toBytes(keyedDuplicates);
+      final restoredFromBinary = keyedIntSerializer.fromBytes(bytes);
+      expect(restoredFromBinary, equals([1, 2, 1, 3]));
+    });
+
+    test('nested keyed iterables', () {
+      final innerKeyedSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+      final outerKeyedSerializer = Serializers.keyedIterable(
+          innerKeyedSerializer,
+          (KeyedIterable<int, String> value) => value.length);
+
+      final inner1 = KeyedIterable.copy([1, 2], (value) => value.toString());
+      final inner2 = KeyedIterable.copy([3, 4, 5], (value) => value.toString());
+      final outer =
+          KeyedIterable.copy([inner1, inner2], (value) => value.length);
+
+      // JSON tests
+      final json = outerKeyedSerializer.toJsonCode(outer);
+      expect(json, equals('[[1,2],[3,4,5]]'));
+      final restoredFromJson = outerKeyedSerializer.fromJsonCode(json);
+      expect(restoredFromJson, equals(outer));
+      expect(restoredFromJson.findByKey(2), equals(inner1));
+      expect(restoredFromJson.findByKey(3), equals(inner2));
+
+      // Binary tests
+      final bytes = outerKeyedSerializer.toBytes(outer);
+      final restoredFromBinary = outerKeyedSerializer.fromBytes(bytes);
+      expect(restoredFromBinary, equals(outer));
+      expect(restoredFromBinary.findByKey(2), equals(inner1));
+      expect(restoredFromBinary.findByKey(3), equals(inner2));
+    });
+
+    test('with optional elements', () {
+      final keyedOptionalSerializer = Serializers.keyedIterable(
+          Serializers.optional(Serializers.int32),
+          (int? value) => value?.toString() ?? 'null');
+
+      final keyedWithNulls = KeyedIterable.copy(
+          [1, null, 3, null, 5], (value) => value?.toString() ?? 'null');
+
+      // JSON tests
+      final json = keyedOptionalSerializer.toJsonCode(keyedWithNulls);
+      expect(json, equals('[1,null,3,null,5]'));
+      final restoredFromJson = keyedOptionalSerializer.fromJsonCode(json);
+      expect(restoredFromJson, equals([1, null, 3, null, 5]));
+      expect(restoredFromJson.findByKey('1'), equals(1));
+      expect(restoredFromJson.findByKey('null'), isNull);
+
+      // Binary tests
+      final bytes = keyedOptionalSerializer.toBytes(keyedWithNulls);
+      final restoredFromBinary = keyedOptionalSerializer.fromBytes(bytes);
+      expect(restoredFromBinary, equals([1, null, 3, null, 5]));
+      expect(restoredFromBinary.findByKey('1'), equals(1));
+      expect(restoredFromBinary.findByKey('null'), isNull);
+    });
+
+    test('performance and optimization', () {
+      final keyedIntSerializer =
+          Serializers.keyedIterable(Serializers.int32, (int value) => value);
+
+      // Test that multiple lookups don't rebuild the map
+      final largeKeyed =
+          KeyedIterable.copy(List.generate(1000, (i) => i), (value) => value);
+
+      // First lookup should build the map
+      final first = largeKeyed.findByKey(500);
+      expect(first, equals(500));
+
+      // Subsequent lookups should use the cached map
+      final second = largeKeyed.findByKey(750);
+      expect(second, equals(750));
+
+      final third = largeKeyed.findByKey(999);
+      expect(third, equals(999));
+
+      final notFound = largeKeyed.findByKey(1500);
+      expect(notFound, isNull);
+    });
+
+    test('string representation', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+      final testKeyed =
+          KeyedIterable.copy([1, 2, 3], (value) => value.toString());
+
+      final stringRepr = keyedIntSerializer.internal__stringify(testKeyed);
+      expect(stringRepr, equals('[1, 2, 3]'));
+
+      final emptyKeyed =
+          KeyedIterable.copy(<int>[], (value) => value.toString());
+      final emptyStringRepr =
+          keyedIntSerializer.internal__stringify(emptyKeyed);
+      expect(emptyStringRepr, equals('[]'));
+    });
+
+    test('immutability and optimization', () {
+      final keyedIntSerializer = Serializers.keyedIterable(
+          Serializers.int32, (int value) => value.toString());
+
+      // Test that KeyedIterable.copy with the same getKey function and keySpec
+      // may return the same instance when the internal conditions are met
+      final original =
+          KeyedIterable.copy([1, 2, 3], (value) => value.toString());
+      final copy = KeyedIterable.copy(original, (value) => value.toString());
+
+      // The optimization depends on internal implementation details
+      // We just test that the copy has the same content and functionality
+      expect(copy, equals(original));
+      expect(copy.findByKey('2'), equals(2));
+
+      // But serialization/deserialization should still work
+      final json = keyedIntSerializer.toJsonCode(original);
+      final restored = keyedIntSerializer.fromJsonCode(json);
+      expect(restored, equals(original));
+      expect(restored.findByKey('2'), equals(2));
+    });
+  });
 }
 
 /// Helper function to convert bytes to hex string

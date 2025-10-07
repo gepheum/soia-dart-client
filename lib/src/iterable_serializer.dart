@@ -35,7 +35,13 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   void encode(Iterable<E> input, Uint8Buffer buffer) {
-    _BinaryWriter.encodeLengthPrefix(input.length, buffer);
+    final length = input.length;
+    if (length <= 3) {
+      buffer.add(246 + length);
+    } else {
+      buffer.add(250);
+      _BinaryWriter.encodeLengthPrefix(input.length, buffer);
+    }
     for (final element in input) {
       item.encode(element, buffer);
     }
@@ -43,19 +49,20 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   Collection decode(_ByteStream stream, bool keepUnrecognizedFields) {
-    final wire = stream.peekByte();
+    final wire = stream.readByte();
     if (wire == 0 || wire == 246) {
-      stream.position++;
       return emptyCollection;
     }
     late final int length;
     if (247 <= wire && wire <= 249) {
       length = wire - 246;
-    } else {
+    } else if (wire == 250) {
       length = stream.decodeNumber().toInt();
       if (length <= 0) {
         return emptyCollection;
       }
+    } else {
+      throw ArgumentError('Expected: list; wire: $wire');
     }
     final first = item.decode(stream, keepUnrecognizedFields);
     final result = List.filled(length, first, growable: false);
