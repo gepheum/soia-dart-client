@@ -843,19 +843,28 @@ void main() {
       // Test empty string - should be the same in both readable and dense flavors
       expect(Serializers.string.toJson('', readableFlavor: true), equals(''));
       expect(Serializers.string.toJson('', readableFlavor: false), equals(''));
-      expect(Serializers.string.toJsonCode('', readableFlavor: true), equals('""'));
-      expect(Serializers.string.toJsonCode('', readableFlavor: false), equals('""'));
+      expect(Serializers.string.toJsonCode('', readableFlavor: true),
+          equals('""'));
+      expect(Serializers.string.toJsonCode('', readableFlavor: false),
+          equals('""'));
 
       // Test simple strings
-      expect(Serializers.string.toJson('hello', readableFlavor: true), equals('hello'));
-      expect(Serializers.string.toJson('hello', readableFlavor: false), equals('hello'));
-      expect(Serializers.string.toJsonCode('hello', readableFlavor: true), equals('"hello"'));
-      expect(Serializers.string.toJsonCode('hello', readableFlavor: false), equals('"hello"'));
+      expect(Serializers.string.toJson('hello', readableFlavor: true),
+          equals('hello'));
+      expect(Serializers.string.toJson('hello', readableFlavor: false),
+          equals('hello'));
+      expect(Serializers.string.toJsonCode('hello', readableFlavor: true),
+          equals('"hello"'));
+      expect(Serializers.string.toJsonCode('hello', readableFlavor: false),
+          equals('"hello"'));
 
       // Test special characters
-      expect(Serializers.string.toJson('Hello, 世界!', readableFlavor: true), equals('Hello, 世界!'));
-      expect(Serializers.string.toJson('🚀', readableFlavor: true), equals('🚀'));
-      expect(Serializers.string.toJson('\n\t\r', readableFlavor: true), equals('\n\t\r'));
+      expect(Serializers.string.toJson('Hello, 世界!', readableFlavor: true),
+          equals('Hello, 世界!'));
+      expect(
+          Serializers.string.toJson('🚀', readableFlavor: true), equals('🚀'));
+      expect(Serializers.string.toJson('\n\t\r', readableFlavor: true),
+          equals('\n\t\r'));
     });
 
     test('JSON deserialization - string values', () {
@@ -866,10 +875,11 @@ void main() {
       expect(Serializers.string.fromJson('Hello, 世界!'), equals('Hello, 世界!'));
       expect(Serializers.string.fromJson('🚀'), equals('🚀'));
       expect(Serializers.string.fromJson('\n\t\r'), equals('\n\t\r'));
-      
+
       expect(Serializers.string.fromJsonCode('""'), equals(''));
       expect(Serializers.string.fromJsonCode('"hello"'), equals('hello'));
-      expect(Serializers.string.fromJsonCode('"Hello, 世界!"'), equals('Hello, 世界!'));
+      expect(Serializers.string.fromJsonCode('"Hello, 世界!"'),
+          equals('Hello, 世界!'));
       expect(Serializers.string.fromJsonCode('"🚀"'), equals('🚀'));
     });
 
@@ -877,7 +887,7 @@ void main() {
       // Test special case: numeric 0 should deserialize to empty string
       expect(Serializers.string.fromJson(0), equals(''));
       expect(Serializers.string.fromJsonCode('0'), equals(''));
-      
+
       // Other numbers should be converted to string
       expect(Serializers.string.fromJson(42), equals('42'));
       expect(Serializers.string.fromJson(3.14), equals('3.14'));
@@ -891,7 +901,8 @@ void main() {
       expect(Serializers.string.fromJson(false), equals('false'));
       expect(Serializers.string.fromJson(null), equals('null'));
       expect(Serializers.string.fromJson([1, 2, 3]), equals('[1, 2, 3]'));
-      expect(Serializers.string.fromJson({'key': 'value'}), equals('{key: value}'));
+      expect(Serializers.string.fromJson({'key': 'value'}),
+          equals('{key: value}'));
     });
 
     test('binary serialization - empty string optimization', () {
@@ -901,7 +912,8 @@ void main() {
 
       // Test non-empty strings use standard encoding (wire code 243/0xF3)
       final nonEmptyBytes = Serializers.string.toBytes('A');
-      expect(_bytesToHex(nonEmptyBytes), startsWith('736f6961f3')); // "soia" + 0xF3 + length + data
+      expect(_bytesToHex(nonEmptyBytes),
+          startsWith('736f6961f3')); // "soia" + 0xF3 + length + data
     });
 
     test('binary deserialization roundtrip', () {
@@ -941,67 +953,88 @@ void main() {
     test('basic functionality - JSON serialization', () {
       // Test empty bytes - should be base64 encoded
       final emptyBytes = Uint8List(0);
-      expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: true), equals(''));
-      expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: false), equals(''));
-      expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: true), equals('""'));
-      expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: false), equals('""'));
+      expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: true),
+          equals(''));
+      expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: false),
+          equals(''));
+      expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: true),
+          equals('""'));
+      expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: false),
+          equals('""'));
 
       // Test simple byte arrays
       final helloBytes = Uint8List.fromList('hello'.codeUnits);
       final helloBase64 = base64Encode(helloBytes);
-      expect(Serializers.bytes.toJson(helloBytes, readableFlavor: true), equals(helloBase64));
-      expect(Serializers.bytes.toJson(helloBytes, readableFlavor: false), equals(helloBase64));
-      expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: true), equals('"$helloBase64"'));
-      expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: false), equals('"$helloBase64"'));
+      expect(Serializers.bytes.toJson(helloBytes, readableFlavor: true),
+          equals(helloBase64));
+      expect(Serializers.bytes.toJson(helloBytes, readableFlavor: false),
+          equals(helloBase64));
+      expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: true),
+          equals('"$helloBase64"'));
+      expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: false),
+          equals('"$helloBase64"'));
 
       // Test UTF-8 encoded bytes
       final utf8Bytes = Uint8List.fromList(utf8.encode('Hello, 世界!'));
       final utf8Base64 = base64Encode(utf8Bytes);
-      expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: true), equals(utf8Base64));
-      expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: false), equals(utf8Base64));
+      expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: true),
+          equals(utf8Base64));
+      expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: false),
+          equals(utf8Base64));
     });
 
     test('JSON deserialization - base64 string values', () {
       // Test base64 string JSON values
       expect(Serializers.bytes.fromJson(''), equals(Uint8List(0)));
-      
+
       final helloBytes = Uint8List.fromList('hello'.codeUnits);
       final helloBase64 = base64Encode(helloBytes);
       expect(Serializers.bytes.fromJson(helloBase64), equals(helloBytes));
-      expect(Serializers.bytes.fromJsonCode('"$helloBase64"'), equals(helloBytes));
-      
+      expect(
+          Serializers.bytes.fromJsonCode('"$helloBase64"'), equals(helloBytes));
+
       final utf8Bytes = Uint8List.fromList(utf8.encode('Hello, 世界!'));
       final utf8Base64 = base64Encode(utf8Bytes);
       expect(Serializers.bytes.fromJson(utf8Base64), equals(utf8Bytes));
-      expect(Serializers.bytes.fromJsonCode('"$utf8Base64"'), equals(utf8Bytes));
-      
+      expect(
+          Serializers.bytes.fromJsonCode('"$utf8Base64"'), equals(utf8Bytes));
+
       // Test binary data
       final binaryBytes = Uint8List.fromList([0, 255, 128, 64, 32]);
       final binaryBase64 = base64Encode(binaryBytes);
       expect(Serializers.bytes.fromJson(binaryBase64), equals(binaryBytes));
-      expect(Serializers.bytes.fromJsonCode('"$binaryBase64"'), equals(binaryBytes));
+      expect(Serializers.bytes.fromJsonCode('"$binaryBase64"'),
+          equals(binaryBytes));
     });
 
     test('JSON deserialization - special numeric case', () {
       // Test special case: numeric 0 should deserialize to empty bytes
       expect(Serializers.bytes.fromJson(0), equals(Uint8List(0)));
       expect(Serializers.bytes.fromJsonCode('0'), equals(Uint8List(0)));
-      
+
       // Other numbers should cause ArgumentError (since they're not valid base64)
-      expect(() => Serializers.bytes.fromJson(42), throwsA(isA<ArgumentError>()));
-      expect(() => Serializers.bytes.fromJsonCode('42'), throwsA(isA<ArgumentError>()));
+      expect(
+          () => Serializers.bytes.fromJson(42), throwsA(isA<ArgumentError>()));
+      expect(() => Serializers.bytes.fromJsonCode('42'),
+          throwsA(isA<ArgumentError>()));
     });
 
     test('JSON deserialization - invalid values', () {
       // Test that invalid base64 strings cause errors
-      expect(() => Serializers.bytes.fromJson('invalid-base64!'), throwsA(isA<FormatException>()));
-      expect(() => Serializers.bytes.fromJsonCode('"invalid-base64!"'), throwsA(isA<FormatException>()));
-      
+      expect(() => Serializers.bytes.fromJson('invalid-base64!'),
+          throwsA(isA<FormatException>()));
+      expect(() => Serializers.bytes.fromJsonCode('"invalid-base64!"'),
+          throwsA(isA<FormatException>()));
+
       // Test that non-string, non-zero values cause ArgumentError
-      expect(() => Serializers.bytes.fromJson(true), throwsA(isA<ArgumentError>()));
-      expect(() => Serializers.bytes.fromJson(false), throwsA(isA<ArgumentError>()));
-      expect(() => Serializers.bytes.fromJson([1, 2, 3]), throwsA(isA<ArgumentError>()));
-      expect(() => Serializers.bytes.fromJson({'key': 'value'}), throwsA(isA<ArgumentError>()));
+      expect(() => Serializers.bytes.fromJson(true),
+          throwsA(isA<ArgumentError>()));
+      expect(() => Serializers.bytes.fromJson(false),
+          throwsA(isA<ArgumentError>()));
+      expect(() => Serializers.bytes.fromJson([1, 2, 3]),
+          throwsA(isA<ArgumentError>()));
+      expect(() => Serializers.bytes.fromJson({'key': 'value'}),
+          throwsA(isA<ArgumentError>()));
     });
 
     test('binary serialization - empty bytes optimization', () {
@@ -1013,7 +1046,8 @@ void main() {
       // Test non-empty bytes use standard encoding (wire code 245/0xF5)
       final nonEmptyBytes = Uint8List.fromList([65]); // 'A'
       final nonEmptyBinary = Serializers.bytes.toBytes(nonEmptyBytes);
-      expect(_bytesToHex(nonEmptyBinary), startsWith('736f6961f5')); // "soia" + 0xF5 + length + data
+      expect(_bytesToHex(nonEmptyBinary),
+          startsWith('736f6961f5')); // "soia" + 0xF5 + length + data
     });
 
     test('binary deserialization roundtrip', () {
@@ -1025,7 +1059,8 @@ void main() {
         Uint8List.fromList([0, 255]), // min and max
         Uint8List.fromList('hello'.codeUnits), // ASCII string
         Uint8List.fromList(utf8.encode('Hello, 世界!')), // UTF-8 string
-        Uint8List.fromList([0, 1, 2, 3, 4, 5, 252, 253, 254, 255]), // various values
+        Uint8List.fromList(
+            [0, 1, 2, 3, 4, 5, 252, 253, 254, 255]), // various values
         Uint8List.fromList(List.generate(256, (i) => i)), // all byte values
         Uint8List.fromList(List.generate(1000, (i) => i % 256)), // larger array
       ];
