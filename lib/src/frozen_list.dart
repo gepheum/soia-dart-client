@@ -5,16 +5,18 @@ class _FrozenList<E> extends UnmodifiableListView<E> {
 }
 
 sealed class KeyedIterable<E, K> implements Iterable<E> {
-  factory KeyedIterable.empty() {
-    return _EmptyFrozenList();
-  }
+  factory KeyedIterable.empty() => _EmptyFrozenList();
 
   factory KeyedIterable.copy(Iterable<E> elements, K Function(E) getKey) {
-    return KeyedIterable.internalCopy(elements, '', (it) => it, getKey);
+    return KeyedIterable.internal__copy(elements, '', (it) => it, getKey);
   }
 
-  static KeyedIterable<E, K> internalCopy<E, K, M>(Iterable<M> elements,
-      String getKeySpec, E Function(M) toFrozen, K Function(E) getKey) {
+  static KeyedIterable<E, K> internal__copy<E, K, M>(
+    Iterable<M> elements,
+    String getKeySpec,
+    E Function(M) toFrozen,
+    K Function(E) getKey,
+  ) {
     if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
       if (keyedIterable._getKeySpec == getKeySpec &&
           keyedIterable._getKey == getKey) {
@@ -55,7 +57,7 @@ class _EmptyFrozenList<E, K> extends _FrozenList<E>
   E? findByKey(K key) => null;
 }
 
-Iterable<E> internalFrozenCopy<E>(Iterable<E> elements) {
+Iterable<E> internal__frozenCopy<E>(Iterable<E> elements) {
   if (elements case final _FrozenList<E> frozenList) {
     return frozenList;
   } else {

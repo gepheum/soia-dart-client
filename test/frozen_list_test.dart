@@ -206,13 +206,13 @@ void main() {
         final keyed = KeyedIterable.copy(elements, (e) => e.length);
 
         // internalFrozenCopy should reuse the same frozen list
-        final frozen = internalFrozenCopy(keyed);
+        final frozen = internal__frozenCopy(keyed);
         expect(identical(keyed, frozen), isTrue);
       });
 
       test('creates new frozen list from regular iterable', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final frozen = internalFrozenCopy(elements);
+        final frozen = internal__frozenCopy(elements);
 
         expect(frozen, isNot(same(elements)));
         expect(frozen.toList(), equals(elements));

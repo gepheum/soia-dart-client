@@ -50,12 +50,20 @@ class Serializers {
     }
   }
 
-  /// Creates a serializer for lists of elements of type [E].
+  /// Creates a serializer for iterables of elements of type [E].
   ///
-  /// [item] The serializer for individual list elements
-  /// Returns a serializer that can handle lists of the given element type
-  static Serializer<List<E>> list<E>(Serializer<E> item) {
-    const getKeySpec = "";
-    return Serializer._(_ListSerializer<E>(item._impl, getKeySpec));
+  /// [item] The serializer for individual iterable elements
+  /// Returns a serializer that can handle iterables of the given element type
+  static Serializer<Iterable<E>> iterable<E>(Serializer<E> item) {
+    return Serializer._(_IterableSerializer.iterable(item._impl));
+  }
+
+  static Serializer<KeyedIterable<E, K>> keyedIterable<E, K>(
+    Serializer<E> item,
+    K Function(E) getKey, {
+    String internal__getKeySpec = "",
+  }) {
+    return Serializer._(_IterableSerializer.keyedIterable(
+        item._impl, internal__getKeySpec, getKey));
   }
 }

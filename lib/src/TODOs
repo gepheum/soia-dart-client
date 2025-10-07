@@ -1,4 +1,5 @@
 // TODO: internalToString
 //   TODO: make sure matches generated code
-// TODO: s/internal/internal__
+// TODO: generate doc
+// TODO: finish documenting
 // TODO: add unit tests

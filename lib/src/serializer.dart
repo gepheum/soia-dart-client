@@ -119,7 +119,7 @@ class Serializer<T> {
   ///
   /// [input] The object to convert to string
   /// Returns a formatted string representation
-  String internalToString(T input) {
+  String internal__stringify(T input) {
     final stringBuffer = StringBuffer();
     _impl.appendString(input, stringBuffer, '\n');
     return stringBuffer.toString();

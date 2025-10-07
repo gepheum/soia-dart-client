@@ -9,7 +9,7 @@ import 'package:typed_data/typed_buffers.dart';
 part 'src/binary_utils.dart';
 part 'src/enum_serializer.dart';
 part 'src/frozen_list.dart';
-part 'src/list_serializer.dart';
+part 'src/iterable_serializer.dart';
 part 'src/optional_serializer.dart';
 part 'src/primitive_serializers.dart';
 part 'src/record_id.dart';
