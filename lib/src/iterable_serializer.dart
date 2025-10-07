@@ -29,12 +29,11 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  Collection decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final length = reader.decodeNumber().toInt();
+  Collection decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final length = stream.decodeNumber().toInt();
     final result = <E>[];
     for (int i = 0; i < length; i++) {
-      result.add(item.decode(reader.remainingBytes, keepUnrecognizedFields));
+      result.add(item.decode(stream, keepUnrecognizedFields));
     }
     return toCollection(result);
   }

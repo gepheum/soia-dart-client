@@ -99,7 +99,8 @@ class Serializer<T> {
         bytes[2] == 'i'.codeUnitAt(0) &&
         bytes[3] == 'a'.codeUnitAt(0)) {
       final data = bytes.sublist(4);
-      final result = _impl.decode(data, keepUnrecognizedFields);
+      final stream = _ByteStream(Uint8Buffer()..addAll(data));
+      final result = _impl.decode(stream, keepUnrecognizedFields);
       return result;
     } else {
       // Fallback to JSON if no "soia" header
@@ -126,6 +127,129 @@ class Serializer<T> {
   }
 }
 
+class _ByteStream {
+  final Uint8Buffer buffer;
+  int position = 0;
+
+  _ByteStream(this.buffer);
+
+  int readByte() {
+    if (position >= buffer.length) {
+      throw StateError('Buffer underflow');
+    }
+    return buffer[position++];
+  }
+
+  Uint8List readBytes(int count) {
+    if (position + count > buffer.length) {
+      throw StateError('Buffer underflow');
+    }
+    final result = buffer.buffer.asUint8List(position, count);
+    position += count;
+    return result;
+  }
+
+  Uint8List get remainingBytes {
+    return buffer.buffer.asUint8List(position, buffer.length - position);
+  }
+
+  num decodeNumber() {
+    final wire = readByte();
+
+    if (wire < 232) {
+      return wire;
+    }
+
+    switch (wire) {
+      case 232:
+        return _readShortLe();
+      case 233:
+        return _readIntLe();
+      case 234:
+        return _readLongLe();
+      case 235:
+        return _readSignedByte();
+      case 236:
+        return _readSignedShortLe();
+      case 237:
+        return _readSignedIntLe();
+      case 238:
+      case 239:
+        return _readSignedLongLe();
+      case 240:
+        return _readFloatLe();
+      case 241:
+        return _readDoubleLe();
+      default:
+        throw ArgumentError('Unsupported wire type: $wire');
+    }
+  }
+
+  int _readShortLe() {
+    final b1 = readByte();
+    final b2 = readByte();
+    return b1 | (b2 << 8);
+  }
+
+  int _readIntLe() {
+    final b1 = readByte();
+    final b2 = readByte();
+    final b3 = readByte();
+    final b4 = readByte();
+    return b1 | (b2 << 8) | (b3 << 16) | (b4 << 24);
+  }
+
+  int _readLongLe() {
+    final b1 = readByte();
+    final b2 = readByte();
+    final b3 = readByte();
+    final b4 = readByte();
+    final b5 = readByte();
+    final b6 = readByte();
+    final b7 = readByte();
+    final b8 = readByte();
+    return b1 |
+        (b2 << 8) |
+        (b3 << 16) |
+        (b4 << 24) |
+        (b5 << 32) |
+        (b6 << 40) |
+        (b7 << 48) |
+        (b8 << 56);
+  }
+
+  int _readSignedByte() {
+    final value = readByte();
+    return value > 127 ? value - 256 : value;
+  }
+
+  int _readSignedShortLe() {
+    final value = _readShortLe();
+    return value > 32767 ? value - 65536 : value;
+  }
+
+  int _readSignedIntLe() {
+    final value = _readIntLe();
+    return value > 2147483647 ? value - 4294967296 : value;
+  }
+
+  int _readSignedLongLe() {
+    return _readLongLe(); // Dart's int is already signed
+  }
+
+  double _readFloatLe() {
+    final bytes = readBytes(4);
+    final byteData = ByteData.sublistView(bytes);
+    return byteData.getFloat32(0, Endian.little);
+  }
+
+  double _readDoubleLe() {
+    final bytes = readBytes(8);
+    final byteData = ByteData.sublistView(bytes);
+    return byteData.getFloat64(0, Endian.little);
+  }
+}
+
 /// Internal implementation base class for serializers
 abstract class _SerializerImpl<T> {
   /// Checks if a value is the default value for this type
@@ -141,7 +265,7 @@ abstract class _SerializerImpl<T> {
   void encode(T input, Uint8Buffer buffer);
 
   /// Decodes an object from binary format
-  T decode(Uint8List buffer, bool keepUnrecognizedFields);
+  T decode(_ByteStream stream, bool keepUnrecognizedFields);
 
   /// Appends a string representation of the object to the output buffer
   void appendString(T input, StringBuffer out, String eolIndent);

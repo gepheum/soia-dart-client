@@ -18,11 +18,13 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  T? decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    if (buffer.isNotEmpty && buffer[0] == 255) {
+  T? decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    if (stream.position < stream.buffer.length &&
+        stream.buffer[stream.position] == 255) {
+      stream.readByte(); // consume the 255 byte
       return null;
     } else {
-      return other.decode(buffer, keepUnrecognizedFields);
+      return other.decode(stream, keepUnrecognizedFields);
     }
   }
 

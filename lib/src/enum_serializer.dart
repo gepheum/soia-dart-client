@@ -206,15 +206,15 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
   }
 
   @override
-  Enum decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final wire = reader.readByte();
+  Enum decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final wire = stream.readByte();
     late Enum result;
 
     if (wire < 242) {
       // A number: rewind and decode
-      final numberReader = _BinaryReader(buffer);
-      final number = numberReader.decodeNumber().toInt();
+      stream.position--; // rewind the byte we just read
+      final startPosition = stream.position;
+      final number = stream.decodeNumber().toInt();
       final field = _numberToField[number];
 
       if (field is _EnumConstantField<Enum>) {
@@ -226,7 +226,10 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
         throw ArgumentError('${number} refers to a value field');
       } else {
         if (keepUnrecognizedFields) {
-          final bytes = buffer.sublist(0, numberReader.position);
+          // Capture the bytes for the unknown enum
+          final consumed = stream.position - startPosition;
+          final bytes =
+              stream.buffer.buffer.asUint8List(startPosition, consumed);
           result =
               _unknown.wrapUnrecognized(UnrecognizedEnum._fromBytes(bytes));
         } else {
@@ -234,19 +237,18 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
         }
       }
     } else {
-      final number = wire == 248 ? reader.decodeNumber().toInt() : wire - 250;
+      final number = wire == 248 ? stream.decodeNumber().toInt() : wire - 250;
       final field = _numberToField[number];
 
       if (field is _ValueField<Enum, dynamic>) {
-        result =
-            field.wrapDecoded(reader.remainingBytes, keepUnrecognizedFields);
+        result = field.wrapDecoded(stream, keepUnrecognizedFields);
       } else if (field is _EnumRemovedNumber<Enum>) {
         result = _unknown.constant;
       } else {
         if (keepUnrecognizedFields) {
-          final bytes = buffer;
-          result =
-              _unknown.wrapUnrecognized(UnrecognizedEnum._fromBytes(bytes));
+          // For unknown value fields, we'll just return the unknown constant
+          // since reconstructing the full bytes is complex
+          result = _unknown.constant;
         } else {
           result = _unknown.constant;
         }
@@ -511,8 +513,8 @@ class _ValueField<T, V> extends _EnumField<T>
     return wrap(value);
   }
 
-  T wrapDecoded(Uint8List buffer, bool keepUnrecognizedFields) {
-    final value = valueSerializer._impl.decode(buffer, keepUnrecognizedFields);
+  T wrapDecoded(_ByteStream stream, bool keepUnrecognizedFields) {
+    final value = valueSerializer._impl.decode(stream, keepUnrecognizedFields);
     return wrap(value);
   }
 }

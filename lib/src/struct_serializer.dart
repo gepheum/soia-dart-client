@@ -83,8 +83,8 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   }
 
   void decodeValue(
-      Mutable mutable, Uint8List buffer, bool keepUnrecognizedFields) {
-    final value = serializer._impl.decode(buffer, keepUnrecognizedFields);
+      Mutable mutable, _ByteStream stream, bool keepUnrecognizedFields) {
+    final value = serializer._impl.decode(stream, keepUnrecognizedFields);
     setter(mutable, value);
   }
 
@@ -337,25 +337,23 @@ class _StructSerializerImpl<Frozen, Mutable>
   }
 
   @override
-  Frozen decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final wire = reader.readByte();
+  Frozen decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final wire = stream.readByte();
     if (wire == 0 || wire == 246) {
       return defaultInstance;
     }
     final mutable = newMutableFn(null);
     final encodedSlotCount =
-        wire == 250 ? reader.decodeNumber().toInt() : wire - 246;
+        wire == 250 ? stream.decodeNumber().toInt() : wire - 246;
 
     // Do not read more slots than the number of recognized slots
     for (int i = 0; i < encodedSlotCount && i < _recognizedSlotCount; i++) {
       final field = _slotToField[i];
       if (field != null) {
-        field.decodeValue(
-            mutable, reader.remainingBytes, keepUnrecognizedFields);
+        field.decodeValue(mutable, stream, keepUnrecognizedFields);
       } else {
         // The field was removed
-        _decodeUnused(reader);
+        _decodeUnused(stream);
       }
     }
     if (encodedSlotCount > _recognizedSlotCount) {
@@ -363,7 +361,7 @@ class _StructSerializerImpl<Frozen, Mutable>
       if (keepUnrecognizedFields) {
         final unrecognizedBuffer = Uint8Buffer();
         for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
-          _decodeUnused(reader);
+          _decodeUnused(stream);
           // In a real implementation, we'd capture the bytes
         }
         final unrecognizedFields = UnrecognizedFields<Frozen>._fromBytes(
@@ -373,16 +371,16 @@ class _StructSerializerImpl<Frozen, Mutable>
         setUnrecognizedFields(mutable, unrecognizedFields);
       } else {
         for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
-          _decodeUnused(reader);
+          _decodeUnused(stream);
         }
       }
     }
     return toFrozenFn(mutable);
   }
 
-  void _decodeUnused(_BinaryReader reader) {
+  void _decodeUnused(_ByteStream stream) {
     // Decode and discard a value
-    reader.decodeNumber();
+    stream.decodeNumber();
   }
 
   @override

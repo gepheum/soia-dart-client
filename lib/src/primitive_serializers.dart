@@ -23,9 +23,8 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
   }
 
   @override
-  bool decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toInt() != 0;
+  bool decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toInt() != 0;
   }
 
   @override
@@ -65,9 +64,8 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toInt();
+  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toInt();
   }
 
   @override
@@ -114,9 +112,8 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toInt();
+  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toInt();
   }
 
   @override
@@ -174,9 +171,8 @@ class Uint64Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toInt();
+  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toInt();
   }
 
   @override
@@ -226,9 +222,8 @@ class _Float32Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toDouble();
+  double decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toDouble();
   }
 
   @override
@@ -279,9 +274,8 @@ class _Float64Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    return reader.decodeNumber().toDouble();
+  double decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    return stream.decodeNumber().toDouble();
   }
 
   @override
@@ -334,15 +328,16 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
   }
 
   @override
-  String decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final wire = reader.readByte();
+  String decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final wire = stream.readByte();
     if (wire == 242) {
       return '';
-    } else {
-      final length = reader.decodeNumber().toInt();
-      final bytes = reader.readBytes(length);
+    } else if (wire == 243) {
+      final length = stream.decodeNumber().toInt();
+      final bytes = stream.readBytes(length);
       return utf8.decode(bytes);
+    } else {
+      throw ArgumentError('Unexpected wire type for string: $wire');
     }
   }
 
@@ -422,14 +417,13 @@ class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
   }
 
   @override
-  Uint8List decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final wire = reader.readByte();
+  Uint8List decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final wire = stream.readByte();
     if (wire == 0 || wire == 244) {
       return Uint8List(0);
     } else {
-      final length = reader.decodeNumber().toInt();
-      return reader.readBytes(length);
+      final length = stream.decodeNumber().toInt();
+      return stream.readBytes(length);
     }
   }
 
@@ -482,9 +476,8 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   }
 
   @override
-  DateTime decode(Uint8List buffer, bool keepUnrecognizedFields) {
-    final reader = _BinaryReader(buffer);
-    final unixMillis = _clampUnixMillis(reader.decodeNumber().toInt());
+  DateTime decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final unixMillis = _clampUnixMillis(stream.decodeNumber().toInt());
     return DateTime.fromMillisecondsSinceEpoch(unixMillis, isUtc: true);
   }
 
