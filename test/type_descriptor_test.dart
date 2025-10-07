@@ -61,14 +61,16 @@ void main() {
       expect(optional.otherType, equals(innerType));
     });
 
-    test('notReflective converts correctly for primitive inner types', () {
+    test('notReflective works', () {
       final innerType = PrimitiveDescriptor(PrimitiveType.BYTES);
       final reflectiveOptional = ReflectiveOptionalDescriptor(innerType);
       final notReflective = reflectiveOptional.notReflective;
 
       // Since primitive notReflective returns itself,
       // the ReflectiveOptionalDescriptor.notReflective should return the primitive directly
-      expect(notReflective, equals(innerType));
+      expect(notReflective, isA<OptionalDescriptor>());
+      expect(
+          (notReflective as OptionalDescriptor).otherType, equals(innerType));
     });
   });
 

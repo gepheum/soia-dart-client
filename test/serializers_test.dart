@@ -1093,21 +1093,29 @@ void main() {
       expect(intOptional.toJsonCode(42, readableFlavor: true), equals('42'));
       expect(intOptional.toJsonCode(42, readableFlavor: false), equals('42'));
 
-      expect(stringOptional.toJson('hello', readableFlavor: true), equals('hello'));
-      expect(stringOptional.toJson('hello', readableFlavor: false), equals('hello'));
-      expect(stringOptional.toJsonCode('hello', readableFlavor: true), equals('"hello"'));
-      expect(stringOptional.toJsonCode('hello', readableFlavor: false), equals('"hello"'));
+      expect(stringOptional.toJson('hello', readableFlavor: true),
+          equals('hello'));
+      expect(stringOptional.toJson('hello', readableFlavor: false),
+          equals('hello'));
+      expect(stringOptional.toJsonCode('hello', readableFlavor: true),
+          equals('"hello"'));
+      expect(stringOptional.toJsonCode('hello', readableFlavor: false),
+          equals('"hello"'));
 
       // Test null values - should be null in both flavors
       expect(intOptional.toJson(null, readableFlavor: true), equals(null));
       expect(intOptional.toJson(null, readableFlavor: false), equals(null));
-      expect(intOptional.toJsonCode(null, readableFlavor: true), equals('null'));
-      expect(intOptional.toJsonCode(null, readableFlavor: false), equals('null'));
+      expect(
+          intOptional.toJsonCode(null, readableFlavor: true), equals('null'));
+      expect(
+          intOptional.toJsonCode(null, readableFlavor: false), equals('null'));
 
       expect(stringOptional.toJson(null, readableFlavor: true), equals(null));
       expect(stringOptional.toJson(null, readableFlavor: false), equals(null));
-      expect(stringOptional.toJsonCode(null, readableFlavor: true), equals('null'));
-      expect(stringOptional.toJsonCode(null, readableFlavor: false), equals('null'));
+      expect(stringOptional.toJsonCode(null, readableFlavor: true),
+          equals('null'));
+      expect(stringOptional.toJsonCode(null, readableFlavor: false),
+          equals('null'));
     });
 
     test('JSON deserialization - non-null values', () {
@@ -1165,7 +1173,8 @@ void main() {
 
       // Test non-null values use underlying serializer encoding
       final nonNullBytes = intOptional.toBytes(42);
-      expect(_bytesToHex(nonNullBytes), equals('736f69612a')); // "soia" + int32(42)
+      expect(_bytesToHex(nonNullBytes),
+          equals('736f69612a')); // "soia" + int32(42)
     });
 
     test('binary deserialization roundtrip', () {
@@ -1186,8 +1195,16 @@ void main() {
         (boolOptional, false, null),
         (bytesOptional, Uint8List.fromList([1, 2, 3]), null),
         (bytesOptional, Uint8List(0), null),
-        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), null),
-        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(0, isUtc: true), null),
+        (
+          timestampOptional,
+          DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+          null
+        ),
+        (
+          timestampOptional,
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+          null
+        ),
       ];
 
       for (final (serializer, nonNullValue, nullValue) in testValues) {
@@ -1211,8 +1228,10 @@ void main() {
 
       // Test bool flavor differences (dense vs readable)
       final testBool = true;
-      final denseBoolJson = boolOptional.toJsonCode(testBool, readableFlavor: false);
-      final readableBoolJson = boolOptional.toJsonCode(testBool, readableFlavor: true);
+      final denseBoolJson =
+          boolOptional.toJsonCode(testBool, readableFlavor: false);
+      final readableBoolJson =
+          boolOptional.toJsonCode(testBool, readableFlavor: true);
       expect(denseBoolJson, equals('1')); // Dense should be "1"
       expect(readableBoolJson, equals('true')); // Readable should be "true"
 
@@ -1221,9 +1240,12 @@ void main() {
       expect(boolOptional.fromJsonCode(readableBoolJson), equals(testBool));
 
       // Test timestamp flavor differences
-      final testTimestamp = DateTime.fromMillisecondsSinceEpoch(1756117845000, isUtc: true);
-      final denseTimestampJson = timestampOptional.toJsonCode(testTimestamp, readableFlavor: false);
-      final readableTimestampJson = timestampOptional.toJsonCode(testTimestamp, readableFlavor: true);
+      final testTimestamp =
+          DateTime.fromMillisecondsSinceEpoch(1756117845000, isUtc: true);
+      final denseTimestampJson =
+          timestampOptional.toJsonCode(testTimestamp, readableFlavor: false);
+      final readableTimestampJson =
+          timestampOptional.toJsonCode(testTimestamp, readableFlavor: true);
 
       // Dense should be a number, readable should be an object
       expect(denseTimestampJson, equals('1756117845000'));
@@ -1231,8 +1253,10 @@ void main() {
       expect(readableTimestampJson, contains('formatted'));
 
       // Both should roundtrip correctly
-      expect(timestampOptional.fromJsonCode(denseTimestampJson), equals(testTimestamp));
-      expect(timestampOptional.fromJsonCode(readableTimestampJson), equals(testTimestamp));
+      expect(timestampOptional.fromJsonCode(denseTimestampJson),
+          equals(testTimestamp));
+      expect(timestampOptional.fromJsonCode(readableTimestampJson),
+          equals(testTimestamp));
 
       // Test null with different flavors (should always be "null")
       final nullDense = boolOptional.toJsonCode(null, readableFlavor: false);
@@ -1251,10 +1275,14 @@ void main() {
 
       // Test functionality is preserved
       final testValue = 123;
-      expect(intOptional.fromJsonCode(intOptional.toJsonCode(testValue)), equals(testValue));
-      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(testValue)), equals(testValue));
-      expect(intOptional.fromJsonCode(intOptional.toJsonCode(null)), equals(null));
-      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(null)), equals(null));
+      expect(intOptional.fromJsonCode(intOptional.toJsonCode(testValue)),
+          equals(testValue));
+      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(testValue)),
+          equals(testValue));
+      expect(
+          intOptional.fromJsonCode(intOptional.toJsonCode(null)), equals(null));
+      expect(doubleOptional.fromJsonCode(doubleOptional.toJsonCode(null)),
+          equals(null));
 
       // Binary serialization should also work the same
       final testBytes = intOptional.toBytes(testValue);
@@ -1268,13 +1296,14 @@ void main() {
     test('type descriptor', () {
       final intOptional = Serializers.optional(Serializers.int32);
       final typeDescriptor = intOptional.typeDescriptor;
-      
+
       expect(typeDescriptor, isA<ReflectiveOptionalDescriptor>());
 
       final optionalDescriptor = typeDescriptor as ReflectiveOptionalDescriptor;
       expect(optionalDescriptor.otherType, isA<PrimitiveDescriptor>());
-      
-      final innerDescriptor = optionalDescriptor.otherType as PrimitiveDescriptor;
+
+      final innerDescriptor =
+          optionalDescriptor.otherType as PrimitiveDescriptor;
       expect(innerDescriptor.primitiveType, equals(PrimitiveType.INT_32));
     });
 
@@ -1306,8 +1335,18 @@ void main() {
       // Test edge case values that could be confused with null
       final testCases = [
         (intOptional, [0, -1, 2147483647, -2147483648]), // int32 edge cases
-        (stringOptional, ['', '0', 'false', 'null', 'undefined']), // string edge cases
-        (bytesOptional, [Uint8List(0), Uint8List.fromList([255]), Uint8List.fromList([0, 255])]), // bytes edge cases
+        (
+          stringOptional,
+          ['', '0', 'false', 'null', 'undefined']
+        ), // string edge cases
+        (
+          bytesOptional,
+          [
+            Uint8List(0),
+            Uint8List.fromList([255]),
+            Uint8List.fromList([0, 255])
+          ]
+        ), // bytes edge cases
       ];
 
       for (final (serializer, values) in testCases) {
@@ -1337,26 +1376,39 @@ void main() {
         (Serializers.optional(Serializers.float32), 1.5, 0.0),
         (Serializers.optional(Serializers.float64), 3.14159, 0.0),
         (Serializers.optional(Serializers.string), 'hello', ''),
-        (Serializers.optional(Serializers.bytes), Uint8List.fromList([1, 2, 3]), Uint8List(0)),
-        (Serializers.optional(Serializers.timestamp), DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),
+        (
+          Serializers.optional(Serializers.bytes),
+          Uint8List.fromList([1, 2, 3]),
+          Uint8List(0)
+        ),
+        (
+          Serializers.optional(Serializers.timestamp),
+          DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
+        ),
       ];
 
       for (final (serializer, nonDefaultValue, defaultValue) in testData) {
         // Test non-null values
         final nonNullJson = serializer.toJsonCode(nonDefaultValue);
         expect(serializer.fromJsonCode(nonNullJson), equals(nonDefaultValue),
-            reason: 'Failed JSON roundtrip for non-null value: $nonDefaultValue');
+            reason:
+                'Failed JSON roundtrip for non-null value: $nonDefaultValue');
 
         final nonNullBytes = serializer.toBytes(nonDefaultValue);
         final restoredNonNull = serializer.fromBytes(nonNullBytes);
-        
+
         // Special handling for float32 precision loss
-        if (nonDefaultValue is double && serializer.toString().contains('float32')) {
-          expect(((restoredNonNull as double) - nonDefaultValue).abs(), lessThan(1e-6),
-              reason: 'Failed binary roundtrip for float32 value: $nonDefaultValue (got $restoredNonNull)');
+        if (nonDefaultValue is double &&
+            serializer.toString().contains('float32')) {
+          expect(((restoredNonNull as double) - nonDefaultValue).abs(),
+              lessThan(1e-6),
+              reason:
+                  'Failed binary roundtrip for float32 value: $nonDefaultValue (got $restoredNonNull)');
         } else {
           expect(restoredNonNull, equals(nonDefaultValue),
-              reason: 'Failed binary roundtrip for non-null value: $nonDefaultValue');
+              reason:
+                  'Failed binary roundtrip for non-null value: $nonDefaultValue');
         }
 
         // Test default values
@@ -1408,8 +1460,16 @@ void main() {
         (intOptional, null, 42),
         (stringOptional, 'test', null),
         (stringOptional, null, 'test'),
-        (timestampOptional, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true), null),
-        (timestampOptional, null, DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true)),
+        (
+          timestampOptional,
+          DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
+          null
+        ),
+        (
+          timestampOptional,
+          null,
+          DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true)
+        ),
       ];
 
       for (final (serializer, value1, value2) in testScenarios) {
@@ -1419,7 +1479,8 @@ void main() {
 
         if (value1 != value2) {
           expect(json1, isNot(equals(json2)),
-              reason: 'Different values should produce different JSON: $value1 vs $value2');
+              reason:
+                  'Different values should produce different JSON: $value1 vs $value2');
         }
 
         // Test roundtrip for both values
@@ -1434,7 +1495,8 @@ void main() {
 
         if (value1 != value2) {
           expect(_bytesToHex(bytes1), isNot(equals(_bytesToHex(bytes2))),
-              reason: 'Different values should produce different binary: $value1 vs $value2');
+              reason:
+                  'Different values should produce different binary: $value1 vs $value2');
         }
 
         expect(serializer.fromBytes(bytes1), equals(value1),

@@ -346,7 +346,8 @@ abstract class ReflectiveEnumDescriptor<E>
 TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
   return switch (reflective) {
     PrimitiveDescriptor() => reflective,
-    ReflectiveOptionalDescriptor() => _notReflectiveImpl(reflective.otherType),
+    ReflectiveOptionalDescriptor() =>
+      OptionalDescriptor(_notReflectiveImpl(reflective.otherType)),
     ReflectiveListDescriptor() => ListDescriptor(
         _notReflectiveImpl(reflective.itemType),
         reflective.keyChain,
