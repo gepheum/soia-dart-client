@@ -17,7 +17,19 @@ class _BinaryWriter {
   }
 
   static void encodeLengthPrefix(int length, Uint8Buffer buffer) {
-    encodeInt32(length, buffer);
+    if (length < 232) {
+      if (length >= 0) {
+        buffer.add(length & 0xFF);
+      } else {
+        throw ArgumentError("Length overflow: ${length.toUnsigned(32)}");
+      }
+    } else if (length < 65536) {
+      buffer.add(232 & 0xFF);
+      writeShortLe(length, buffer);
+    } else {
+      buffer.add(233 & 0xFF);
+      writeIntLe(length, buffer);
+    }
   }
 
   static void writeShortLe(int value, Uint8Buffer buffer) {

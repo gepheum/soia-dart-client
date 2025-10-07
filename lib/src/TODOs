@@ -1,5 +1,4 @@
-// TODO: internalToString
-//   TODO: make sure matches generated code
+// TODO: make sure internal__stringify matches generated code
 // TODO: generate doc
 // TODO: finish documenting
 // TODO: add unit tests
