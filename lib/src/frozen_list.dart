@@ -51,7 +51,7 @@ class _KeyedIterableImpl<E, K> extends _FrozenList<E>
 
 class _EmptyFrozenList<E, K> extends _FrozenList<E>
     implements KeyedIterable<E, K> {
-  _EmptyFrozenList() : super([]);
+  _EmptyFrozenList() : super(List.empty(growable: false));
 
   @override
   E? findByKey(K key) => null;

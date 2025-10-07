@@ -2036,9 +2036,6 @@ void main() {
     });
 
     test('performance and optimization', () {
-      final keyedIntSerializer =
-          Serializers.keyedIterable(Serializers.int32, (int value) => value);
-
       // Test that multiple lookups don't rebuild the map
       final largeKeyed =
           KeyedIterable.copy(List.generate(1000, (i) => i), (value) => value);
