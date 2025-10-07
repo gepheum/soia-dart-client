@@ -144,14 +144,14 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
     if (json is int || (json is String && int.tryParse(json) != null)) {
       final number = json is int ? json : int.parse(json);
       final field = _numberToField[number];
-      switch (field.runtimeType) {
-        case _EnumUnknownField:
+      switch (field) {
+        case _EnumUnknownField():
           return _unknown.constant;
-        case _EnumConstantField:
-          return (field as _EnumConstantField<Enum>).constant;
-        case _EnumRemovedNumber:
+        case _EnumConstantField():
+          return field.constant;
+        case _EnumRemovedNumber():
           return _unknown.constant;
-        case _ValueField:
+        case _ValueField():
           throw ArgumentError('$number refers to a value field');
         default:
           if (keepUnrecognizedFields) {
