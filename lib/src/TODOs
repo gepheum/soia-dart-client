@@ -1,5 +1,7 @@
 // TODO: make sure internal__stringify matches generated code
+// TODO: move "internal__" methods to be top-level functions
 // TODO: generate doc
 // TODO: finish documenting
 // TODO: add unit tests
 // TODO: make sure that binary decoding is compatible with the one in Kotlin... check with unit tests
+// TODO: pre-commit hook
