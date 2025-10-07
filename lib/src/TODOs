@@ -2,3 +2,4 @@
 // TODO: generate doc
 // TODO: finish documenting
 // TODO: add unit tests
+// TODO: make sure that binary decoding is compatible with the one in Kotlin... check with unit tests

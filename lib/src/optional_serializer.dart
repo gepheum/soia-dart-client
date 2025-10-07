@@ -19,9 +19,8 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
 
   @override
   T? decode(_ByteStream stream, bool keepUnrecognizedFields) {
-    if (stream.position < stream.buffer.length &&
-        stream.buffer[stream.position] == 255) {
-      stream.readByte(); // consume the 255 byte
+    if (stream.peekByte() == 255) {
+      stream.position++;
       return null;
     } else {
       return other.decode(stream, keepUnrecognizedFields);

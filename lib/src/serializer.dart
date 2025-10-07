@@ -133,6 +133,8 @@ class _ByteStream {
 
   _ByteStream(this.buffer);
 
+  int peekByte() => buffer[position];
+
   int readByte() {
     if (position >= buffer.length) {
       throw StateError('Buffer underflow');

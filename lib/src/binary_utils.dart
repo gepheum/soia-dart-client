@@ -18,17 +18,15 @@ class _BinaryWriter {
 
   static void encodeLengthPrefix(int length, Uint8Buffer buffer) {
     if (length < 232) {
-      if (length >= 0) {
-        buffer.add(length & 0xFF);
-      } else {
-        throw ArgumentError("Length overflow: ${length.toUnsigned(32)}");
-      }
+      buffer.add(length & 0xFF);
     } else if (length < 65536) {
       buffer.add(232 & 0xFF);
       writeShortLe(length, buffer);
-    } else {
+    } else if (length < 2147483648) {
       buffer.add(233 & 0xFF);
       writeIntLe(length, buffer);
+    } else {
+      throw ArgumentError("Length overflow: ${length}");
     }
   }
 

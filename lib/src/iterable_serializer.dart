@@ -4,18 +4,31 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
     extends _SerializerImpl<Collection> {
   final _SerializerImpl<E> item;
   final String getKeySpec;
-  final Collection Function(Iterable<E>) toCollection;
+  final Collection Function(Iterable<E>) iterableToCollection;
+  final Collection Function(List<E>) listToCollection;
+  final Collection emptyCollection;
 
-  static iterable<E>(_SerializerImpl<E> item) =>
+  static _IterableSerializer<E, Iterable<E>> iterable<E>(
+          _SerializerImpl<E> item) =>
       _IterableSerializer<E, Iterable<E>>(
-          item, "", (it) => it.toList(growable: false));
+          item, "", (it) => it.toList(growable: false), (it) => it);
 
-  static keyedIterable<E, K>(
-          _SerializerImpl<E> item, String getKeySpec, K Function(E) getKey) =>
-      _IterableSerializer<E, KeyedIterable<E, K>>(
-          item, getKeySpec, (it) => KeyedIterable.copy(it, getKey));
+  static _IterableSerializer<E, KeyedIterable<E, K>> keyedIterable<E, K>(
+    _SerializerImpl<E> item,
+    String getKeySpec,
+    K Function(E) getKey,
+  ) {
+    final toCollection = (Iterable<E> it) => KeyedIterable.copy(it, getKey);
+    return _IterableSerializer<E, KeyedIterable<E, K>>(
+        item, getKeySpec, toCollection, toCollection);
+  }
 
-  _IterableSerializer(this.item, this.getKeySpec, this.toCollection);
+  _IterableSerializer(
+    this.item,
+    this.getKeySpec,
+    this.iterableToCollection,
+    this.listToCollection,
+  ) : emptyCollection = iterableToCollection(<E>[]);
 
   @override
   bool isDefault(Iterable<E> value) => value.isEmpty;
@@ -30,12 +43,26 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   Collection decode(_ByteStream stream, bool keepUnrecognizedFields) {
-    final length = stream.decodeNumber().toInt();
-    final result = <E>[];
-    for (int i = 0; i < length; i++) {
-      result.add(item.decode(stream, keepUnrecognizedFields));
+    final wire = stream.peekByte();
+    if (wire == 0 || wire == 246) {
+      stream.position++;
+      return emptyCollection;
     }
-    return toCollection(result);
+    late final int length;
+    if (247 <= wire && wire <= 249) {
+      length = wire - 246;
+    } else {
+      length = stream.decodeNumber().toInt();
+      if (length <= 0) {
+        return emptyCollection;
+      }
+    }
+    final first = item.decode(stream, keepUnrecognizedFields);
+    final result = List.filled(length, first, growable: false);
+    for (int i = 1; i < length; i++) {
+      result[i] = item.decode(stream, keepUnrecognizedFields);
+    }
+    return listToCollection(result);
   }
 
   @override
@@ -59,8 +86,11 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   Collection fromJson(dynamic json, bool keepUnrecognizedFields) {
+    if (json == 0) {
+      return emptyCollection;
+    }
     final list = json as List;
-    return toCollection(
+    return iterableToCollection(
         list.map((e) => item.fromJson(e, keepUnrecognizedFields)));
   }
 
