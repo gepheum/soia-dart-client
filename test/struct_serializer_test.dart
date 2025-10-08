@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia_client/soia_client.dart';
+import 'package:soia/soia.dart';
 
 // Test data structures
 class PersonFrozen {

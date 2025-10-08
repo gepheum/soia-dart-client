@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 typedef HttpHeaders = Map<String, String>;
 

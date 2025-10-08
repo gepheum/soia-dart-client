@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 abstract class _PrimitiveSerializer<T> extends _SerializerImpl<T> {
   String get typeName;

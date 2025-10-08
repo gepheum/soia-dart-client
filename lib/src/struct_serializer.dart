@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 class StructSerializerBuilder<Frozen, Mutable> {
   final _StructSerializerImpl<Frozen, Mutable> _impl;

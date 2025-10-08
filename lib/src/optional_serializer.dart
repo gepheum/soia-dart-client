@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   final _SerializerImpl<T> other;

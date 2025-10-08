@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// Base interface for all type descriptors
 abstract class _TypeDescriptorBase {

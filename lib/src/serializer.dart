@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// A serializer for converting objects of type [T] to and from various formats including JSON and binary.
 ///

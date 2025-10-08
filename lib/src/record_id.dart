@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// Parsed record identifier
 class _RecordId {

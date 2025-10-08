@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 class _FrozenList<E> extends UnmodifiableListView<E> {
   _FrozenList(List<E> list) : super(list);

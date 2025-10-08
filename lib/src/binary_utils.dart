@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 class _BinaryWriter {
   static void encodeInt32(int value, Uint8Buffer buffer) {

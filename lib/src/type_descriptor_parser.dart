@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// Parses a type descriptor from its JSON representation.
 ///

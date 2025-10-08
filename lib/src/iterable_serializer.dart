@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 class _IterableSerializer<E, Collection extends Iterable<E>>
     extends _SerializerImpl<Collection> {

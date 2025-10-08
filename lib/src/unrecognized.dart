@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// Class for tracking unrecognized struct fields during deserialization
 class UnrecognizedFields<T> {

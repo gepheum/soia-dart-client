@@ -1,4 +1,4 @@
-name: soia_client
+name: soia
 description: A Dart client library for Soia serialization
 version: 0.1.0
 homepage: https://github.com/gepheum/soia-dart-client

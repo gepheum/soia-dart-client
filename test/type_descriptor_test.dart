@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:test/test.dart';
-import 'package:soia_client/soia_client.dart';
+import 'package:soia/soia.dart';
 
 void main() {
   group('PrimitiveType', () {

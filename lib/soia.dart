@@ -1,5 +1,4 @@
-/// A Dart client library for Soia serialization
-library soia_client;
+library soia;
 
 import 'dart:collection';
 import 'dart:convert';

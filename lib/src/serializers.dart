@@ -1,4 +1,4 @@
-part of "../soia_client.dart";
+part of "../soia.dart";
 
 /// Provides predefined serializers for all primitive types and utilities for creating
 /// composite serializers such as optional and list serializers.
