@@ -51,7 +51,7 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.BOOL);
+      PrimitiveDescriptor(PrimitiveType.bool);
 }
 
 class _Int32Serializer extends _PrimitiveSerializer<int> {
@@ -91,7 +91,7 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.INT_32);
+      PrimitiveDescriptor(PrimitiveType.int32);
 }
 
 class _Int64Serializer extends _PrimitiveSerializer<int> {
@@ -143,7 +143,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.INT_64);
+      PrimitiveDescriptor(PrimitiveType.int64);
 }
 
 class Uint64Serializer extends _PrimitiveSerializer<int> {
@@ -204,7 +204,7 @@ class Uint64Serializer extends _PrimitiveSerializer<int> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.UINT_64);
+      PrimitiveDescriptor(PrimitiveType.uint64);
 }
 
 class _Float32Serializer extends _PrimitiveSerializer<double> {
@@ -256,7 +256,7 @@ class _Float32Serializer extends _PrimitiveSerializer<double> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.FLOAT_32);
+      PrimitiveDescriptor(PrimitiveType.float32);
 }
 
 class _Float64Serializer extends _PrimitiveSerializer<double> {
@@ -308,7 +308,7 @@ class _Float64Serializer extends _PrimitiveSerializer<double> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.FLOAT_64);
+      PrimitiveDescriptor(PrimitiveType.float64);
 }
 
 class _StringSerializer extends _PrimitiveSerializer<String> {
@@ -398,7 +398,7 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.STRING);
+      PrimitiveDescriptor(PrimitiveType.string);
 }
 
 class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
@@ -457,7 +457,7 @@ class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.BYTES);
+      PrimitiveDescriptor(PrimitiveType.bytes);
 }
 
 class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
@@ -530,5 +530,5 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.TIMESTAMP);
+      PrimitiveDescriptor(PrimitiveType.timestamp);
 }

@@ -38,24 +38,27 @@ sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
 
 /// Enumeration of all primitive types supported by Soia.
 enum PrimitiveType {
-  BOOL,
-  INT_32,
-  INT_64,
-  UINT_64,
-  FLOAT_32,
-  FLOAT_64,
-  TIMESTAMP,
-  STRING,
-  BYTES,
+  bool,
+  int32,
+  int64,
+  uint64,
+  float32,
+  float64,
+  timestamp,
+  string,
+  bytes,
 }
 
 /// Describes a primitive type such as integers, strings, booleans, etc.
-class PrimitiveDescriptor extends ReflectiveTypeDescriptor
-    implements TypeDescriptor {
+class PrimitiveDescriptor extends TypeDescriptor
+    implements ReflectiveTypeDescriptor {
   /// The specific primitive type being described.
   final PrimitiveType primitiveType;
 
   PrimitiveDescriptor(this.primitiveType);
+
+  @override
+  PrimitiveDescriptor get notReflective => this;
 }
 
 abstract class _OptionalDescriptorBase<OtherType extends _TypeDescriptorBase>
@@ -428,23 +431,23 @@ Map<String, dynamic> _getTypeSignature(TypeDescriptor typeDescriptor) {
 
 String _primitiveTypeToString(PrimitiveType type) {
   switch (type) {
-    case PrimitiveType.BOOL:
+    case PrimitiveType.bool:
       return 'bool';
-    case PrimitiveType.INT_32:
+    case PrimitiveType.int32:
       return 'int32';
-    case PrimitiveType.INT_64:
+    case PrimitiveType.int64:
       return 'int64';
-    case PrimitiveType.UINT_64:
+    case PrimitiveType.uint64:
       return 'uint64';
-    case PrimitiveType.FLOAT_32:
+    case PrimitiveType.float32:
       return 'float32';
-    case PrimitiveType.FLOAT_64:
+    case PrimitiveType.float64:
       return 'float64';
-    case PrimitiveType.TIMESTAMP:
+    case PrimitiveType.timestamp:
       return 'timestamp';
-    case PrimitiveType.STRING:
+    case PrimitiveType.string:
       return 'string';
-    case PrimitiveType.BYTES:
+    case PrimitiveType.bytes:
       return 'bytes';
   }
 }

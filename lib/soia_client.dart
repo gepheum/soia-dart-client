@@ -17,6 +17,7 @@ part 'src/primitive_serializers.dart';
 part 'src/record_id.dart';
 part 'src/serializer.dart';
 part 'src/serializers.dart';
+part 'src/service.dart';
 part 'src/service_client.dart';
 part 'src/struct_serializer.dart';
 part 'src/type_descriptor.dart';

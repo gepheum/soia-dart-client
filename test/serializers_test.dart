@@ -97,7 +97,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.BOOL));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.bool));
     });
 
     test('edge cases and error handling', () {
@@ -253,7 +253,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.INT_32));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.int32));
     });
 
     test('string parsing edge cases', () {
@@ -389,7 +389,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.INT_64));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.int64));
     });
 
     test('JSON roundtrip for safe and unsafe values', () {
@@ -496,7 +496,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.UINT_64));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.uint64));
     });
   });
 
@@ -593,7 +593,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.FLOAT_32));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.float32));
     });
   });
 
@@ -669,7 +669,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.FLOAT_64));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.float64));
     });
 
     test('high precision values', () {
@@ -834,7 +834,7 @@ void main() {
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
       expect(
-          primitiveDescriptor.primitiveType, equals(PrimitiveType.TIMESTAMP));
+          primitiveDescriptor.primitiveType, equals(PrimitiveType.timestamp));
     });
   });
 
@@ -945,7 +945,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.STRING));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.string));
     });
   });
 
@@ -1078,7 +1078,7 @@ void main() {
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.BYTES));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.bytes));
     });
   });
 
@@ -1304,7 +1304,7 @@ void main() {
 
       final innerDescriptor =
           optionalDescriptor.otherType as PrimitiveDescriptor;
-      expect(innerDescriptor.primitiveType, equals(PrimitiveType.INT_32));
+      expect(innerDescriptor.primitiveType, equals(PrimitiveType.int32));
     });
 
     test('binary format specifics', () {
@@ -1695,7 +1695,7 @@ void main() {
       final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
       expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
       expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
-          equals(PrimitiveType.INT_32));
+          equals(PrimitiveType.int32));
       expect(listDescriptor.keyChain, equals(''));
     });
 
@@ -1944,7 +1944,7 @@ void main() {
       final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
       expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
       expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
-          equals(PrimitiveType.INT_32));
+          equals(PrimitiveType.int32));
       expect(listDescriptor.keyChain, equals("toString()"));
     });
 

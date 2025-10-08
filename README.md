@@ -5,7 +5,8 @@ Dart client library for Soia serialization and RPC communication.
 ## Features
 
 - **Serialization**: Convert Dart objects to/from JSON and binary formats
-- **RPC Client**: Make remote procedure calls to Soia services
+- **RPC Client**: Make remote procedure calls to Soia services  
+- **RPC Server**: Implement Soia services that handle incoming RPC requests
 - **Type Safety**: Fully typed API with generated serializers
 
 ## Usage
@@ -39,7 +40,7 @@ import 'package:soia_client/soia_client.dart';
 final client = ServiceClient(
   'https://api.example.com',
   defaultRequestHeaders: {
-    'Authorization': ['Bearer your-token'],
+    'Authorization': 'Bearer your-token',
   },
 );
 
@@ -67,6 +68,71 @@ try {
 } finally {
   client.close();
 }
+```
+
+### RPC Server
+
+```dart
+import 'package:soia_client/soia_client.dart';
+
+// Create a service implementation
+final service = Service.builder()
+    .addMethod<GetUserRequest, GetUserResponse>(
+      getUserMethod, // Method definition from generated code
+      (request, headers) async {
+        // Your business logic here
+        final user = await userRepository.findById(request.userId);
+        return GetUserResponse(user: user);
+      },
+    )
+    .addMethod<CreateUserRequest, CreateUserResponse>(
+      createUserMethod,
+      (request, headers) async {
+        final user = await userRepository.create(request.userData);
+        return CreateUserResponse(user: user);
+      },
+    )
+    .build();
+
+// Handle incoming HTTP requests
+Future<void> handleHttpRequest(HttpRequest request) async {
+  final body = await utf8.decoder.bind(request).join();
+  final headers = <String, List<String>>{};
+  request.headers.forEach((name, values) {
+    headers[name.toLowerCase()] = values;
+  });
+
+  final response = await service.handleRequest(
+    body,
+    headers,
+    keepUnrecognizedFields: false,
+  );
+
+  request.response
+    ..statusCode = response.statusCode
+    ..headers.contentType = ContentType.parse(response.contentType)
+    ..write(response.data);
+  
+  await request.response.close();
+}
+
+// Service with custom metadata extraction
+final serviceWithAuth = Service.builderWithMeta<String>((headers) {
+  final auth = headers['authorization']?.first ?? '';
+  return auth.startsWith('Bearer ') ? auth.substring(7) : 'anonymous';
+})
+    .addMethod<ProtectedRequest, ProtectedResponse>(
+      protectedMethod,
+      (request, userToken) async {
+        // userToken contains the extracted Bearer token
+        if (userToken == 'anonymous') {
+          throw Exception('Authentication required');
+        }
+        // Handle authenticated request
+        return ProtectedResponse(data: 'Hello $userToken');
+      },
+    )
+    .build();
 ```
 
 ## Installation
