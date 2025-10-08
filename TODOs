@@ -1,7 +1,5 @@
-// TODO: method to attach Service to http service?
 // TODO: rename soia_client to soia?
 // TODO: publish
-// TODO: address 'dart pub outdated'
 // TODO: make sure internal__stringify matches generated code
 // TODO: move "internal__" methods to be top-level functions? or an Internal__ static class?
 // TODO: generate doc
