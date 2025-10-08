@@ -16,7 +16,7 @@ class Serializers {
   static final Serializer<int> int64 = Serializer._(_Int64Serializer());
 
   /// Serializer for 64-bit unsigned integers.
-  static final Serializer<int> uint64 = Serializer._(Uint64Serializer());
+  static final Serializer<int> uint64 = Serializer._(_Uint64Serializer());
 
   /// Serializer for 32-bit floating-point numbers.
   static final Serializer<double> float32 = Serializer._(_Float32Serializer());

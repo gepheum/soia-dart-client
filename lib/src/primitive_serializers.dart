@@ -146,7 +146,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
       PrimitiveDescriptor(PrimitiveType.int64);
 }
 
-class Uint64Serializer extends _PrimitiveSerializer<int> {
+class _Uint64Serializer extends _PrimitiveSerializer<int> {
   static const int maxSafeJavaScriptInt = 9007199254740992;
 
   @override
