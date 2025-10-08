@@ -1,0 +1,86 @@
+name: Publish to pub.dev
+
+# This workflow publishes the Dart package to pub.dev when a release is created
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    name: Publish to pub.dev
+    runs-on: ubuntu-latest
+    
+    # IMPORTANT: Before this workflow can work, you need to:
+    # 1. Set up pub.dev publishing credentials:
+    #    - Go to GitHub repo Settings > Secrets and variables > Actions
+    #    - Add a secret named PUB_DEV_PUBLISH_ACCESS_TOKEN
+    #    - Get the token from: https://pub.dev/publishers (create a publisher if needed)
+    #    - Or run 'dart pub token add https://pub.dev' locally and copy the token
+    # 
+    # 2. Make sure your pubspec.yaml has:
+    #    - Correct version number (should match the release tag)
+    #    - All required fields: name, description, version, homepage/repository
+    #    - Valid SDK constraints
+    #
+    # 3. Ensure your package passes all pub.dev requirements:
+    #    - Run 'dart pub publish --dry-run' locally first
+    #    - Fix any warnings or errors before creating the release
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        sdk: 'stable'
+    
+    - name: Install dependencies
+      run: dart pub get
+    
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+    
+    - name: Analyze project source
+      run: dart analyze --fatal-infos
+    
+    - name: Run tests
+      run: dart test
+    
+    # Verify that the package is ready for publishing
+    - name: Check publish readiness
+      run: dart pub publish --dry-run
+    
+    # Set up credentials for pub.dev
+    - name: Setup pub credentials
+      run: |
+        # Create the credentials file for pub.dev
+        mkdir -p ~/.pub-cache
+        cat <<EOF > ~/.pub-cache/credentials.json
+        {
+          "accessToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
+          "refreshToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
+          "tokenEndpoint":"https://accounts.google.com/o/oauth2/token",
+          "scopes":["openid","https://www.googleapis.com/auth/userinfo.email"],
+          "expiration":4070908800000
+        }
+        EOF
+    
+    # Publish to pub.dev
+    - name: Publish to pub.dev
+      run: dart pub publish --force
+      
+    # Optional: Create a comment on the release with the pub.dev link
+    - name: Comment on release
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const packageName = 'soia'; // Update this if your package name changes
+          const version = context.payload.release.tag_name.replace(/^v/, '');
+          
+          github.rest.issues.createComment({
+            issue_number: context.payload.release.id,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🎉 Package published successfully to pub.dev!\n\n📦 **View on pub.dev**: https://pub.dev/packages/${packageName}/versions/${version}\n\n📝 **Install**: \`dart pub add ${packageName}:${version}\``
+          });

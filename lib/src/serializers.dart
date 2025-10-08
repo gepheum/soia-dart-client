@@ -44,7 +44,7 @@ class Serializers {
   static Serializer<T?> optional<T>(Serializer<T> other) {
     final otherImpl = other._impl;
     if (otherImpl is _OptionalSerializer<T>) {
-      return other as Serializer<T?>;
+      return other;
     } else {
       return Serializer._(_OptionalSerializer<T>(otherImpl));
     }

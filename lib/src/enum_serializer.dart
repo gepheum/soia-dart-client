@@ -93,7 +93,7 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
       name,
       instanceType,
       valueSerializer,
-      (V value) => wrap(value) as Enum,
+      (V value) => wrap(value),
       (Enum instance) => getValue(instance as Instance),
     ));
   }
