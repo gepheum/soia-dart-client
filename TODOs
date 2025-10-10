@@ -1,6 +1,6 @@
 // TODO: publish
 // TODO: make sure internal__stringify matches generated code
 // TODO: move "internal__" methods to be top-level functions? or an Internal__ static class?
-// TODO: generate doc
 // TODO: finish documenting
 // TODO: make sure that binary decoding is compatible with the one in Kotlin... check with unit tests
+// TODO: rm this TODO

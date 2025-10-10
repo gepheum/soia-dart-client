@@ -423,7 +423,7 @@ class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
       return Uint8List(0);
     } else {
       final length = stream.decodeNumber().toInt();
-      return stream.readBytes(length);
+      return stream.readBytes(length).asUnmodifiableView();
     }
   }
 
@@ -440,7 +440,7 @@ class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
   @override
   Uint8List fromJson(dynamic json, bool keepUnrecognizedFields) {
     if (json is String) {
-      return base64Decode(json);
+      return base64Decode(json).asUnmodifiableView();
     } else if (json is num && json == 0) {
       return Uint8List(0);
     } else {
