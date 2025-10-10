@@ -9,44 +9,31 @@ jobs:
   publish:
     name: Publish to pub.dev
     runs-on: ubuntu-latest
-    
-    # IMPORTANT: Before this workflow can work, you need to:
-    # 1. Set up pub.dev publishing credentials:
-    #    - Go to GitHub repo Settings > Secrets and variables > Actions
-    #    - Add a secret named PUB_DEV_PUBLISH_ACCESS_TOKEN
-    #    - Get the token from: https://pub.dev/publishers (create a publisher if needed)
-    #    - Or run 'dart pub token add https://pub.dev' locally and copy the token
-    # 
-    # 2. Make sure your pubspec.yaml has:
-    #    - Correct version number (should match the release tag)
-    #    - All required fields: name, description, version, homepage/repository
-    #    - Valid SDK constraints
-    #
-    # 3. Ensure your package passes all pub.dev requirements:
-    #    - Run 'dart pub publish --dry-run' locally first
-    #    - Fix any warnings or errors before creating the release
-    
+
+    permissions:
+      id-token: write # Required for authentication using OIDC
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Dart
       uses: dart-lang/setup-dart@v1
       with:
         sdk: 'stable'
-    
+
     - name: Install dependencies
       run: dart pub get
-    
+
     - name: Verify formatting
       run: dart format --output=none --set-exit-if-changed .
-    
+
     - name: Analyze project source
       run: dart analyze --fatal-infos
-    
+
     - name: Run tests
       run: dart test
-    
+
     # Verify that the package is ready for publishing
     - name: Check publish readiness
       run: dart pub publish --dry-run
