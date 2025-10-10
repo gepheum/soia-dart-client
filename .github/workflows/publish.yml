@@ -50,26 +50,11 @@ jobs:
     # Verify that the package is ready for publishing
     - name: Check publish readiness
       run: dart pub publish --dry-run
-    
-    # Set up credentials for pub.dev
-    - name: Setup pub credentials
-      run: |
-        # Create the credentials file for pub.dev
-        mkdir -p ~/.pub-cache
-        cat <<EOF > ~/.pub-cache/credentials.json
-        {
-          "accessToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
-          "refreshToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
-          "tokenEndpoint":"https://accounts.google.com/o/oauth2/token",
-          "scopes":["openid","https://www.googleapis.com/auth/userinfo.email"],
-          "expiration":4070908800000
-        }
-        EOF
-    
+
     # Publish to pub.dev
     - name: Publish to pub.dev
       run: dart pub publish --force
-      
+
     # Optional: Create a comment on the release with the pub.dev link
     - name: Comment on release
       uses: actions/github-script@v7
