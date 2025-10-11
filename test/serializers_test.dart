@@ -1785,11 +1785,11 @@ void main() {
       final testIterable = [1, 2, 3];
 
       final stringRepr =
-          intIterableSerializer.internal__stringify(testIterable);
+          internal__stringify(testIterable, intIterableSerializer);
       expect(stringRepr, equals('[1, 2, 3]'));
 
       final emptyStringRepr =
-          intIterableSerializer.internal__stringify(<int>[]);
+          internal__stringify(<int>[], intIterableSerializer);
       expect(emptyStringRepr, equals('[]'));
     });
   });
@@ -2061,13 +2061,13 @@ void main() {
       final testKeyed =
           KeyedIterable.copy([1, 2, 3], (value) => value.toString());
 
-      final stringRepr = keyedIntSerializer.internal__stringify(testKeyed);
+      final stringRepr = internal__stringify(testKeyed, keyedIntSerializer);
       expect(stringRepr, equals('[1, 2, 3]'));
 
       final emptyKeyed =
           KeyedIterable.copy(<int>[], (value) => value.toString());
       final emptyStringRepr =
-          keyedIntSerializer.internal__stringify(emptyKeyed);
+          internal__stringify(emptyKeyed, keyedIntSerializer);
       expect(emptyStringRepr, equals('[]'));
     });
 

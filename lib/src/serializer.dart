@@ -115,16 +115,16 @@ class Serializer<T> {
   /// This provides reflective information about the type, including field names,
   /// types, and other metadata useful for introspection and tooling.
   ReflectiveTypeDescriptor get typeDescriptor => _impl.typeDescriptor;
+}
 
-  /// Creates a string representation of the input object.
-  ///
-  /// [input] The object to convert to string
-  /// Returns a formatted string representation
-  String internal__stringify(T input) {
-    final stringBuffer = StringBuffer();
-    _impl.appendString(input, stringBuffer, '\n');
-    return stringBuffer.toString();
-  }
+/// Creates a string representation of the input object.
+///
+/// [input] The object to convert to string
+/// Returns a formatted string representation
+String internal__stringify<T>(T input, Serializer<T> serializer) {
+  final stringBuffer = StringBuffer();
+  serializer._impl.appendString(input, stringBuffer, '\n');
+  return stringBuffer.toString();
 }
 
 class _ByteStream {

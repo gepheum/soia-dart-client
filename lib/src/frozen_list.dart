@@ -8,26 +8,7 @@ sealed class KeyedIterable<E, K> implements Iterable<E> {
   factory KeyedIterable.empty() => _EmptyFrozenList();
 
   factory KeyedIterable.copy(Iterable<E> elements, K Function(E) getKey) {
-    return KeyedIterable.internal__copy(elements, '', (it) => it, getKey);
-  }
-
-  static KeyedIterable<E, K> internal__copy<E, K, M>(
-    Iterable<M> elements,
-    String getKeySpec,
-    E Function(M) toFrozen,
-    K Function(E) getKey,
-  ) {
-    if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
-      if (keyedIterable._getKeySpec == getKeySpec &&
-          keyedIterable._getKey == getKey) {
-        return keyedIterable;
-      }
-    }
-    return _KeyedIterableImpl<E, K>(
-      elements.map(toFrozen).toList(growable: false),
-      getKeySpec,
-      getKey,
-    );
+    return internal__keyedCopy(elements, '', getKey);
   }
 
   E? findByKey(K key);
@@ -63,4 +44,50 @@ Iterable<E> internal__frozenCopy<E>(Iterable<E> elements) {
   } else {
     return _FrozenList(elements.toList(growable: false));
   }
+}
+
+Iterable<E> internal__frozenMappedCopy<E extends M, M>(
+    Iterable<M> elements, E Function(M) toFrozen) {
+  if (elements case final _FrozenList<E> frozenList) {
+    return frozenList;
+  } else {
+    return _FrozenList(elements.map(toFrozen).toList(growable: false));
+  }
+}
+
+KeyedIterable<E, K> internal__keyedCopy<E, K>(
+  Iterable<E> elements,
+  String getKeySpec,
+  K Function(E) getKey,
+) {
+  if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
+    if (keyedIterable._getKeySpec == getKeySpec &&
+        keyedIterable._getKey == getKey) {
+      return keyedIterable;
+    }
+  }
+  return _KeyedIterableImpl<E, K>(
+    elements.toList(growable: false),
+    getKeySpec,
+    getKey,
+  );
+}
+
+KeyedIterable<E, K> internal__keyedMappedCopy<E extends M, K, M>(
+  Iterable<M> elements,
+  String getKeySpec,
+  E Function(M) toFrozen,
+  K Function(E) getKey,
+) {
+  if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
+    if (keyedIterable._getKeySpec == getKeySpec &&
+        keyedIterable._getKey == getKey) {
+      return keyedIterable;
+    }
+  }
+  return _KeyedIterableImpl<E, K>(
+    elements.map(toFrozen).toList(growable: false),
+    getKeySpec,
+    getKey,
+  );
 }
