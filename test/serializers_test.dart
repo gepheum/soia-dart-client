@@ -952,7 +952,7 @@ void main() {
   group('BytesSerializer', () {
     test('basic functionality - JSON serialization', () {
       // Test empty bytes - should be base64 encoded
-      final emptyBytes = Uint8List(0);
+      final emptyBytes = ByteString.empty;
       expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: true),
           equals(''));
       expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: false),
@@ -963,8 +963,8 @@ void main() {
           equals('""'));
 
       // Test simple byte arrays
-      final helloBytes = Uint8List.fromList('hello'.codeUnits);
-      final helloBase64 = base64Encode(helloBytes);
+      final helloBytes = ByteString.copy('hello'.codeUnits);
+      final helloBase64 = helloBytes.toBase64();
       expect(Serializers.bytes.toJson(helloBytes, readableFlavor: true),
           equals(helloBase64));
       expect(Serializers.bytes.toJson(helloBytes, readableFlavor: false),
@@ -975,8 +975,8 @@ void main() {
           equals('"$helloBase64"'));
 
       // Test UTF-8 encoded bytes
-      final utf8Bytes = Uint8List.fromList(utf8.encode('Hello, 世界!'));
-      final utf8Base64 = base64Encode(utf8Bytes);
+      final utf8Bytes = ByteString.copy(utf8.encode('Hello, 世界!'));
+      final utf8Base64 = utf8Bytes.toBase64();
       expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: true),
           equals(utf8Base64));
       expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: false),
@@ -985,23 +985,23 @@ void main() {
 
     test('JSON deserialization - base64 string values', () {
       // Test base64 string JSON values
-      expect(Serializers.bytes.fromJson(''), equals(Uint8List(0)));
+      expect(Serializers.bytes.fromJson(''), equals(ByteString.empty));
 
-      final helloBytes = Uint8List.fromList('hello'.codeUnits);
-      final helloBase64 = base64Encode(helloBytes);
+      final helloBytes = ByteString.copy('hello'.codeUnits);
+      final helloBase64 = helloBytes.toBase64();
       expect(Serializers.bytes.fromJson(helloBase64), equals(helloBytes));
       expect(
           Serializers.bytes.fromJsonCode('"$helloBase64"'), equals(helloBytes));
 
-      final utf8Bytes = Uint8List.fromList(utf8.encode('Hello, 世界!'));
-      final utf8Base64 = base64Encode(utf8Bytes);
+      final utf8Bytes = ByteString.copy(utf8.encode('Hello, 世界!'));
+      final utf8Base64 = utf8Bytes.toBase64();
       expect(Serializers.bytes.fromJson(utf8Base64), equals(utf8Bytes));
       expect(
           Serializers.bytes.fromJsonCode('"$utf8Base64"'), equals(utf8Bytes));
 
       // Test binary data
-      final binaryBytes = Uint8List.fromList([0, 255, 128, 64, 32]);
-      final binaryBase64 = base64Encode(binaryBytes);
+      final binaryBytes = ByteString.copy([0, 255, 128, 64, 32]);
+      final binaryBase64 = binaryBytes.toBase64();
       expect(Serializers.bytes.fromJson(binaryBase64), equals(binaryBytes));
       expect(Serializers.bytes.fromJsonCode('"$binaryBase64"'),
           equals(binaryBytes));
@@ -1009,8 +1009,8 @@ void main() {
 
     test('JSON deserialization - special numeric case', () {
       // Test special case: numeric 0 should deserialize to empty bytes
-      expect(Serializers.bytes.fromJson(0), equals(Uint8List(0)));
-      expect(Serializers.bytes.fromJsonCode('0'), equals(Uint8List(0)));
+      expect(Serializers.bytes.fromJson(0), equals(ByteString.empty));
+      expect(Serializers.bytes.fromJsonCode('0'), equals(ByteString.empty));
 
       // Other numbers should cause ArgumentError (since they're not valid base64)
       expect(
@@ -1039,12 +1039,12 @@ void main() {
 
     test('binary serialization - empty bytes optimization', () {
       // Test that empty bytes uses optimized encoding (wire code 244/0xF4)
-      final emptyBytes = Uint8List(0);
+      final emptyBytes = ByteString.empty;
       final emptyBinary = Serializers.bytes.toBytes(emptyBytes);
       expect(_bytesToHex(emptyBinary), equals('736f6961f4')); // "soia" + 0xF4
 
       // Test non-empty bytes use standard encoding (wire code 245/0xF5)
-      final nonEmptyBytes = Uint8List.fromList([65]); // 'A'
+      final nonEmptyBytes = ByteString.copy([65]); // 'A'
       final nonEmptyBinary = Serializers.bytes.toBytes(nonEmptyBytes);
       expect(_bytesToHex(nonEmptyBinary),
           startsWith('736f6961f5')); // "soia" + 0xF5 + length + data
@@ -1052,24 +1052,24 @@ void main() {
 
     test('binary deserialization roundtrip', () {
       final testValues = [
-        Uint8List(0), // empty
-        Uint8List.fromList([65]), // single byte 'A'
-        Uint8List.fromList([0]), // null byte
-        Uint8List.fromList([255]), // max byte
-        Uint8List.fromList([0, 255]), // min and max
-        Uint8List.fromList('hello'.codeUnits), // ASCII string
-        Uint8List.fromList(utf8.encode('Hello, 世界!')), // UTF-8 string
-        Uint8List.fromList(
+        ByteString.empty, // empty
+        ByteString.copy([65]), // single byte 'A'
+        ByteString.copy([0]), // null byte
+        ByteString.copy([255]), // max byte
+        ByteString.copy([0, 255]), // min and max
+        ByteString.copy('hello'.codeUnits), // ASCII string
+        ByteString.copy(utf8.encode('Hello, 世界!')), // UTF-8 string
+        ByteString.copy(
             [0, 1, 2, 3, 4, 5, 252, 253, 254, 255]), // various values
-        Uint8List.fromList(List.generate(256, (i) => i)), // all byte values
-        Uint8List.fromList(List.generate(1000, (i) => i % 256)), // larger array
+        ByteString.copy(List.generate(256, (i) => i)), // all byte values
+        ByteString.copy(List.generate(1000, (i) => i % 256)), // larger array
       ];
 
       for (final value in testValues) {
         final bytes = Serializers.bytes.toBytes(value);
         final restored = Serializers.bytes.fromBytes(bytes);
         expect(restored, equals(value),
-            reason: 'Failed roundtrip for bytes: ${_bytesToHex(value)}');
+            reason: 'Failed roundtrip for bytes: ${value.toBase16()}');
       }
     });
 
@@ -1193,8 +1193,8 @@ void main() {
         (stringOptional, '', null),
         (boolOptional, true, null),
         (boolOptional, false, null),
-        (bytesOptional, Uint8List.fromList([1, 2, 3]), null),
-        (bytesOptional, Uint8List(0), null),
+        (bytesOptional, ByteString.copy([1, 2, 3]), null),
+        (bytesOptional, ByteString.empty, null),
         (
           timestampOptional,
           DateTime.fromMillisecondsSinceEpoch(1000, isUtc: true),
@@ -1342,9 +1342,9 @@ void main() {
         (
           bytesOptional,
           [
-            Uint8List(0),
-            Uint8List.fromList([255]),
-            Uint8List.fromList([0, 255])
+            ByteString.empty,
+            ByteString.copy([255]),
+            ByteString.copy([0, 255])
           ]
         ), // bytes edge cases
       ];
@@ -1378,8 +1378,8 @@ void main() {
         (Serializers.optional(Serializers.string), 'hello', ''),
         (
           Serializers.optional(Serializers.bytes),
-          Uint8List.fromList([1, 2, 3]),
-          Uint8List(0)
+          ByteString.copy([1, 2, 3]),
+          ByteString.empty
         ),
         (
           Serializers.optional(Serializers.timestamp),

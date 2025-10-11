@@ -401,55 +401,51 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
       PrimitiveDescriptor(PrimitiveType.string);
 }
 
-class _BytesSerializer extends _PrimitiveSerializer<Uint8List> {
+class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
   @override
-  bool isDefault(Uint8List value) => value.isEmpty;
+  bool isDefault(ByteString value) => value.isEmpty;
 
   @override
-  void encode(Uint8List input, Uint8Buffer buffer) {
+  void encode(ByteString input, Uint8Buffer buffer) {
     if (input.isEmpty) {
       buffer.add(244);
     } else {
       buffer.add(245);
       _BinaryWriter.encodeLengthPrefix(input.length, buffer);
-      buffer.addAll(input);
+      buffer.addAll(input.asUnmodifiableList);
     }
   }
 
   @override
-  Uint8List decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  ByteString decode(_ByteStream stream, bool keepUnrecognizedFields) {
     final wire = stream.readByte();
     if (wire == 0 || wire == 244) {
-      return Uint8List(0);
+      return ByteString.empty;
     } else {
       final length = stream.decodeNumber().toInt();
-      return stream.readBytes(length).asUnmodifiableView();
+      return ByteString.copySlice(stream.readBytes(length));
     }
   }
 
   @override
-  void appendString(Uint8List input, StringBuffer out, String eolIndent) {
-    out.write('"${_bytesToHex(input)}"');
+  void appendString(ByteString input, StringBuffer out, String eolIndent) {
+    out.write('"${input.toBase16()}"');
   }
 
   @override
-  dynamic toJson(Uint8List input, bool readableFlavor) {
-    return base64Encode(input);
+  dynamic toJson(ByteString input, bool readableFlavor) {
+    return input.toBase64();
   }
 
   @override
-  Uint8List fromJson(dynamic json, bool keepUnrecognizedFields) {
+  ByteString fromJson(dynamic json, bool keepUnrecognizedFields) {
     if (json is String) {
-      return base64Decode(json).asUnmodifiableView();
+      return ByteString.fromBase64(json);
     } else if (json is num && json == 0) {
-      return Uint8List(0);
+      return ByteString.empty;
     } else {
       throw ArgumentError('Expected: base64 string');
     }
-  }
-
-  String _bytesToHex(Uint8List bytes) {
-    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
   @override

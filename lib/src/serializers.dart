@@ -28,7 +28,7 @@ class Serializers {
   static final Serializer<String> string = Serializer._(_StringSerializer());
 
   /// Serializer for binary data (byte arrays).
-  static final Serializer<Uint8List> bytes = Serializer._(_BytesSerializer());
+  static final Serializer<ByteString> bytes = Serializer._(_BytesSerializer());
 
   /// Serializer for timestamp values.
   static final Serializer<DateTime> timestamp =
