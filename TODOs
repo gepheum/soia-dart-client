@@ -1,6 +1,8 @@
-// TODO: publish
 // TODO: make sure internal__stringify matches generated code
 // TODO: move "internal__" methods to be top-level functions? or an Internal__ static class?
 // TODO: finish documenting
 // TODO: make sure that binary decoding is compatible with the one in Kotlin... check with unit tests
-// TODO: rm this TODO
+// TODO: in client, add a ByteString class...
+// TODO: in client, add a internal__frozenCopy which expects a transform function...
+// TODO: in client, add a internal__MutableList class
+// TODO: rm this TODO file

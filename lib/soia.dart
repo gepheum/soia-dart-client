@@ -3,10 +3,12 @@ library soia;
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:convert/convert.dart';
 import 'package:typed_data/typed_buffers.dart';
 import 'package:http/http.dart' as http;
 
 part 'src/binary_utils.dart';
+part 'src/byte_string.dart';
 part 'src/enum_serializer.dart';
 part 'src/frozen_list.dart';
 part 'src/iterable_serializer.dart';
