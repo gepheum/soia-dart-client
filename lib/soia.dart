@@ -24,4 +24,5 @@ part 'src/service_client.dart';
 part 'src/struct_serializer.dart';
 part 'src/type_descriptor.dart';
 part 'src/type_descriptor_parser.dart';
+part 'src/unix_epoch.dart';
 part 'src/unrecognized.dart';

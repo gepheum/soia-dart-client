@@ -76,8 +76,8 @@ KeyedIterable<E, K> internal__keyedCopy<E, K>(
 KeyedIterable<E, K> internal__keyedMappedCopy<E extends M, K, M>(
   Iterable<M> elements,
   String getKeySpec,
-  E Function(M) toFrozen,
   K Function(E) getKey,
+  E Function(M) toFrozen,
 ) {
   if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
     if (keyedIterable._getKeySpec == getKeySpec &&
