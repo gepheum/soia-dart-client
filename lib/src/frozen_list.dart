@@ -1,11 +1,14 @@
 part of "../soia.dart";
 
-class _FrozenList<E> extends UnmodifiableListView<E> {
-  _FrozenList(List<E> list) : super(list);
+sealed class _FrozenList<E> implements List<E> {}
+
+class _FrozenListImpl<E> extends UnmodifiableListView<E>
+    implements _FrozenList<E> {
+  _FrozenListImpl(List<E> list) : super(list);
 }
 
 sealed class KeyedIterable<E, K> implements Iterable<E> {
-  factory KeyedIterable.empty() => _EmptyFrozenList();
+  static const KeyedIterable<Never, Never> empty = _EmptyFrozenList();
 
   factory KeyedIterable.copy(Iterable<E> elements, K Function(E) getKey) {
     return internal__keyedCopy(elements, '', getKey);
@@ -14,8 +17,8 @@ sealed class KeyedIterable<E, K> implements Iterable<E> {
   E? findByKey(K key);
 }
 
-class _KeyedIterableImpl<E, K> extends _FrozenList<E>
-    implements KeyedIterable<E, K> {
+class _KeyedIterableImpl<E, K> extends UnmodifiableListView<E>
+    implements KeyedIterable<E, K>, _FrozenList<E> {
   final String _getKeySpec;
   final K Function(E) _getKey;
   Map<K, E>? _mapView;
@@ -30,28 +33,28 @@ class _KeyedIterableImpl<E, K> extends _FrozenList<E>
   }
 }
 
-class _EmptyFrozenList<E, K> extends _FrozenList<E>
-    implements KeyedIterable<E, K> {
-  _EmptyFrozenList() : super(List.empty(growable: false));
+class _EmptyFrozenList extends DelegatingList<Never>
+    implements KeyedIterable<Never, Never>, _FrozenList<Never> {
+  const _EmptyFrozenList() : super(const []);
 
   @override
-  E? findByKey(K key) => null;
+  Never? findByKey(dynamic key) => null;
 }
 
 Iterable<E> internal__frozenCopy<E>(Iterable<E> elements) {
-  if (elements case final _FrozenList<E> frozenList) {
-    return frozenList;
+  if (elements is _FrozenList<E>) {
+    return elements;
   } else {
-    return _FrozenList(elements.toList(growable: false));
+    return _FrozenListImpl(elements.toList(growable: false));
   }
 }
 
 Iterable<E> internal__frozenMappedCopy<E extends M, M>(
     Iterable<M> elements, E Function(M) toFrozen) {
-  if (elements case final _FrozenList<E> frozenList) {
-    return frozenList;
+  if (elements is _FrozenList<E>) {
+    return elements;
   } else {
-    return _FrozenList(elements.map(toFrozen).toList(growable: false));
+    return _FrozenListImpl(elements.map(toFrozen).toList(growable: false));
   }
 }
 
@@ -60,17 +63,19 @@ KeyedIterable<E, K> internal__keyedCopy<E, K>(
   String getKeySpec,
   K Function(E) getKey,
 ) {
-  if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
-    if (keyedIterable._getKeySpec == getKeySpec &&
-        keyedIterable._getKey == getKey) {
-      return keyedIterable;
-    }
+  if (elements.isEmpty) {
+    return KeyedIterable.empty;
+  } else if (elements is _KeyedIterableImpl<E, K> &&
+      elements._getKeySpec.isNotEmpty &&
+      elements._getKeySpec == getKeySpec) {
+    return elements;
+  } else {
+    return _KeyedIterableImpl(
+      elements.toList(growable: false),
+      getKeySpec,
+      getKey,
+    );
   }
-  return _KeyedIterableImpl<E, K>(
-    elements.toList(growable: false),
-    getKeySpec,
-    getKey,
-  );
 }
 
 KeyedIterable<E, K> internal__keyedMappedCopy<E extends M, K, M>(
@@ -79,15 +84,17 @@ KeyedIterable<E, K> internal__keyedMappedCopy<E extends M, K, M>(
   K Function(E) getKey,
   E Function(M) toFrozen,
 ) {
-  if (elements case final _KeyedIterableImpl<E, K> keyedIterable) {
-    if (keyedIterable._getKeySpec == getKeySpec &&
-        keyedIterable._getKey == getKey) {
-      return keyedIterable;
-    }
+  if (elements.isEmpty) {
+    return KeyedIterable.empty;
+  } else if (elements is _KeyedIterableImpl<E, K> &&
+      elements._getKeySpec.isNotEmpty &&
+      elements._getKeySpec == getKeySpec) {
+    return elements;
+  } else {
+    return _KeyedIterableImpl<E, K>(
+      elements.map(toFrozen).toList(growable: false),
+      getKeySpec,
+      getKey,
+    );
   }
-  return _KeyedIterableImpl<E, K>(
-    elements.map(toFrozen).toList(growable: false),
-    getKeySpec,
-    getKey,
-  );
 }
