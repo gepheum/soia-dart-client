@@ -1,6 +1,5 @@
 library soia;
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
