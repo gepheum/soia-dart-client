@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        dart-version: ['3.3.0', 'stable']
+        dart-version: ['3.5.0', 'stable']
     
     steps:
     - uses: actions/checkout@v4
