@@ -1,9 +1,10 @@
 part of "../soia.dart";
 
-/// A serializer for converting objects of type [T] to and from various formats including JSON and binary.
+/// A serializer for converting objects of type [T] to and from various formats
+/// including JSON and binary.
 ///
-/// This class provides comprehensive serialization capabilities for Soia types, supporting both
-/// human-readable JSON and efficient binary encoding formats.
+/// This class provides comprehensive serialization capabilities for Soia types,
+/// supporting both human-readable JSON and efficient binary encoding formats.
 class Serializer<T> {
   final _SerializerImpl<T> _impl;
 

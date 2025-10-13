@@ -1,9 +1,19 @@
 part of "../soia.dart";
 
+class EnumSerializer<Enum> extends Serializer<Enum> {
+  EnumSerializer._(_EnumSerializerImpl<Enum> impl) : super._(impl);
+
+  @override
+  ReflectiveEnumDescriptor<Enum> get typeDescriptor =>
+      super._impl as _EnumSerializerImpl<Enum>;
+}
+
 class EnumSerializerBuilder<Enum> {
   final _EnumSerializerImpl<Enum> _impl;
+  final EnumSerializer<Enum> serializer;
+  bool _initialized = false;
 
-  EnumSerializerBuilder._(this._impl);
+  EnumSerializerBuilder._(this._impl, this.serializer);
 
   static EnumSerializerBuilder<Enum> create<Enum, Unknown extends Enum>({
     required String recordId,
@@ -11,7 +21,7 @@ class EnumSerializerBuilder<Enum> {
     required Enum Function(UnrecognizedEnum<Enum>) wrapUnrecognized,
     required UnrecognizedEnum<Enum>? Function(Unknown) getUnrecognized,
   }) {
-    return EnumSerializerBuilder<Enum>._(_EnumSerializerImpl._(
+    final impl = _EnumSerializerImpl._(
       recordId,
       _EnumUnknownField<Enum>(
         unknownInstance.runtimeType,
@@ -19,10 +29,18 @@ class EnumSerializerBuilder<Enum> {
         wrapUnrecognized,
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
       ),
-    ));
+    );
+    return EnumSerializerBuilder<Enum>._(impl, EnumSerializer._(impl));
   }
 
-  Serializer<Enum> get serializer => Serializer._(_impl);
+  bool mustInitialize() {
+    if (_initialized) {
+      return false;
+    } else {
+      _initialized = true;
+      return true;
+    }
+  }
 
   void addConstant(int number, String name, Enum instance) {
     _impl.addConstantField(number, name, instance);

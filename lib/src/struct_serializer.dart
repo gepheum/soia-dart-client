@@ -1,9 +1,20 @@
 part of "../soia.dart";
 
+class StructSerializer<Frozen> extends Serializer<Frozen> {
+  StructSerializer._(_StructSerializerImpl<Frozen, dynamic> impl)
+      : super._(impl);
+
+  @override
+  ReflectiveStructDescriptor<Frozen, dynamic> get typeDescriptor =>
+      super._impl as _StructSerializerImpl<Frozen, dynamic>;
+}
+
 class StructSerializerBuilder<Frozen, Mutable> {
   final _StructSerializerImpl<Frozen, Mutable> _impl;
+  final StructSerializer<Frozen> serializer;
+  bool _initialized = false;
 
-  StructSerializerBuilder({
+  factory StructSerializerBuilder({
     required String recordId,
     required Frozen defaultInstance,
     required Mutable Function(Frozen?) newMutableFn,
@@ -11,16 +22,28 @@ class StructSerializerBuilder<Frozen, Mutable> {
     required UnrecognizedFields<Frozen>? Function(Frozen) getUnrecognizedFields,
     required void Function(Mutable, UnrecognizedFields<Frozen>)
         setUnrecognizedFields,
-  }) : _impl = _StructSerializerImpl(
-          recordId: recordId,
-          defaultInstance: defaultInstance,
-          newMutableFn: newMutableFn,
-          toFrozenFn: toFrozenFn,
-          getUnrecognizedFields: getUnrecognizedFields,
-          setUnrecognizedFields: setUnrecognizedFields,
-        );
+  }) {
+    final impl = _StructSerializerImpl(
+      recordId: recordId,
+      defaultInstance: defaultInstance,
+      newMutableFn: newMutableFn,
+      toFrozenFn: toFrozenFn,
+      getUnrecognizedFields: getUnrecognizedFields,
+      setUnrecognizedFields: setUnrecognizedFields,
+    );
+    return StructSerializerBuilder._(impl, StructSerializer._(impl));
+  }
 
-  Serializer<Frozen> get serializer => Serializer._(_impl);
+  StructSerializerBuilder._(this._impl, this.serializer);
+
+  bool mustInitialize() {
+    if (_initialized) {
+      return false;
+    } else {
+      _initialized = true;
+      return true;
+    }
+  }
 
   void addField<Value>(
     String name,
