@@ -18,18 +18,18 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
   factory internal__StructSerializerBuilder({
     required String recordId,
     required Frozen defaultInstance,
-    required Mutable Function(Frozen?) newMutableFn,
-    required Frozen Function(Mutable) toFrozenFn,
-    required internal__UnrecognizedFields<Frozen>? Function(Frozen)
+    required Mutable Function(Frozen?) newMutable,
+    required Frozen Function(Mutable) toFrozen,
+    required internal__UnrecognizedFields? Function(Frozen)
         getUnrecognizedFields,
-    required void Function(Mutable, internal__UnrecognizedFields<Frozen>)
+    required void Function(Mutable, internal__UnrecognizedFields)
         setUnrecognizedFields,
   }) {
     final impl = _StructSerializerImpl(
       recordId: recordId,
       defaultInstance: defaultInstance,
-      newMutableFn: newMutableFn,
-      toFrozenFn: toFrozenFn,
+      newMutableFn: newMutable,
+      toFrozenFn: toFrozen,
       getUnrecognizedFields: getUnrecognizedFields,
       setUnrecognizedFields: setUnrecognizedFields,
     );
@@ -135,9 +135,8 @@ class _StructSerializerImpl<Frozen, Mutable>
   final Frozen defaultInstance;
   final Mutable Function(Frozen?) newMutableFn;
   final Frozen Function(Mutable) toFrozenFn;
-  final internal__UnrecognizedFields<Frozen>? Function(Frozen)
-      getUnrecognizedFields;
-  final void Function(Mutable, internal__UnrecognizedFields<Frozen>)
+  final internal__UnrecognizedFields? Function(Frozen) getUnrecognizedFields;
+  final void Function(Mutable, internal__UnrecognizedFields)
       setUnrecognizedFields;
 
   final List<_StructFieldImpl<Frozen, Mutable, dynamic>> _mutableFields = [];
@@ -294,8 +293,7 @@ class _StructSerializerImpl<Frozen, Mutable>
     if (jsonArray.length > _recognizedSlotCount) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
-        final unrecognizedFields =
-            internal__UnrecognizedFields<Frozen>._fromJson(
+        final unrecognizedFields = internal__UnrecognizedFields._fromJson(
           jsonArray.length,
           jsonArray
               .sublist(_recognizedSlotCount)
@@ -393,8 +391,7 @@ class _StructSerializerImpl<Frozen, Mutable>
           _decodeUnused(stream);
           // In a real implementation, we'd capture the bytes
         }
-        final unrecognizedFields =
-            internal__UnrecognizedFields<Frozen>._fromBytes(
+        final unrecognizedFields = internal__UnrecognizedFields._fromBytes(
           encodedSlotCount,
           unrecognizedBuffer.buffer.asUint8List(),
         );

@@ -7,58 +7,93 @@ String _bytesToHex(Uint8List bytes) {
   return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
 } // Test enum types
 
+enum ColorKind {
+  unknown(0),
+  red(1),
+  green(2),
+  blue(3),
+  custom(4);
+
+  final int number;
+  const ColorKind(this.number);
+}
+
 sealed class Color {
   const Color();
+  ColorKind get kind;
 }
 
 class ColorUnknown extends Color {
-  final internal__UnrecognizedEnum<Color>? unrecognized;
+  final internal__UnrecognizedEnum? unrecognized;
   const ColorUnknown(this.unrecognized);
+  get kind => ColorKind.unknown;
 }
 
 class ColorRed extends Color {
   const ColorRed();
+  get kind => ColorKind.red;
 }
 
 class ColorGreen extends Color {
   const ColorGreen();
+  get kind => ColorKind.green;
 }
 
 class ColorBlue extends Color {
   const ColorBlue();
+  get kind => ColorKind.blue;
 }
 
 class ColorCustomOption extends Color {
   final int rgb;
   const ColorCustomOption(this.rgb);
+  get kind => ColorKind.custom;
 }
 
 // Complex enum with both constants and value fields
+
+enum StatusKind {
+  unknown(0),
+  active(1),
+  inactive(2),
+  pending(3),
+  error(4);
+
+  final int number;
+  const StatusKind(this.number);
+}
+
 sealed class Status {
   const Status();
+  StatusKind get kind;
 }
 
 class StatusUnknown extends Status {
-  final internal__UnrecognizedEnum<Status>? unrecognized;
+  final internal__UnrecognizedEnum? unrecognized;
   const StatusUnknown(this.unrecognized);
+  get kind => StatusKind.unknown;
 }
 
 class StatusActive extends Status {
   const StatusActive();
+  get kind => StatusKind.active;
 }
 
 class StatusInactive extends Status {
   const StatusInactive();
+  get kind => StatusKind.inactive;
 }
 
 class StatusPendingOption extends Status {
   final String reason;
   const StatusPendingOption(this.reason);
+  get kind => StatusKind.pending;
 }
 
 class StatusErrorOption extends Status {
   final String message;
   const StatusErrorOption(this.message);
+  get kind => StatusKind.error;
 }
 
 void main() {
@@ -69,28 +104,29 @@ void main() {
     const colorGreen = ColorGreen();
     const colorBlue = ColorBlue();
 
-    late internal__EnumSerializerBuilder<Color> colorEnumBuilder;
+    late internal__EnumSerializerBuilder<Color, ColorKind> colorEnumBuilder;
     late Serializer<Color> colorSerializer;
-    late internal__EnumSerializerBuilder<Status> statusEnumBuilder;
+    late internal__EnumSerializerBuilder<Status, StatusKind> statusEnumBuilder;
     late Serializer<Status> statusSerializer;
 
     setUp(() {
       // Simple enum with only constants
-      colorEnumBuilder =
-          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
+      colorEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
+        enumInstance: colorUnknown as Color,
+        getKind: (it) => it.kind,
+        getNumber: (it) => it.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      colorEnumBuilder.addConstant(1, 'red', colorRed);
-      colorEnumBuilder.addConstant(2, 'green', colorGreen);
-      colorEnumBuilder.addConstant(3, 'blue', colorBlue);
-      colorEnumBuilder.addValue<ColorCustomOption, int>(
-        4,
+      colorEnumBuilder.addConstantField('red', colorRed);
+      colorEnumBuilder.addConstantField('green', colorGreen);
+      colorEnumBuilder.addConstantField('blue', colorBlue);
+      colorEnumBuilder.addValueField<ColorCustomOption, int>(
         'custom',
-        ColorCustomOption,
+        ColorKind.custom,
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
@@ -100,20 +136,21 @@ void main() {
       colorSerializer = colorEnumBuilder.serializer;
 
       // Complex enum with both constants and value fields
-      statusEnumBuilder =
-          internal__EnumSerializerBuilder.create<Status, StatusUnknown>(
+      statusEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color.Status',
         unknownInstance: statusUnknown,
+        enumInstance: statusUnknown as Status,
+        getKind: (it) => it.kind,
+        getNumber: (it) => it.number,
         wrapUnrecognized: (unrecognized) => StatusUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      statusEnumBuilder.addConstant(1, 'active', StatusActive());
-      statusEnumBuilder.addConstant(2, 'inactive', StatusInactive());
-      statusEnumBuilder.addValue<StatusPendingOption, String>(
-        3,
+      statusEnumBuilder.addConstantField('active', StatusActive());
+      statusEnumBuilder.addConstantField('inactive', StatusInactive());
+      statusEnumBuilder.addValueField<StatusPendingOption, String>(
         'pending',
-        StatusPendingOption,
+        StatusKind.pending,
         Serializers.string,
         (reason) => StatusPendingOption(reason),
         (pending) => pending.reason,
@@ -332,20 +369,22 @@ void main() {
 
     test('enum serializer - error cases', () {
       // Test that finalize() can only be called once
-      final testEnumBuilder =
-          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final testEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
+        enumInstance: colorUnknown as Color,
+        getKind: (Color it) => it.kind,
+        getNumber: (it) => it.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testEnumBuilder.addConstant(1, 'test', colorRed);
+      testEnumBuilder.addConstantField('test', colorRed);
       testEnumBuilder.finalize();
 
       // Adding fields after finalization should throw
       expect(
-        () => testEnumBuilder.addConstant(2, 'test2', colorGreen),
+        () => testEnumBuilder.addConstantField('test2', colorGreen),
         throwsStateError,
       );
 
@@ -475,15 +514,17 @@ void main() {
 
     test('.serializer field access', () {
       // Test that the serializer field is accessible and works correctly
-      final builder =
-          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final builder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
+        enumInstance: colorUnknown as Color,
+        getKind: (it) => it.kind,
+        getNumber: (it) => it.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      builder.addConstant(1, 'red', colorRed);
+      builder.addConstantField('red', colorRed);
       builder.finalize();
 
       final serializer = builder.serializer;
@@ -496,22 +537,23 @@ void main() {
     });
 
     test('builder state management', () {
-      final builder =
-          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final builder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
+        enumInstance: colorUnknown as Color,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
+        getKind: (it) => it.kind,
+        getNumber: (it) => it.number,
       );
 
       // Should be able to add constants before finalization
-      builder.addConstant(1, 'red', colorRed);
+      builder.addConstantField('red', colorRed);
 
       // Should be able to add value fields before finalization
-      builder.addValue<ColorCustomOption, int>(
-        2,
+      builder.addValueField<ColorCustomOption, int>(
         'custom',
-        ColorCustomOption,
+        ColorKind.custom,
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
@@ -533,16 +575,15 @@ void main() {
 
       // Should not be able to add constants after finalization
       expect(
-        () => builder.addConstant(3, 'green', colorGreen),
+        () => builder.addConstantField('green', colorGreen),
         throwsStateError,
       );
 
       // Should not be able to add value fields after finalization
       expect(
-        () => builder.addValue<ColorCustomOption, int>(
-          4,
+        () => builder.addValueField<ColorCustomOption, int>(
           'custom2',
-          ColorCustomOption,
+          ColorKind.custom,
           Serializers.int32,
           (rgb) => ColorCustomOption(rgb),
           (custom) => custom.rgb,
@@ -585,15 +626,17 @@ void main() {
 
     test('enum serializer - default detection', () {
       // Create a simple builder to test default detection
-      final testBuilder =
-          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final testBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
+        enumInstance: colorUnknown as Color,
+        getKind: (it) => it.kind,
+        getNumber: (it) => it.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testBuilder.addConstant(1, 'red', colorRed);
+      testBuilder.addConstantField('red', colorRed);
       testBuilder.finalize();
 
       final testSerializer = testBuilder.serializer;

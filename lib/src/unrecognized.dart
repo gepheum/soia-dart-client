@@ -1,6 +1,6 @@
 part of "../soia.dart";
 
-class internal__UnrecognizedFields<T> {
+class internal__UnrecognizedFields {
   final int _totalSlotCount;
   final List<dynamic>? _jsonElements;
   final Uint8List? _bytes;
@@ -13,7 +13,7 @@ class internal__UnrecognizedFields<T> {
       : _jsonElements = null;
 }
 
-class internal__UnrecognizedEnum<T> {
+class internal__UnrecognizedEnum {
   final dynamic _jsonElement;
   final Uint8List? _bytes;
 

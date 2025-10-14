@@ -8,7 +8,7 @@ class PersonFrozen {
   final String? email;
   final bool isActive;
   final List<String> tags;
-  final internal__UnrecognizedFields<PersonFrozen>? unrecognizedFields;
+  final internal__UnrecognizedFields? unrecognizedFields;
 
   const PersonFrozen({
     this.name = '',
@@ -47,7 +47,7 @@ class PersonMutable {
   String? email;
   bool isActive;
   List<String> tags;
-  internal__UnrecognizedFields<PersonFrozen>? unrecognizedFields;
+  internal__UnrecognizedFields? unrecognizedFields;
 
   PersonMutable({
     this.name = '',
@@ -80,7 +80,7 @@ void main() {
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
         defaultInstance: defaultPerson,
-        newMutableFn: (frozen) => PersonMutable(
+        newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
           age: frozen?.age ?? 0,
           email: frozen?.email,
@@ -88,7 +88,7 @@ void main() {
           tags: List.from(frozen?.tags ?? []),
           unrecognizedFields: frozen?.unrecognizedFields,
         ),
-        toFrozenFn: (mutable) => PersonFrozen(
+        toFrozen: (mutable) => PersonFrozen(
           name: mutable.name,
           age: mutable.age,
           email: mutable.email,
@@ -286,8 +286,8 @@ void main() {
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
         defaultInstance: defaultPerson,
-        newMutableFn: (frozen) => PersonMutable(),
-        toFrozenFn: (mutable) => PersonFrozen(),
+        newMutable: (frozen) => PersonMutable(),
+        toFrozen: (mutable) => PersonFrozen(),
         getUnrecognizedFields: (frozen) => null,
         setUnrecognizedFields: (mutable, fields) {},
       );
@@ -335,7 +335,7 @@ void main() {
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
         defaultInstance: defaultPerson,
-        newMutableFn: (frozen) => PersonMutable(
+        newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
           age: frozen?.age ?? 0,
           email: frozen?.email,
@@ -343,7 +343,7 @@ void main() {
           tags: List.from(frozen?.tags ?? []),
           unrecognizedFields: frozen?.unrecognizedFields,
         ),
-        toFrozenFn: (mutable) => PersonFrozen(
+        toFrozen: (mutable) => PersonFrozen(
           name: mutable.name,
           age: mutable.age,
           email: mutable.email,
@@ -380,7 +380,7 @@ void main() {
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
         defaultInstance: defaultPerson,
-        newMutableFn: (frozen) => PersonMutable(
+        newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
           age: frozen?.age ?? 0,
           email: frozen?.email,
@@ -388,7 +388,7 @@ void main() {
           tags: List.from(frozen?.tags ?? []),
           unrecognizedFields: frozen?.unrecognizedFields,
         ),
-        toFrozenFn: (mutable) => PersonFrozen(
+        toFrozen: (mutable) => PersonFrozen(
           name: mutable.name,
           age: mutable.age,
           email: mutable.email,
