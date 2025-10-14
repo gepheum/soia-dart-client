@@ -1,18 +1,18 @@
 part of "../soia.dart";
 
 /// Specialization of a [Serializer] for generated struct types.
-class StructSerializer<Frozen> extends Serializer<Frozen> {
-  StructSerializer._(_StructSerializerImpl<Frozen, dynamic> impl)
+class StructSerializer<Frozen, Mutable> extends Serializer<Frozen> {
+  StructSerializer._(_StructSerializerImpl<Frozen, Mutable> impl)
       : super._(impl);
 
   @override
-  ReflectiveStructDescriptor<Frozen, dynamic> get typeDescriptor =>
-      super._impl as _StructSerializerImpl<Frozen, dynamic>;
+  ReflectiveStructDescriptor<Frozen, Mutable> get typeDescriptor =>
+      super._impl as _StructSerializerImpl<Frozen, Mutable>;
 }
 
 class internal__StructSerializerBuilder<Frozen, Mutable> {
   final _StructSerializerImpl<Frozen, Mutable> _impl;
-  final StructSerializer<Frozen> serializer;
+  final StructSerializer<Frozen, Mutable> serializer;
   bool _initialized = false;
 
   factory internal__StructSerializerBuilder({
@@ -49,13 +49,13 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
 
   void addField<Value>(
     String name,
-    String kotlinName,
+    String dartName,
     int number,
     Serializer<Value> serializer,
     Value Function(Frozen) getter,
     void Function(Mutable, Value) setter,
   ) {
-    _impl.addField(name, kotlinName, number, serializer, getter, setter);
+    _impl.addField(name, dartName, number, serializer, getter, setter);
   }
 
   void addRemovedNumber(int number) {
@@ -72,21 +72,21 @@ class _StructFieldImpl<Frozen, Mutable, Value>
     implements ReflectiveStructField<Frozen, Mutable, Value> {
   @override
   final String name;
-  final String kotlinName;
+  final String dartName;
   @override
   final int number;
   final Serializer<Value> serializer;
   final Value Function(Frozen) getter;
   final void Function(Mutable, Value) setter;
 
-  _StructFieldImpl({
-    required this.name,
-    required this.kotlinName,
-    required this.number,
-    required this.serializer,
-    required this.getter,
-    required this.setter,
-  });
+  _StructFieldImpl(
+    this.name,
+    this.dartName,
+    this.number,
+    this.serializer,
+    this.getter,
+    this.setter,
+  );
 
   bool valueIsDefault(Frozen input) {
     return serializer._impl.isDefault(getter(input));
@@ -170,7 +170,7 @@ class _StructSerializerImpl<Frozen, Mutable>
 
   void addField<Value>(
     String name,
-    String kotlinName,
+    String dartName,
     int number,
     Serializer<Value> serializer,
     Value Function(Frozen) getter,
@@ -178,12 +178,12 @@ class _StructSerializerImpl<Frozen, Mutable>
   ) {
     _checkNotFinalized();
     final field = _StructFieldImpl<Frozen, Mutable, Value>(
-      name: name,
-      kotlinName: kotlinName,
-      number: number,
-      serializer: serializer,
-      getter: getter,
-      setter: setter,
+      name,
+      dartName,
+      number,
+      serializer,
+      getter,
+      setter,
     );
     _mutableFields.add(field);
     _nameToField[field.name] = field;
@@ -219,12 +219,14 @@ class _StructSerializerImpl<Frozen, Mutable>
 
   @override
   bool isDefault(Frozen value) {
-    if (identical(value, defaultInstance)) {
-      return true;
-    } else {
-      return _mutableFields.every((field) => field.valueIsDefault(value)) &&
-          getUnrecognizedFields(value) == null;
-    }
+    return identical(value, defaultInstance) ||
+        (_mutableFields.every((field) => field.valueIsDefault(value)) &&
+            getUnrecognizedFields(value) == null);
+  }
+
+  bool _isDefaultIgnoringUnrecognized(Frozen value) {
+    return identical(value, defaultInstance) ||
+        _mutableFields.every((field) => field.valueIsDefault(value));
   }
 
   @override
@@ -413,33 +415,23 @@ class _StructSerializerImpl<Frozen, Mutable>
 
   @override
   void appendString(Frozen input, StringBuffer out, String eolIndent) {
-    final defaultFieldNumbers = <int>{};
-    for (final field in _mutableFields) {
-      if (field.valueIsDefault(input)) {
-        defaultFieldNumbers.add(field.number);
-      }
-    }
-    final className = defaultInstance.runtimeType.toString();
+    final className = _recordId.qualifiedName.replaceAll(".", "_");
     out.write(className);
-    if (defaultFieldNumbers.isNotEmpty) {
-      out.write('.partial');
-    }
-    out.write('(');
-    final newEolIndent = eolIndent + _indentUnit;
-    for (final field in _mutableFields) {
-      if (defaultFieldNumbers.contains(field.number)) {
-        continue;
+    if (_isDefaultIgnoringUnrecognized(input)) {
+      out.write('.defaultInstance');
+    } else {
+      out.write('(');
+      final newEolIndent = eolIndent + _indentUnit;
+      for (final field in _mutableFields) {
+        out.write(newEolIndent);
+        out.write(field.dartName);
+        out.write(': ');
+        field.appendString(input, out, newEolIndent);
+        out.write(',');
       }
-      out.write(newEolIndent);
-      out.write(field.kotlinName);
-      out.write(' = ');
-      field.appendString(input, out, newEolIndent);
-      out.write(',');
-    }
-    if (defaultFieldNumbers.length < _mutableFields.length) {
       out.write(eolIndent);
+      out.write(')');
     }
-    out.write(')');
   }
 
   /// Returns the length of the JSON array for the given input.
