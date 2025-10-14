@@ -1,5 +1,4 @@
 // TODO: make sure internal__stringify matches generated code
-// TODO: make SerializerBuilder __internal
 // TODO: finish documenting
 // TODO: make sure that binary decoding is compatible with the one in Kotlin... check with unit tests
 // TODO: rm this TODO file
