@@ -7,13 +7,27 @@ class _FrozenListImpl<E> extends UnmodifiableListView<E>
   _FrozenListImpl(List<E> list) : super(list);
 }
 
+/// An immutable iterable that supports efficient lookup by key.
+///
+/// This is a specialized collection that combines the functionality of a list
+/// with fast key-based lookup, similar to a map but maintaining insertion
+/// order.
 sealed class KeyedIterable<E, K> implements Iterable<E> {
+  /// An empty keyed iterable instance.
   static const KeyedIterable<Never, Never> empty = _EmptyFrozenList();
 
+  /// Creates a new keyed iterable from the given elements.
+  ///
+  /// [elements] The elements to include in the iterable
+  /// [getKey] A function that extracts the key from each element
   factory KeyedIterable.copy(Iterable<E> elements, K Function(E) getKey) {
     return internal__keyedCopy(elements, '', getKey);
   }
 
+  /// Finds an element by its key.
+  ///
+  /// Returns the element associated with the given [key], or null if no
+  /// element with that key exists.
   E? findByKey(K key);
 }
 

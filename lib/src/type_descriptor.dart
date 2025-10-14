@@ -8,6 +8,10 @@ abstract class _TypeDescriptorBase {
 }
 
 /// Describes a Soia type.
+///
+/// Type descriptors provide metadata about Soia types, enabling schema
+/// introspection. They don't let you to inspect, modify or create soia values
+/// at runtime; for this, you have to use [ReflectiveTypeDescriptor].
 sealed class TypeDescriptor implements _TypeDescriptorBase {
   /// Converts this type descriptor to its JSON representation.
   dynamic get asJson => _typeDescriptorAsJsonImpl(this);
@@ -15,18 +19,35 @@ sealed class TypeDescriptor implements _TypeDescriptorBase {
   /// Converts this type descriptor to a JSON string representation.
   String get asJsonCode => _typeDescriptorAsJsonCodeImpl(this);
 
+  /// Parses a type descriptor from its JSON representation.
+  ///
+  /// [json] The JSON object containing the type descriptor data
+  /// Returns the parsed TypeDescriptor instance
   static TypeDescriptor parseFromJson(dynamic json) {
     return _parseTypeDescriptor(json);
   }
 
+  /// Parses a type descriptor from its JSON string representation.
+  ///
+  /// [jsonCode] The JSON string containing the type descriptor data
+  /// Returns the parsed TypeDescriptor instance
   static TypeDescriptor parseFromJsonCode(String jsonCode) {
     final json = jsonDecode(jsonCode);
     return _parseTypeDescriptor(json);
   }
 }
 
+/// Base class for reflective type descriptors that provide runtime type
+/// information.
+///
+/// Reflective type descriptors offer enhanced introspection capabilities
+/// compared to their non-reflective counterparts, enabling runtime manipulation
+/// and analysis of soia values.
 sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
   /// Converts this type descriptor to a non-reflective version.
+  ///
+  /// Non-reflective descriptors contain the same type information but without
+  /// runtime reflection capabilities.
   TypeDescriptor get notReflective => _notReflectiveImpl(this);
 
   /// Converts this type descriptor to its JSON representation.
@@ -96,11 +117,16 @@ abstract class _ListDescriptorBase<ItemType extends _TypeDescriptorBase>
 }
 
 /// Describes a list type containing elements of a specific type.
+///
+/// Lists represent ordered collections of elements, all of the same type.
+/// They can optionally support keyed access for efficient lookup operations.
 class ListDescriptor extends TypeDescriptor
     implements _ListDescriptorBase<TypeDescriptor> {
+  /// Describes the type of the list elements.
   @override
   final TypeDescriptor itemType;
 
+  /// Optional key chain specified in the `.soia` file after the pipe character.
   @override
   final String? keyChain;
 
@@ -118,12 +144,15 @@ class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
   ReflectiveListDescriptor(this.itemType, this.keyChain);
 }
 
-// Field of a struct or enum.
+/// Base interface for fields in structs and enums.
+///
+/// Fields represent individual data elements within structured types,
+/// each identified by a name and unique number for serialization purposes.
 abstract class Field {
   /// Field name as specified in the `.soia` file, e.g. "user_id".
   String get name;
 
-  /// Field number.
+  /// Unique field number used for serialization.
   int get number;
 }
 
@@ -187,13 +216,20 @@ abstract class _StructFieldBase<T extends _TypeDescriptorBase>
   T get type;
 }
 
+/// Represents a field within a struct type.
+///
+/// Struct fields define the structure and types of data that can be stored
+/// in struct instances, providing the metadata needed for serialization.
 class StructField implements _StructFieldBase<TypeDescriptor> {
+  /// The field name.
   @override
   final String name;
 
+  /// The field number.
   @override
   final int number;
 
+  /// The type descriptor for this field's value type.
   @override
   final TypeDescriptor type;
 
@@ -252,11 +288,17 @@ sealed class EnumField implements Field {}
 
 sealed class ReflectiveEnumField<E> implements Field {}
 
-/// Describes an enum constant field (a field that represents a simple named value).
+/// Describes an enum constant field: a field that represents a simple named
+/// value.
+///
+/// Constant fields represent enum variants that carry no additional data,
+/// similar to traditional enum constants in most programming languages.
 class EnumConstantField implements EnumField {
+  /// The field name.
   @override
   final String name;
 
+  /// The field number.
   @override
   final int number;
 
@@ -275,14 +317,20 @@ abstract class _EnumValueFieldBase<T extends _TypeDescriptorBase>
   T get type;
 }
 
-/// Describes an enum value field (a field that can hold additional data).
+/// Describes an enum value field: a field that can hold additional data.
+///
+/// Value fields represent enum variants that carry associated data of a
+/// specific type
 class EnumValueField implements EnumField, _EnumValueFieldBase<TypeDescriptor> {
+  /// The field name.
   @override
   final String name;
 
+  /// The field number.
   @override
   final int number;
 
+  /// The type descriptor for the associated value type.
   @override
   final TypeDescriptor type;
 

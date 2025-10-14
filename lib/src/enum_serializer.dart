@@ -1,5 +1,6 @@
 part of "../soia.dart";
 
+/// Specialization of a [Serializer] for generated enum types.
 class EnumSerializer<Enum> extends Serializer<Enum> {
   EnumSerializer._(_EnumSerializerImpl<Enum> impl) : super._(impl);
 
@@ -8,18 +9,20 @@ class EnumSerializer<Enum> extends Serializer<Enum> {
       super._impl as _EnumSerializerImpl<Enum>;
 }
 
-class EnumSerializerBuilder<Enum> {
+class internal__EnumSerializerBuilder<Enum> {
   final _EnumSerializerImpl<Enum> _impl;
   final EnumSerializer<Enum> serializer;
   bool _initialized = false;
 
-  EnumSerializerBuilder._(this._impl, this.serializer);
+  internal__EnumSerializerBuilder._(this._impl, this.serializer);
 
-  static EnumSerializerBuilder<Enum> create<Enum, Unknown extends Enum>({
+  static internal__EnumSerializerBuilder<Enum>
+      create<Enum, Unknown extends Enum>({
     required String recordId,
     required Unknown unknownInstance,
-    required Enum Function(UnrecognizedEnum<Enum>) wrapUnrecognized,
-    required UnrecognizedEnum<Enum>? Function(Unknown) getUnrecognized,
+    required Enum Function(internal__UnrecognizedEnum<Enum>) wrapUnrecognized,
+    required internal__UnrecognizedEnum<Enum>? Function(Unknown)
+        getUnrecognized,
   }) {
     final impl = _EnumSerializerImpl._(
       recordId,
@@ -30,7 +33,8 @@ class EnumSerializerBuilder<Enum> {
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
       ),
     );
-    return EnumSerializerBuilder<Enum>._(impl, EnumSerializer._(impl));
+    return internal__EnumSerializerBuilder<Enum>._(
+        impl, EnumSerializer._(impl));
   }
 
   bool mustInitialize() {
@@ -173,7 +177,8 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
           throw ArgumentError('$number refers to a value field');
         default:
           if (keepUnrecognizedFields) {
-            return _unknown.wrapUnrecognized(UnrecognizedEnum._fromJson(json));
+            return _unknown
+                .wrapUnrecognized(internal__UnrecognizedEnum._fromJson(json));
           } else {
             return _unknown.constant;
           }
@@ -198,7 +203,8 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
           return _unknown.constant;
         } else {
           if (keepUnrecognizedFields) {
-            return _unknown.wrapUnrecognized(UnrecognizedEnum._fromJson(json));
+            return _unknown
+                .wrapUnrecognized(internal__UnrecognizedEnum._fromJson(json));
           } else {
             return _unknown.constant;
           }
@@ -248,8 +254,8 @@ class _EnumSerializerImpl<Enum> extends ReflectiveEnumDescriptor<Enum>
           final consumed = stream.position - startPosition;
           final bytes =
               stream.buffer.buffer.asUint8List(startPosition, consumed);
-          result =
-              _unknown.wrapUnrecognized(UnrecognizedEnum._fromBytes(bytes));
+          result = _unknown
+              .wrapUnrecognized(internal__UnrecognizedEnum._fromBytes(bytes));
         } else {
           result = _unknown.constant;
         }
@@ -387,8 +393,8 @@ class _EnumUnknownField<T> extends _EnumField<T>
     implements ReflectiveEnumConstantField<T> {
   @override
   final T constant;
-  final T Function(UnrecognizedEnum<T>) wrapUnrecognized;
-  final UnrecognizedEnum<T>? Function(T) getUnrecognized;
+  final T Function(internal__UnrecognizedEnum<T>) wrapUnrecognized;
+  final internal__UnrecognizedEnum<T>? Function(T) getUnrecognized;
 
   _EnumUnknownField(
     Type instanceType,

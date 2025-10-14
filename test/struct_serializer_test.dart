@@ -8,7 +8,7 @@ class PersonFrozen {
   final String? email;
   final bool isActive;
   final List<String> tags;
-  final UnrecognizedFields<PersonFrozen>? unrecognizedFields;
+  final internal__UnrecognizedFields<PersonFrozen>? unrecognizedFields;
 
   const PersonFrozen({
     this.name = '',
@@ -47,7 +47,7 @@ class PersonMutable {
   String? email;
   bool isActive;
   List<String> tags;
-  UnrecognizedFields<PersonFrozen>? unrecognizedFields;
+  internal__UnrecognizedFields<PersonFrozen>? unrecognizedFields;
 
   PersonMutable({
     this.name = '',
@@ -71,11 +71,13 @@ bool _listEquals<T>(List<T> a, List<T> b) {
 void main() {
   group('StructSerializerBuilder', () {
     const defaultPerson = PersonFrozen();
-    late StructSerializerBuilder<PersonFrozen, PersonMutable> personBuilder;
+    late internal__StructSerializerBuilder<PersonFrozen, PersonMutable>
+        personBuilder;
     late Serializer<PersonFrozen> personSerializer;
 
     setUp(() {
-      personBuilder = StructSerializerBuilder<PersonFrozen, PersonMutable>(
+      personBuilder =
+          internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
         defaultInstance: defaultPerson,
         newMutableFn: (frozen) => PersonMutable(
@@ -280,7 +282,8 @@ void main() {
 
     test('struct serializer - error cases', () {
       // Test that finalize() can only be called once
-      final testBuilder = StructSerializerBuilder<PersonFrozen, PersonMutable>(
+      final testBuilder =
+          internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
         defaultInstance: defaultPerson,
         newMutableFn: (frozen) => PersonMutable(),
@@ -328,7 +331,8 @@ void main() {
 
     test('.serializer field access', () {
       // Test that the serializer field is accessible and works correctly
-      final builder = StructSerializerBuilder<PersonFrozen, PersonMutable>(
+      final builder =
+          internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
         defaultInstance: defaultPerson,
         newMutableFn: (frozen) => PersonMutable(
@@ -372,7 +376,8 @@ void main() {
     });
 
     test('builder state management', () {
-      final builder = StructSerializerBuilder<PersonFrozen, PersonMutable>(
+      final builder =
+          internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
         defaultInstance: defaultPerson,
         newMutableFn: (frozen) => PersonMutable(

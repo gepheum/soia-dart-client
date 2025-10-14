@@ -36,15 +36,25 @@ class RawResponse {
   }
 }
 
-/// Response type enumeration.
+/// Response types supported by the service handler.
 enum ResponseType {
+  /// Successful response with JSON content.
   okJson,
+
+  /// Successful response with HTML content.
   okHtml,
+
+  /// Client error response (HTTP 400).
   badRequest,
+
+  /// Server error response (HTTP 500).
   serverError,
 }
 
-/// Implementation of a soia service.
+/// Implementation of a Soia RPC service that handles incoming requests.
+///
+/// A service manages method implementations and provides request routing,
+/// serialization, and error handling for RPC operations.
 class Service<RequestMeta> {
   final RequestMeta Function(HttpHeaders) _getRequestMeta;
   final Map<int, _MethodImpl<dynamic, dynamic, RequestMeta>> _methodImpls;
@@ -155,12 +165,19 @@ class Service<RequestMeta> {
     return RawResponse(responseJson, ResponseType.okJson);
   }
 
-  /// Creates a builder for constructing a service.
+  /// Creates a builder for constructing a service with default header handling.
+  ///
+  /// Returns a [ServiceBuilder] that passes HTTP headers directly as request
+  /// metadata.
   static ServiceBuilder<HttpHeaders> builder() {
     return ServiceBuilder<HttpHeaders>((headers) => headers);
   }
 
   /// Creates a builder with custom request metadata extraction.
+  ///
+  /// [getRequestMeta] Function to extract custom metadata from HTTP headers
+  /// Returns a [ServiceBuilder] configured to use the provided metadata
+  /// extraction function
   static ServiceBuilder<RequestMeta> builderWithMeta<RequestMeta>(
     RequestMeta Function(HttpHeaders) getRequestMeta,
   ) {
@@ -168,7 +185,10 @@ class Service<RequestMeta> {
   }
 }
 
-/// Builder for constructing a Service instance.
+/// Builder for constructing a Service instance with method implementations.
+///
+/// This builder provides a fluent API for registering RPC method implementations
+/// and configuring request metadata handling before creating the final service.
 class ServiceBuilder<RequestMeta> {
   final RequestMeta Function(HttpHeaders) _getRequestMeta;
   final Map<int, _MethodImpl<dynamic, dynamic, RequestMeta>> _methodImpls = {};
@@ -176,6 +196,10 @@ class ServiceBuilder<RequestMeta> {
   ServiceBuilder(this._getRequestMeta);
 
   /// Adds a method implementation to the service.
+  ///
+  /// [method] The method definition to implement
+  /// [impl] The implementation function that handles requests for this method
+  /// Returns this builder for method chaining
   ServiceBuilder<RequestMeta> addMethod<Request, Response>(
     Method<Request, Response> method,
     Future<Response> Function(Request request, RequestMeta requestMeta) impl,
@@ -196,6 +220,8 @@ class ServiceBuilder<RequestMeta> {
   }
 
   /// Builds the service instance.
+  ///
+  /// Returns a fully configured [Service] ready to handle RPC requests.
   Service<RequestMeta> build() {
     return Service._(_getRequestMeta, {..._methodImpls});
   }

@@ -1,5 +1,6 @@
 part of "../soia.dart";
 
+/// Specialization of a [Serializer] for generated struct types.
 class StructSerializer<Frozen> extends Serializer<Frozen> {
   StructSerializer._(_StructSerializerImpl<Frozen, dynamic> impl)
       : super._(impl);
@@ -9,18 +10,19 @@ class StructSerializer<Frozen> extends Serializer<Frozen> {
       super._impl as _StructSerializerImpl<Frozen, dynamic>;
 }
 
-class StructSerializerBuilder<Frozen, Mutable> {
+class internal__StructSerializerBuilder<Frozen, Mutable> {
   final _StructSerializerImpl<Frozen, Mutable> _impl;
   final StructSerializer<Frozen> serializer;
   bool _initialized = false;
 
-  factory StructSerializerBuilder({
+  factory internal__StructSerializerBuilder({
     required String recordId,
     required Frozen defaultInstance,
     required Mutable Function(Frozen?) newMutableFn,
     required Frozen Function(Mutable) toFrozenFn,
-    required UnrecognizedFields<Frozen>? Function(Frozen) getUnrecognizedFields,
-    required void Function(Mutable, UnrecognizedFields<Frozen>)
+    required internal__UnrecognizedFields<Frozen>? Function(Frozen)
+        getUnrecognizedFields,
+    required void Function(Mutable, internal__UnrecognizedFields<Frozen>)
         setUnrecognizedFields,
   }) {
     final impl = _StructSerializerImpl(
@@ -31,10 +33,10 @@ class StructSerializerBuilder<Frozen, Mutable> {
       getUnrecognizedFields: getUnrecognizedFields,
       setUnrecognizedFields: setUnrecognizedFields,
     );
-    return StructSerializerBuilder._(impl, StructSerializer._(impl));
+    return internal__StructSerializerBuilder._(impl, StructSerializer._(impl));
   }
 
-  StructSerializerBuilder._(this._impl, this.serializer);
+  internal__StructSerializerBuilder._(this._impl, this.serializer);
 
   bool mustInitialize() {
     if (_initialized) {
@@ -133,8 +135,9 @@ class _StructSerializerImpl<Frozen, Mutable>
   final Frozen defaultInstance;
   final Mutable Function(Frozen?) newMutableFn;
   final Frozen Function(Mutable) toFrozenFn;
-  final UnrecognizedFields<Frozen>? Function(Frozen) getUnrecognizedFields;
-  final void Function(Mutable, UnrecognizedFields<Frozen>)
+  final internal__UnrecognizedFields<Frozen>? Function(Frozen)
+      getUnrecognizedFields;
+  final void Function(Mutable, internal__UnrecognizedFields<Frozen>)
       setUnrecognizedFields;
 
   final List<_StructFieldImpl<Frozen, Mutable, dynamic>> _mutableFields = [];
@@ -289,7 +292,8 @@ class _StructSerializerImpl<Frozen, Mutable>
     if (jsonArray.length > _recognizedSlotCount) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
-        final unrecognizedFields = UnrecognizedFields<Frozen>._fromJson(
+        final unrecognizedFields =
+            internal__UnrecognizedFields<Frozen>._fromJson(
           jsonArray.length,
           jsonArray
               .sublist(_recognizedSlotCount)
@@ -387,7 +391,8 @@ class _StructSerializerImpl<Frozen, Mutable>
           _decodeUnused(stream);
           // In a real implementation, we'd capture the bytes
         }
-        final unrecognizedFields = UnrecognizedFields<Frozen>._fromBytes(
+        final unrecognizedFields =
+            internal__UnrecognizedFields<Frozen>._fromBytes(
           encodedSlotCount,
           unrecognizedBuffer.buffer.asUint8List(),
         );

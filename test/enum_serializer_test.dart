@@ -12,7 +12,7 @@ sealed class Color {
 }
 
 class ColorUnknown extends Color {
-  final UnrecognizedEnum<Color>? unrecognized;
+  final internal__UnrecognizedEnum<Color>? unrecognized;
   const ColorUnknown(this.unrecognized);
 }
 
@@ -39,7 +39,7 @@ sealed class Status {
 }
 
 class StatusUnknown extends Status {
-  final UnrecognizedEnum<Status>? unrecognized;
+  final internal__UnrecognizedEnum<Status>? unrecognized;
   const StatusUnknown(this.unrecognized);
 }
 
@@ -69,14 +69,15 @@ void main() {
     const colorGreen = ColorGreen();
     const colorBlue = ColorBlue();
 
-    late EnumSerializerBuilder<Color> colorEnumBuilder;
+    late internal__EnumSerializerBuilder<Color> colorEnumBuilder;
     late Serializer<Color> colorSerializer;
-    late EnumSerializerBuilder<Status> statusEnumBuilder;
+    late internal__EnumSerializerBuilder<Status> statusEnumBuilder;
     late Serializer<Status> statusSerializer;
 
     setUp(() {
       // Simple enum with only constants
-      colorEnumBuilder = EnumSerializerBuilder.create<Color, ColorUnknown>(
+      colorEnumBuilder =
+          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
@@ -99,7 +100,8 @@ void main() {
       colorSerializer = colorEnumBuilder.serializer;
 
       // Complex enum with both constants and value fields
-      statusEnumBuilder = EnumSerializerBuilder.create<Status, StatusUnknown>(
+      statusEnumBuilder =
+          internal__EnumSerializerBuilder.create<Status, StatusUnknown>(
         recordId: 'foo.bar:Color.Status',
         unknownInstance: statusUnknown,
         wrapUnrecognized: (unrecognized) => StatusUnknown(unrecognized),
@@ -330,7 +332,8 @@ void main() {
 
     test('enum serializer - error cases', () {
       // Test that finalize() can only be called once
-      final testEnumBuilder = EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final testEnumBuilder =
+          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
@@ -472,7 +475,8 @@ void main() {
 
     test('.serializer field access', () {
       // Test that the serializer field is accessible and works correctly
-      final builder = EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final builder =
+          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
@@ -492,7 +496,8 @@ void main() {
     });
 
     test('builder state management', () {
-      final builder = EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final builder =
+          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
@@ -580,7 +585,8 @@ void main() {
 
     test('enum serializer - default detection', () {
       // Create a simple builder to test default detection
-      final testBuilder = EnumSerializerBuilder.create<Color, ColorUnknown>(
+      final testBuilder =
+          internal__EnumSerializerBuilder.create<Color, ColorUnknown>(
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),

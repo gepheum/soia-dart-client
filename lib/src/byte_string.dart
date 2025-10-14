@@ -32,12 +32,25 @@ class ByteString {
   factory ByteString.fromBase16(String base16) =>
       ByteString.copy(hex.decode(base16));
 
+  /// Returns an unmodifiable view of the underlying byte data.
+  ///
+  /// This provides direct access to the bytes without allowing modification.
   Uint8List get asUnmodifiableList => _uint8List.asUnmodifiableView();
 
+  /// The number of bytes in this byte string.
   int get length => _uint8List.length;
+
+  /// Whether this byte string contains no bytes.
   bool get isEmpty => _uint8List.isEmpty;
+
+  /// Whether this byte string contains at least one byte.
   bool get isNotEmpty => _uint8List.isNotEmpty;
 
+  /// Returns a substring of this byte string.
+  ///
+  /// Creates a new ByteString containing the bytes from [start] (inclusive)
+  /// to [end] (exclusive). If [end] is omitted, it defaults to the length
+  /// of this byte string.
   ByteString substring(int start, [int? end]) {
     if (start == 0 && end == _uint8List.length) {
       return this;

@@ -58,6 +58,12 @@ class Serializers {
     return Serializer._(_IterableSerializer.iterable(item._impl));
   }
 
+  /// Creates a serializer for keyed iterables that support fast lookup by key.
+  ///
+  /// [item] The serializer for individual iterable elements
+  /// [getKey] Function to extract the key from each element
+  /// Returns a serializer that can handle keyed iterables with efficient
+  /// key-based lookup
   static Serializer<KeyedIterable<E, K>> keyedIterable<E, K>(
     Serializer<E> item,
     K Function(E) getKey, {

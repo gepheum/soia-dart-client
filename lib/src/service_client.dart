@@ -1,16 +1,29 @@
 part of "../soia.dart";
 
-/// HTTP method enum for RPC requests.
+/// HTTP methods supported for RPC requests.
 enum HttpMethod {
+  /// HTTP GET method
   get,
+
+  /// HTTP POST method
   post,
 }
 
 /// Exception thrown when an RPC call fails.
+///
+/// This exception encapsulates both network-level errors and server-side
+/// failures, providing access to the HTTP status code and error message.
 class RpcException implements Exception {
+  /// The HTTP status code associated with the error.
   final int statusCode;
+
+  /// A descriptive error message.
   final String message;
 
+  /// Creates a new RPC exception.
+  ///
+  /// [statusCode] The HTTP status code (0 for non-HTTP errors)
+  /// [message] A descriptive error message
   const RpcException(this.statusCode, this.message);
 
   @override
