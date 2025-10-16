@@ -14,8 +14,8 @@ enum ColorKind {
   blue(3),
   custom(4);
 
-  final int number;
-  const ColorKind(this.number);
+  final int ordinal;
+  const ColorKind(this.ordinal);
 }
 
 sealed class Color {
@@ -59,8 +59,8 @@ enum StatusKind {
   pending(3),
   error(4);
 
-  final int number;
-  const StatusKind(this.number);
+  final int ordinal;
+  const StatusKind(this.ordinal);
 }
 
 sealed class Status {
@@ -115,21 +115,22 @@ void main() {
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      colorEnumBuilder.addConstantField('red', 'red', colorRed);
-      colorEnumBuilder.addConstantField('green', 'green', colorGreen);
-      colorEnumBuilder.addConstantField('blue', 'blue', colorBlue);
+      colorEnumBuilder.addConstantField(1, 'red', 'red', colorRed);
+      colorEnumBuilder.addConstantField(2, 'green', 'green', colorGreen);
+      colorEnumBuilder.addConstantField(3, 'blue', 'blue', colorBlue);
       colorEnumBuilder.addValueField<ColorCustomOption, int>(
-        ColorKind.custom.number,
+        4,
         'custom',
         'wrapCustom',
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
+        ordinal: ColorKind.custom.ordinal,
       );
       colorEnumBuilder.finalize();
 
@@ -140,21 +141,22 @@ void main() {
         recordId: 'foo.bar:Color.Status',
         unknownInstance: statusUnknown,
         enumInstance: statusUnknown as Status,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
         wrapUnrecognized: (unrecognized) => StatusUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      statusEnumBuilder.addConstantField('active', 'active', StatusActive());
+      statusEnumBuilder.addConstantField(1, 'active', 'active', StatusActive());
       statusEnumBuilder.addConstantField(
-          'inactive', 'inactive', StatusInactive());
+          2, 'inactive', 'inactive', StatusInactive());
       statusEnumBuilder.addValueField<StatusPendingOption, String>(
-        StatusKind.pending.number,
+        3,
         'pending',
         'pending',
         Serializers.string,
         (reason) => StatusPendingOption(reason),
         (pending) => pending.reason,
+        ordinal: StatusKind.pending.ordinal,
       );
       statusEnumBuilder.addRemovedNumber(4); // Removed field number
       statusEnumBuilder.finalize();
@@ -374,17 +376,17 @@ void main() {
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testEnumBuilder.addConstantField('test', 'test', colorRed);
+      testEnumBuilder.addConstantField(1, 'test', 'test', colorRed);
       testEnumBuilder.finalize();
 
       // Adding fields after finalization should throw
       expect(
-        () => testEnumBuilder.addConstantField('test2', 'test2', colorGreen),
+        () => testEnumBuilder.addConstantField(2, 'test2', 'test2', colorGreen),
         throwsStateError,
       );
 
@@ -518,12 +520,12 @@ void main() {
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      builder.addConstantField('red', 'red', colorRed);
+      builder.addConstantField(1, 'red', 'red', colorRed);
       builder.finalize();
 
       final serializer = builder.serializer;
@@ -542,20 +544,21 @@ void main() {
         enumInstance: colorUnknown as Color,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
       );
 
       // Should be able to add constants before finalization
-      builder.addConstantField('red', 'red', colorRed);
+      builder.addConstantField(1, 'red', 'red', colorRed);
 
       // Should be able to add value fields before finalization
       builder.addValueField<ColorCustomOption, int>(
-        ColorKind.custom.number,
+        ColorKind.custom.ordinal,
         'custom',
         'custom',
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
+        ordinal: 4,
       );
 
       // Should be able to add removed numbers before finalization
@@ -574,19 +577,20 @@ void main() {
 
       // Should not be able to add constants after finalization
       expect(
-        () => builder.addConstantField('green', 'green', colorGreen),
+        () => builder.addConstantField(2, 'green', 'green', colorGreen),
         throwsStateError,
       );
 
       // Should not be able to add value fields after finalization
       expect(
         () => builder.addValueField<ColorCustomOption, int>(
-          ColorKind.custom.number,
+          4,
           'custom2',
           'custom2',
           Serializers.int32,
           (rgb) => ColorCustomOption(rgb),
           (custom) => custom.rgb,
+          ordinal: ColorKind.custom.ordinal,
         ),
         throwsStateError,
       );
@@ -630,12 +634,12 @@ void main() {
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getNumber: (it) => it.kind.number,
+        getOrdinal: (it) => it.kind.ordinal,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testBuilder.addConstantField('red', 'red', colorRed);
+      testBuilder.addConstantField(1, 'red', 'red', colorRed);
       testBuilder.finalize();
 
       final testSerializer = testBuilder.serializer;

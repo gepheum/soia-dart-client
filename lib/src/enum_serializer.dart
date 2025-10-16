@@ -21,7 +21,7 @@ class internal__EnumSerializerBuilder<Enum> {
     required String recordId,
     required Unknown unknownInstance,
     required Enum enumInstance, // For type inference, not used at runtime
-    required int Function(Enum) getNumber,
+    required int Function(Enum) getOrdinal,
     required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
     required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
   }) {
@@ -35,7 +35,7 @@ class internal__EnumSerializerBuilder<Enum> {
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
         "${dartClassName}.unknown",
       ),
-      getNumber,
+      getOrdinal,
     );
     return internal__EnumSerializerBuilder<Enum>._(
         impl, EnumSerializer._(impl));
@@ -50,8 +50,9 @@ class internal__EnumSerializerBuilder<Enum> {
     }
   }
 
-  void addConstantField(String name, String dartName, Enum instance) {
-    _impl.addConstantField(name, dartName, instance);
+  void addConstantField(
+      int number, String name, String dartName, Enum instance) {
+    _impl.addConstantField(number, name, dartName, instance);
   }
 
   void addValueField<Wrapper extends Enum, Value>(
@@ -60,8 +61,9 @@ class internal__EnumSerializerBuilder<Enum> {
     String dartName,
     Serializer<Value> valueSerializer,
     Wrapper Function(Value) wrap,
-    Value Function(Wrapper) getValue,
-  ) {
+    Value Function(Wrapper) getValue, {
+    required int ordinal,
+  }) {
     _impl.addValueField<Wrapper, Value>(
       number,
       name,
@@ -69,6 +71,7 @@ class internal__EnumSerializerBuilder<Enum> {
       valueSerializer,
       wrap,
       getValue,
+      ordinal: ordinal,
     );
   }
 
@@ -87,13 +90,13 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   final _RecordId recordId;
   final String dartClassName;
   final _EnumUnknownField<E> unknown;
-  final int Function(E) getNumber;
+  final int Function(E) getOrdinal;
 
   _EnumSerializerImpl._(
     String recordId,
     this.dartClassName,
     this.unknown,
-    this.getNumber,
+    this.getOrdinal,
   ) : recordId = _RecordId.parse(recordId);
 
   @override
@@ -105,11 +108,14 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   @override
   String get modulePath => recordId.modulePath;
 
-  void addConstantField(String name, String dartName, E instance) {
+  void addConstantField(int number, String name, String dartName, E instance) {
     checkNotFinalized();
-    final number = getNumber(instance);
+    final ordinal = getOrdinal(instance);
     final asString = '${dartClassName}.${dartName}';
-    addFieldImpl(_EnumConstantField<E>(number, name, instance, asString));
+    addFieldImpl(
+      ordinal: ordinal,
+      field: _EnumConstantField<E>(number, name, instance, asString),
+    );
   }
 
   void addValueField<W extends E, V>(
@@ -118,18 +124,21 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     String dartName,
     Serializer<V> valueSerializer,
     W Function(V) wrap,
-    V Function(W) getValue,
-  ) {
+    V Function(W) getValue, {
+    required int ordinal,
+  }) {
     checkNotFinalized();
     final wrapFunctionName = '${dartClassName}.${dartName}';
-    addFieldImpl(_ValueField<E, W, V>(
-      number,
-      name,
-      valueSerializer,
-      wrap,
-      getValue,
-      wrapFunctionName,
-    ));
+    addFieldImpl(
+        ordinal: ordinal,
+        field: _ValueField<E, W, V>(
+          number,
+          name,
+          valueSerializer,
+          wrap,
+          getValue,
+          wrapFunctionName,
+        ));
   }
 
   void addRemovedNumber(int number) {
@@ -140,14 +149,12 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   void finalize() {
     checkNotFinalized();
-    addFieldImpl(unknown);
-    // Create fieldArray from numberToField
-    for (int number = 0;; ++number) {
-      final field = numberToField[number];
-      if (field is _EnumField<E>) {
+    addFieldImpl(ordinal: 0, field: unknown);
+    // Create fieldArray from ordinalToField
+    for (int ordinal = 0;; ++ordinal) {
+      final field = ordinalToField[ordinal];
+      if (field != null) {
         fieldArray.add(field);
-      } else if (field is _EnumRemovedNumber<E>) {
-        fieldArray.add(null);
       } else {
         break;
       }
@@ -161,16 +168,19 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     }
   }
 
-  void addFieldImpl(_EnumField<E> field) {
+  void addFieldImpl({required int ordinal, required _EnumField<E> field}) {
     mutableFields.add(field);
     numberToField[field.number] = field;
+    ordinalToField[ordinal] = field;
     nameToField[field.name] = field;
   }
 
   final List<_EnumField<E>> mutableFields = [];
   final Set<int> mutableRemovedNumbers = <int>{};
   final Map<int, _EnumFieldOrRemovedNumber<E>> numberToField = {};
+  final Map<int, _EnumField<E>> ordinalToField = {};
   final Map<String, _EnumField<E>> nameToField = {};
+  // The index is the ordinal
   var fieldArray = <_EnumField<E>?>[];
   bool finalized = false;
 
@@ -179,7 +189,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
-    final field = fieldArray[getNumber(input)]!;
+    final field = fieldArray[getOrdinal(input)]!;
     return field.toJson(input, readableFlavor);
   }
 
@@ -247,7 +257,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   void encode(E input, Uint8Buffer buffer) {
-    final field = fieldArray[getNumber(input)]!;
+    final field = fieldArray[getOrdinal(input)]!;
     field.encode(input, buffer);
   }
 
@@ -306,7 +316,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
-    final field = fieldArray[getNumber(input)]!;
+    final field = fieldArray[getOrdinal(input)]!;
     field.appendString(input, out, eolIndent);
   }
 
@@ -334,7 +344,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   ReflectiveEnumField<E> getField(E e) {
-    final field = fieldArray[getNumber(e)]!;
+    final field = fieldArray[getOrdinal(e)]!;
     return field.asField;
   }
 
