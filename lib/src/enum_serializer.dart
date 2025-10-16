@@ -25,12 +25,15 @@ class internal__EnumSerializerBuilder<Enum> {
     required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
     required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
   }) {
+    final String dartClassName = recordId.replaceAll(".", "_");
     final impl = _EnumSerializerImpl._(
       recordId,
+      dartClassName,
       _EnumUnknownField<Enum>(
         unknownInstance,
         wrapUnrecognized,
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
+        "${dartClassName}.unknown",
       ),
       getNumber,
     );
@@ -47,13 +50,14 @@ class internal__EnumSerializerBuilder<Enum> {
     }
   }
 
-  void addConstantField(String name, Enum instance) {
-    _impl.addConstantField(name, instance);
+  void addConstantField(String name, String dartName, Enum instance) {
+    _impl.addConstantField(name, dartName, instance);
   }
 
   void addValueField<Wrapper extends Enum, Value>(
     int number,
     String name,
+    String dartName,
     Serializer<Value> valueSerializer,
     Wrapper Function(Value) wrap,
     Value Function(Wrapper) getValue,
@@ -61,6 +65,7 @@ class internal__EnumSerializerBuilder<Enum> {
     _impl.addValueField<Wrapper, Value>(
       number,
       name,
+      dartName,
       valueSerializer,
       wrap,
       getValue,
@@ -80,11 +85,16 @@ class internal__EnumSerializerBuilder<Enum> {
 class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     implements _SerializerImpl<E> {
   final _RecordId recordId;
+  final String dartClassName;
   final _EnumUnknownField<E> unknown;
   final int Function(E) getNumber;
 
-  _EnumSerializerImpl._(String recordId, this.unknown, this.getNumber)
-      : recordId = _RecordId.parse(recordId);
+  _EnumSerializerImpl._(
+    String recordId,
+    this.dartClassName,
+    this.unknown,
+    this.getNumber,
+  ) : recordId = _RecordId.parse(recordId);
 
   @override
   String get name => recordId.name;
@@ -95,26 +105,30 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   @override
   String get modulePath => recordId.modulePath;
 
-  void addConstantField(String name, E instance) {
+  void addConstantField(String name, String dartName, E instance) {
     checkNotFinalized();
     final number = getNumber(instance);
-    addFieldImpl(_EnumConstantField<E>(number, name, instance));
+    final asString = '${dartClassName}.${dartName}';
+    addFieldImpl(_EnumConstantField<E>(number, name, instance, asString));
   }
 
   void addValueField<W extends E, V>(
     int number,
     String name,
+    String dartName,
     Serializer<V> valueSerializer,
     W Function(V) wrap,
     V Function(W) getValue,
   ) {
     checkNotFinalized();
+    final wrapFunctionName = '${dartClassName}.${dartName}';
     addFieldImpl(_ValueField<E, W, V>(
       number,
       name,
       valueSerializer,
       wrap,
       getValue,
+      wrapFunctionName,
     ));
   }
 
@@ -399,11 +413,13 @@ class _EnumUnknownField<E> extends _EnumField<E>
   final E constant;
   final E Function(internal__UnrecognizedEnum) wrapUnrecognized;
   final internal__UnrecognizedEnum? Function(E) getUnrecognized;
+  final String asString;
 
   _EnumUnknownField(
     this.constant,
     this.wrapUnrecognized,
     this.getUnrecognized,
+    this.asString,
   ) : super('?');
 
   @override
@@ -433,8 +449,7 @@ class _EnumUnknownField<E> extends _EnumField<E>
 
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
-    final className = input.runtimeType.toString().split('.').first;
-    out.write('$className.UNKNOWN');
+    out.write(asString);
   }
 }
 
@@ -444,8 +459,10 @@ class _EnumConstantField<E> extends _EnumField<E>
   final int number;
   @override
   final E constant;
+  final String asString;
 
-  _EnumConstantField(this.number, String name, this.constant) : super(name);
+  _EnumConstantField(this.number, String name, this.constant, this.asString)
+      : super(name);
 
   ReflectiveEnumField<E> get asField => this;
 
@@ -461,8 +478,7 @@ class _EnumConstantField<E> extends _EnumField<E>
 
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
-    final className = input.runtimeType.toString();
-    out.write(className);
+    out.write(asString);
   }
 }
 
@@ -476,6 +492,7 @@ class _ValueField<E, W extends E, V> extends _EnumField<E>
   final Serializer<V> valueSerializer;
   final W Function(V) wrapFn;
   final V Function(W) getValue;
+  final String wrapFunctionName;
 
   _ValueField(
     this.number,
@@ -483,6 +500,7 @@ class _ValueField<E, W extends E, V> extends _EnumField<E>
     this.valueSerializer,
     this.wrapFn,
     this.getValue,
+    this.wrapFunctionName,
   ) : super(name);
 
   ReflectiveEnumField<E> get asField => this;
@@ -517,10 +535,10 @@ class _ValueField<E, W extends E, V> extends _EnumField<E>
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
     final newEolIndent = eolIndent + _indentUnit;
-    out.write('${input.runtimeType}($newEolIndent');
+    out.write("${wrapFunctionName}($newEolIndent");
     final value = getValue(input as W);
     valueSerializer._impl.appendString(value, out, newEolIndent);
-    out.write('$eolIndent)');
+    out.write("$eolIndent)");
   }
 
   @override

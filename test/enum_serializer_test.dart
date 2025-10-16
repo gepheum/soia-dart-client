@@ -120,12 +120,13 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      colorEnumBuilder.addConstantField('red', colorRed);
-      colorEnumBuilder.addConstantField('green', colorGreen);
-      colorEnumBuilder.addConstantField('blue', colorBlue);
+      colorEnumBuilder.addConstantField('red', 'red', colorRed);
+      colorEnumBuilder.addConstantField('green', 'green', colorGreen);
+      colorEnumBuilder.addConstantField('blue', 'blue', colorBlue);
       colorEnumBuilder.addValueField<ColorCustomOption, int>(
         ColorKind.custom.number,
         'custom',
+        'wrapCustom',
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
@@ -144,10 +145,12 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      statusEnumBuilder.addConstantField('active', StatusActive());
-      statusEnumBuilder.addConstantField('inactive', StatusInactive());
+      statusEnumBuilder.addConstantField('active', 'active', StatusActive());
+      statusEnumBuilder.addConstantField(
+          'inactive', 'inactive', StatusInactive());
       statusEnumBuilder.addValueField<StatusPendingOption, String>(
         StatusKind.pending.number,
+        'pending',
         'pending',
         Serializers.string,
         (reason) => StatusPendingOption(reason),
@@ -376,12 +379,12 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testEnumBuilder.addConstantField('test', colorRed);
+      testEnumBuilder.addConstantField('test', 'test', colorRed);
       testEnumBuilder.finalize();
 
       // Adding fields after finalization should throw
       expect(
-        () => testEnumBuilder.addConstantField('test2', colorGreen),
+        () => testEnumBuilder.addConstantField('test2', 'test2', colorGreen),
         throwsStateError,
       );
 
@@ -520,7 +523,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      builder.addConstantField('red', colorRed);
+      builder.addConstantField('red', 'red', colorRed);
       builder.finalize();
 
       final serializer = builder.serializer;
@@ -543,11 +546,12 @@ void main() {
       );
 
       // Should be able to add constants before finalization
-      builder.addConstantField('red', colorRed);
+      builder.addConstantField('red', 'red', colorRed);
 
       // Should be able to add value fields before finalization
       builder.addValueField<ColorCustomOption, int>(
         ColorKind.custom.number,
+        'custom',
         'custom',
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
@@ -570,7 +574,7 @@ void main() {
 
       // Should not be able to add constants after finalization
       expect(
-        () => builder.addConstantField('green', colorGreen),
+        () => builder.addConstantField('green', 'green', colorGreen),
         throwsStateError,
       );
 
@@ -578,6 +582,7 @@ void main() {
       expect(
         () => builder.addValueField<ColorCustomOption, int>(
           ColorKind.custom.number,
+          'custom2',
           'custom2',
           Serializers.int32,
           (rgb) => ColorCustomOption(rgb),
@@ -630,7 +635,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testBuilder.addConstantField('red', colorRed);
+      testBuilder.addConstantField('red', 'red', colorRed);
       testBuilder.finalize();
 
       final testSerializer = testBuilder.serializer;
