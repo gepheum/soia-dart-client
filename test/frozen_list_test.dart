@@ -807,7 +807,7 @@ void main() {
       test('different instances with same content are equal', () {
         final list1 = internal__frozenCopy(['apple', 'banana', 'cherry']);
         final list2 = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        
+
         expect(list1 == list2, isTrue);
         expect(list2 == list1, isTrue);
       });
@@ -815,7 +815,7 @@ void main() {
       test('different instances with different content are not equal', () {
         final list1 = internal__frozenCopy(['apple', 'banana', 'cherry']);
         final list2 = internal__frozenCopy(['apple', 'banana', 'grape']);
-        
+
         expect(list1 == list2, isFalse);
         expect(list2 == list1, isFalse);
       });
@@ -823,7 +823,7 @@ void main() {
       test('different instances with different lengths are not equal', () {
         final list1 = internal__frozenCopy(['apple', 'banana']);
         final list2 = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        
+
         expect(list1 == list2, isFalse);
         expect(list2 == list1, isFalse);
       });
@@ -831,7 +831,7 @@ void main() {
       test('empty lists are equal', () {
         final list1 = internal__frozenCopy(<String>[]);
         final list2 = internal__frozenCopy(<String>[]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list2 == list1, isTrue);
       });
@@ -839,18 +839,18 @@ void main() {
       test('frozen list not equal to regular list', () {
         final frozenList = internal__frozenCopy(['apple', 'banana']);
         final regularList = ['apple', 'banana'];
-        
+
         expect(frozenList == regularList, isFalse);
         expect(regularList == frozenList, isFalse);
       });
 
       test('frozen list not equal to other types', () {
         final frozenList = internal__frozenCopy(['apple', 'banana']);
-        
+
         expect(frozenList == 'not a list', isFalse);
         expect(frozenList == 42, isFalse);
         expect(frozenList == {'apple', 'banana'}, isFalse);
-        
+
         // Test null comparison by explicitly casting
         dynamic nullValue = null;
         expect(frozenList == nullValue, isFalse);
@@ -860,7 +860,7 @@ void main() {
         final list1 = internal__frozenCopy(<String?>[null, 'apple', null]);
         final list2 = internal__frozenCopy(<String?>[null, 'apple', null]);
         final list3 = internal__frozenCopy(<String?>[null, 'banana', null]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1 == list3, isFalse);
       });
@@ -868,7 +868,7 @@ void main() {
       test('order matters for equality', () {
         final list1 = internal__frozenCopy(['apple', 'banana', 'cherry']);
         final list2 = internal__frozenCopy(['cherry', 'banana', 'apple']);
-        
+
         expect(list1 == list2, isFalse);
       });
     });
@@ -882,8 +882,9 @@ void main() {
 
       test('different KeyedIterable instances with same content are equal', () {
         final keyed1 = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
-        final keyed2 = KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
-        
+        final keyed2 =
+            KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
+
         expect(keyed1 == keyed2, isTrue);
         expect(keyed2 == keyed1, isTrue);
       });
@@ -891,7 +892,7 @@ void main() {
       test('KeyedIterable not equal to different content', () {
         final keyed1 = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
         final keyed2 = KeyedIterable.copy(['apple', 'cherry'], (e) => e.length);
-        
+
         expect(keyed1 == keyed2, isFalse);
         expect(keyed2 == keyed1, isFalse);
       });
@@ -900,7 +901,7 @@ void main() {
         final keyed1 = KeyedIterable.copy(<String>[], (e) => e.length);
         final keyed2 = KeyedIterable.copy(<String>[], (e) => e.codeUnitAt(0));
         final staticEmpty = KeyedIterable.empty;
-        
+
         expect(keyed1 == keyed2, isTrue);
         expect(keyed1 == staticEmpty, isTrue);
         expect(staticEmpty == keyed2, isTrue);
@@ -909,7 +910,7 @@ void main() {
       test('KeyedIterable.empty singleton behavior', () {
         final empty1 = KeyedIterable.empty;
         final empty2 = KeyedIterable.empty;
-        
+
         expect(identical(empty1, empty2), isTrue);
         expect(empty1 == empty2, isTrue);
       });
@@ -918,8 +919,9 @@ void main() {
     group('Cross-implementation equality', () {
       test('_FrozenListImpl equals _KeyedIterableImpl with same content', () {
         final frozenList = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        final keyedList = KeyedIterable.copy(['apple', 'banana', 'cherry'], (e) => e.length);
-        
+        final keyedList =
+            KeyedIterable.copy(['apple', 'banana', 'cherry'], (e) => e.length);
+
         expect(frozenList == keyedList, isTrue);
         expect(keyedList == frozenList, isTrue);
       });
@@ -927,15 +929,18 @@ void main() {
       test('_FrozenListImpl equals _EmptyFrozenList when both empty', () {
         final frozenList = internal__frozenCopy(<String>[]);
         final emptyKeyed = KeyedIterable.empty;
-        
+
         expect(frozenList == emptyKeyed, isTrue);
         expect(emptyKeyed == frozenList, isTrue);
       });
 
-      test('different _FrozenList implementations with different content are not equal', () {
+      test(
+          'different _FrozenList implementations with different content are not equal',
+          () {
         final frozenList = internal__frozenCopy(['apple', 'banana']);
-        final keyedList = KeyedIterable.copy(['apple', 'cherry'], (e) => e.length);
-        
+        final keyedList =
+            KeyedIterable.copy(['apple', 'cherry'], (e) => e.length);
+
         expect(frozenList == keyedList, isFalse);
         expect(keyedList == frozenList, isFalse);
       });
@@ -944,8 +949,9 @@ void main() {
         final sourceList = ['apple', 'banana', 'cherry'];
         final frozenList = internal__frozenCopy(sourceList);
         final keyedList = KeyedIterable.copy(sourceList, (e) => e.length);
-        final mappedList = internal__frozenMappedCopy<String, String>(sourceList, (e) => e);
-        
+        final mappedList =
+            internal__frozenMappedCopy<String, String>(sourceList, (e) => e);
+
         expect(frozenList == keyedList, isTrue);
         expect(keyedList == frozenList, isTrue);
         expect(frozenList == mappedList, isTrue);
@@ -957,21 +963,21 @@ void main() {
       test('equal instances have equal hash codes', () {
         final list1 = internal__frozenCopy(['apple', 'banana', 'cherry']);
         final list2 = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
       });
 
       test('identical instances have equal hash codes', () {
         final list = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        
+
         expect(list.hashCode, equals(list.hashCode));
       });
 
       test('different content produces different hash codes (usually)', () {
         final list1 = internal__frozenCopy(['apple', 'banana', 'cherry']);
         final list2 = internal__frozenCopy(['apple', 'banana', 'grape']);
-        
+
         // Note: Hash codes should be different for different content,
         // but we can't guarantee it due to hash collisions
         expect(list1 == list2, isFalse);
@@ -982,7 +988,7 @@ void main() {
         final list1 = internal__frozenCopy(<String>[]);
         final list2 = internal__frozenCopy(<String>[]);
         final empty = KeyedIterable.empty;
-        
+
         expect(list1.hashCode, equals(list2.hashCode));
         expect(list1.hashCode, equals(empty.hashCode));
       });
@@ -992,23 +998,25 @@ void main() {
         final firstHash = list.hashCode;
         final secondHash = list.hashCode;
         final thirdHash = list.hashCode;
-        
+
         expect(firstHash, equals(secondHash));
         expect(secondHash, equals(thirdHash));
       });
 
       test('KeyedIterable hash codes are consistent', () {
         final keyed1 = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
-        final keyed2 = KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
-        
+        final keyed2 =
+            KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
+
         expect(keyed1 == keyed2, isTrue);
         expect(keyed1.hashCode, equals(keyed2.hashCode));
       });
 
       test('cross-implementation hash code consistency', () {
         final frozenList = internal__frozenCopy(['apple', 'banana']);
-        final keyedList = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
-        
+        final keyedList =
+            KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
+
         expect(frozenList == keyedList, isTrue);
         expect(frozenList.hashCode, equals(keyedList.hashCode));
       });
@@ -1016,7 +1024,7 @@ void main() {
       test('hash codes with null elements', () {
         final list1 = internal__frozenCopy(<String?>[null, 'apple', null]);
         final list2 = internal__frozenCopy(<String?>[null, 'apple', null]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
       });
@@ -1027,11 +1035,11 @@ void main() {
         final person1a = Person('Alice', 25);
         final person1b = Person('Alice', 25); // Equal to person1a
         final person2 = Person('Bob', 30);
-        
+
         final list1 = internal__frozenCopy([person1a, person2]);
         final list2 = internal__frozenCopy([person1b, person2]);
         final list3 = internal__frozenCopy([person2, person1a]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
         expect(list1 == list3, isFalse);
@@ -1050,7 +1058,7 @@ void main() {
           internal__frozenCopy(['a', 'b']),
           internal__frozenCopy(['c', 'e'])
         ]);
-        
+
         expect(nestedList1 == nestedList2, isTrue);
         expect(nestedList1.hashCode, equals(nestedList2.hashCode));
         expect(nestedList1 == nestedList3, isFalse);
@@ -1060,10 +1068,10 @@ void main() {
         final person1a = Person('Alice', 25);
         final person1b = Person('Alice', 25); // Equal to person1a
         final person2 = Person('Bob', 30);
-        
+
         final keyed1 = KeyedIterable.copy([person1a, person2], (p) => p.name);
         final keyed2 = KeyedIterable.copy([person1b, person2], (p) => p.name);
-        
+
         expect(keyed1 == keyed2, isTrue);
         expect(keyed1.hashCode, equals(keyed2.hashCode));
       });
@@ -1072,11 +1080,11 @@ void main() {
         final largeList1 = List.generate(1000, (i) => 'item$i');
         final largeList2 = List.generate(1000, (i) => 'item$i');
         largeList2[999] = 'different'; // Make one element different
-        
+
         final frozen1 = internal__frozenCopy(largeList1);
         final frozen2 = internal__frozenCopy(largeList1);
         final frozen3 = internal__frozenCopy(largeList2);
-        
+
         expect(frozen1 == frozen2, isTrue);
         expect(frozen1.hashCode, equals(frozen2.hashCode));
         expect(frozen1 == frozen3, isFalse);
@@ -1086,7 +1094,7 @@ void main() {
         final list1 = internal__frozenCopy<dynamic>([1, 'hello', true, 3.14]);
         final list2 = internal__frozenCopy<dynamic>([1, 'hello', true, 3.14]);
         final list3 = internal__frozenCopy<dynamic>([1, 'hello', false, 3.14]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
         expect(list1 == list3, isFalse);
@@ -1098,7 +1106,7 @@ void main() {
         final list1 = internal__frozenCopy(['single']);
         final list2 = internal__frozenCopy(['single']);
         final list3 = internal__frozenCopy(['different']);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
         expect(list1 == list3, isFalse);
@@ -1108,7 +1116,7 @@ void main() {
         final list1 = internal__frozenCopy(['a', 'a', 'b', 'a']);
         final list2 = internal__frozenCopy(['a', 'a', 'b', 'a']);
         final list3 = internal__frozenCopy(['a', 'b', 'a', 'a']);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
         expect(list1 == list3, isFalse); // Order matters
@@ -1118,7 +1126,7 @@ void main() {
         final largeString = 'x' * 10000;
         final list1 = internal__frozenCopy([largeString]);
         final list2 = internal__frozenCopy([largeString]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
       });
@@ -1126,7 +1134,7 @@ void main() {
       test('numeric types and precision', () {
         final list1 = internal__frozenCopy([1, 2.0, 3]);
         final list2 = internal__frozenCopy([1, 2.0, 3]);
-        
+
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));
       });
@@ -1134,7 +1142,7 @@ void main() {
       test('string vs num comparison', () {
         final list1 = internal__frozenCopy<dynamic>(['1', '2', '3']);
         final list2 = internal__frozenCopy<dynamic>([1, 2, 3]);
-        
+
         expect(list1 == list2, isFalse);
       });
     });
