@@ -104,9 +104,9 @@ void main() {
     const colorGreen = ColorGreen();
     const colorBlue = ColorBlue();
 
-    late internal__EnumSerializerBuilder<Color, ColorKind> colorEnumBuilder;
+    late internal__EnumSerializerBuilder<Color> colorEnumBuilder;
     late Serializer<Color> colorSerializer;
-    late internal__EnumSerializerBuilder<Status, StatusKind> statusEnumBuilder;
+    late internal__EnumSerializerBuilder<Status> statusEnumBuilder;
     late Serializer<Status> statusSerializer;
 
     setUp(() {
@@ -115,8 +115,7 @@ void main() {
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getKind: (it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
@@ -125,8 +124,8 @@ void main() {
       colorEnumBuilder.addConstantField('green', colorGreen);
       colorEnumBuilder.addConstantField('blue', colorBlue);
       colorEnumBuilder.addValueField<ColorCustomOption, int>(
+        ColorKind.custom.number,
         'custom',
-        ColorKind.custom,
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
@@ -140,8 +139,7 @@ void main() {
         recordId: 'foo.bar:Color.Status',
         unknownInstance: statusUnknown,
         enumInstance: statusUnknown as Status,
-        getKind: (it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
         wrapUnrecognized: (unrecognized) => StatusUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
@@ -149,8 +147,8 @@ void main() {
       statusEnumBuilder.addConstantField('active', StatusActive());
       statusEnumBuilder.addConstantField('inactive', StatusInactive());
       statusEnumBuilder.addValueField<StatusPendingOption, String>(
+        StatusKind.pending.number,
         'pending',
-        StatusKind.pending,
         Serializers.string,
         (reason) => StatusPendingOption(reason),
         (pending) => pending.reason,
@@ -373,8 +371,7 @@ void main() {
         recordId: 'foo.bar:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getKind: (Color it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
@@ -518,8 +515,7 @@ void main() {
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getKind: (it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
@@ -543,8 +539,7 @@ void main() {
         enumInstance: colorUnknown as Color,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
-        getKind: (it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
       );
 
       // Should be able to add constants before finalization
@@ -552,8 +547,8 @@ void main() {
 
       // Should be able to add value fields before finalization
       builder.addValueField<ColorCustomOption, int>(
+        ColorKind.custom.number,
         'custom',
-        ColorKind.custom,
         Serializers.int32,
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
@@ -582,8 +577,8 @@ void main() {
       // Should not be able to add value fields after finalization
       expect(
         () => builder.addValueField<ColorCustomOption, int>(
+          ColorKind.custom.number,
           'custom2',
-          ColorKind.custom,
           Serializers.int32,
           (rgb) => ColorCustomOption(rgb),
           (custom) => custom.rgb,
@@ -630,8 +625,7 @@ void main() {
         recordId: 'test:Color',
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
-        getKind: (it) => it.kind,
-        getNumber: (it) => it.number,
+        getNumber: (it) => it.kind.number,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
         getUnrecognized: (unknown) => unknown.unrecognized,
       );

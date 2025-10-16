@@ -2,42 +2,39 @@ part of "../soia.dart";
 
 /// Specialization of a [Serializer] for generated enum types.
 class EnumSerializer<Enum> extends Serializer<Enum> {
-  EnumSerializer._(_EnumSerializerImpl<Enum, dynamic> impl) : super._(impl);
+  EnumSerializer._(_EnumSerializerImpl<Enum> impl) : super._(impl);
 
   @override
   ReflectiveEnumDescriptor<Enum> get typeDescriptor =>
-      super._impl as _EnumSerializerImpl<Enum, dynamic>;
+      super._impl as _EnumSerializerImpl<Enum>;
 }
 
-class internal__EnumSerializerBuilder<Enum, Kind> {
-  final _EnumSerializerImpl<Enum, Kind> _impl;
+class internal__EnumSerializerBuilder<Enum> {
+  final _EnumSerializerImpl<Enum> _impl;
   final EnumSerializer<Enum> serializer;
   bool _initialized = false;
 
   internal__EnumSerializerBuilder._(this._impl, this.serializer);
 
-  static internal__EnumSerializerBuilder<Enum, Kind>
-      create<Enum, Kind, Unknown extends Enum>({
+  static internal__EnumSerializerBuilder<Enum>
+      create<Enum, Unknown extends Enum>({
     required String recordId,
     required Unknown unknownInstance,
     required Enum enumInstance, // For type inference, not used at runtime
-    required Kind Function(Enum) getKind,
-    required int Function(Kind) getNumber,
+    required int Function(Enum) getNumber,
     required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
     required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
   }) {
     final impl = _EnumSerializerImpl._(
       recordId,
-      _EnumUnknownField<Enum, Kind>(
-        getKind(unknownInstance),
+      _EnumUnknownField<Enum>(
         unknownInstance,
         wrapUnrecognized,
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
       ),
-      getKind,
       getNumber,
     );
-    return internal__EnumSerializerBuilder<Enum, Kind>._(
+    return internal__EnumSerializerBuilder<Enum>._(
         impl, EnumSerializer._(impl));
   }
 
@@ -55,15 +52,15 @@ class internal__EnumSerializerBuilder<Enum, Kind> {
   }
 
   void addValueField<Wrapper extends Enum, Value>(
+    int number,
     String name,
-    Kind kind,
     Serializer<Value> valueSerializer,
     Wrapper Function(Value) wrap,
     Value Function(Wrapper) getValue,
   ) {
     _impl.addValueField<Wrapper, Value>(
+      number,
       name,
-      kind,
       valueSerializer,
       wrap,
       getValue,
@@ -80,15 +77,13 @@ class internal__EnumSerializerBuilder<Enum, Kind> {
 }
 
 /// Enum serializer implementation
-class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
+class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     implements _SerializerImpl<E> {
   final _RecordId recordId;
-  final _EnumUnknownField<E, K> unknown;
-  final K Function(E) getKind;
-  final int Function(K) getNumber;
+  final _EnumUnknownField<E> unknown;
+  final int Function(E) getNumber;
 
-  _EnumSerializerImpl._(
-      String recordId, this.unknown, this.getKind, this.getNumber)
+  _EnumSerializerImpl._(String recordId, this.unknown, this.getNumber)
       : recordId = _RecordId.parse(recordId);
 
   @override
@@ -102,24 +97,21 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
 
   void addConstantField(String name, E instance) {
     checkNotFinalized();
-    final kind = getKind(instance);
-    final number = getNumber(kind);
-    addFieldImpl(_EnumConstantField<E, K>(number, name, kind, instance));
+    final number = getNumber(instance);
+    addFieldImpl(_EnumConstantField<E>(number, name, instance));
   }
 
   void addValueField<W extends E, V>(
+    int number,
     String name,
-    K kind,
     Serializer<V> valueSerializer,
     W Function(V) wrap,
     V Function(W) getValue,
   ) {
     checkNotFinalized();
-    final number = getNumber(kind);
-    addFieldImpl(_ValueField<E, K, W, V>(
+    addFieldImpl(_ValueField<E, W, V>(
       number,
       name,
-      kind,
       valueSerializer,
       wrap,
       getValue,
@@ -129,12 +121,23 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
   void addRemovedNumber(int number) {
     checkNotFinalized();
     mutableRemovedNumbers.add(number);
-    numberToField[number] = _EnumRemovedNumber<E, K>(number);
+    numberToField[number] = _EnumRemovedNumber<E>(number);
   }
 
   void finalize() {
     checkNotFinalized();
     addFieldImpl(unknown);
+    // Create fieldArray from numberToField
+    for (int number = 0;; ++number) {
+      final field = numberToField[number];
+      if (field is _EnumField<E>) {
+        fieldArray.add(field);
+      } else if (field is _EnumRemovedNumber<E>) {
+        fieldArray.add(null);
+      } else {
+        break;
+      }
+    }
     finalized = true;
   }
 
@@ -144,18 +147,17 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
     }
   }
 
-  void addFieldImpl(_EnumField<E, K> field) {
+  void addFieldImpl(_EnumField<E> field) {
     mutableFields.add(field);
     numberToField[field.number] = field;
     nameToField[field.name] = field;
-    kindToField[field.kind] = field;
   }
 
-  final List<_EnumField<E, K>> mutableFields = [];
+  final List<_EnumField<E>> mutableFields = [];
   final Set<int> mutableRemovedNumbers = <int>{};
-  final Map<int, _EnumFieldOrRemovedNumber<E, K>> numberToField = {};
-  final Map<String, _EnumField<E, K>> nameToField = {};
-  final Map<K, _EnumField<E, K>> kindToField = {};
+  final Map<int, _EnumFieldOrRemovedNumber<E>> numberToField = {};
+  final Map<String, _EnumField<E>> nameToField = {};
+  var fieldArray = <_EnumField<E>?>[];
   bool finalized = false;
 
   @override
@@ -163,7 +165,7 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
-    final field = kindToField[getKind(input)]!;
+    final field = fieldArray[getNumber(input)]!;
     return field.toJson(input, readableFlavor);
   }
 
@@ -191,7 +193,7 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
       }
     } else if (json is String) {
       final field = nameToField[json];
-      if (field is _EnumConstantField<E, K>) {
+      if (field is _EnumConstantField<E>) {
         return field.constant;
       } else {
         return unknown.constant;
@@ -202,10 +204,10 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
           first is int ? first : (first is String ? int.tryParse(first) : null);
       if (number != null) {
         final field = numberToField[number];
-        if (field is _ValueField<E, K, dynamic, dynamic>) {
+        if (field is _ValueField<E, dynamic, dynamic>) {
           final second = json[1];
           return field.wrapFromJson(second, keepUnrecognizedFields);
-        } else if (field is _EnumRemovedNumber<E, K>) {
+        } else if (field is _EnumRemovedNumber<E>) {
           return unknown.constant;
         } else {
           if (keepUnrecognizedFields) {
@@ -221,7 +223,7 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
       final value = json['value'];
       if (name != null && value != null) {
         final field = nameToField[name];
-        if (field is _ValueField<E, K, dynamic, dynamic>) {
+        if (field is _ValueField<E, dynamic, dynamic>) {
           return field.wrapFromJson(value, keepUnrecognizedFields);
         }
       }
@@ -231,7 +233,7 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
 
   @override
   void encode(E input, Uint8Buffer buffer) {
-    final field = kindToField[getKind(input)]!;
+    final field = fieldArray[getNumber(input)]!;
     field.encode(input, buffer);
   }
 
@@ -270,9 +272,9 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
       final number = wire == 248 ? stream.decodeNumber().toInt() : wire - 250;
       final field = numberToField[number];
 
-      if (field is _ValueField<E, K, dynamic, dynamic>) {
+      if (field is _ValueField<E, dynamic, dynamic>) {
         result = field.wrapDecoded(stream, keepUnrecognizedFields);
-      } else if (field is _EnumRemovedNumber<E, K>) {
+      } else if (field is _EnumRemovedNumber<E>) {
         result = unknown.constant;
       } else {
         if (keepUnrecognizedFields) {
@@ -290,7 +292,7 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
 
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
-    final field = kindToField[getKind(input)]!;
+    final field = fieldArray[getNumber(input)]!;
     field.appendString(input, out, eolIndent);
   }
 
@@ -310,15 +312,15 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
   ReflectiveEnumField<E>? getFieldByNumber(int number) {
     final field = numberToField[number];
     return switch (field) {
-      _EnumField<E, K> f => f.asField,
-      _EnumRemovedNumber<E, K>() => null,
+      _EnumField<E> f => f.asField,
+      _EnumRemovedNumber<E>() => null,
       null => null
     };
   }
 
   @override
   ReflectiveEnumField<E> getField(E e) {
-    final field = kindToField[getKind(e)]!;
+    final field = fieldArray[getNumber(e)]!;
     return field.asField;
   }
 
@@ -345,12 +347,12 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
   List<Map<String, dynamic>> fieldDefinitions() {
     return nameToField.values
         .map((field) {
-          if (field is _EnumConstantField<E, K>) {
+          if (field is _EnumConstantField<E>) {
             return {
               'name': field.name,
               'number': field.number,
             };
-          } else if (field is _ValueField<E, K, dynamic, dynamic>) {
+          } else if (field is _ValueField<E, dynamic, dynamic>) {
             return {
               'name': field.name,
               'number': field.number,
@@ -373,17 +375,16 @@ class _EnumSerializerImpl<E, K> extends ReflectiveEnumDescriptor<E>
 }
 
 // Abstract base class for enum field implementations
-sealed class _EnumFieldOrRemovedNumber<E, K> {
+sealed class _EnumFieldOrRemovedNumber<E> {
   int get number;
 }
 
-sealed class _EnumField<E, K> extends _EnumFieldOrRemovedNumber<E, K>
+sealed class _EnumField<E> extends _EnumFieldOrRemovedNumber<E>
     implements Field {
   @override
   final String name;
-  final K kind;
 
-  _EnumField(this.name, this.kind);
+  _EnumField(this.name);
 
   ReflectiveEnumField<E> get asField;
 
@@ -392,7 +393,7 @@ sealed class _EnumField<E, K> extends _EnumFieldOrRemovedNumber<E, K>
   void appendString(E input, StringBuffer out, String eolIndent);
 }
 
-class _EnumUnknownField<E, K> extends _EnumField<E, K>
+class _EnumUnknownField<E> extends _EnumField<E>
     implements ReflectiveEnumConstantField<E> {
   @override
   final E constant;
@@ -400,11 +401,10 @@ class _EnumUnknownField<E, K> extends _EnumField<E, K>
   final internal__UnrecognizedEnum? Function(E) getUnrecognized;
 
   _EnumUnknownField(
-    K kind,
     this.constant,
     this.wrapUnrecognized,
     this.getUnrecognized,
-  ) : super('?', kind);
+  ) : super('?');
 
   @override
   int get number => 0;
@@ -438,15 +438,14 @@ class _EnumUnknownField<E, K> extends _EnumField<E, K>
   }
 }
 
-class _EnumConstantField<E, K> extends _EnumField<E, K>
+class _EnumConstantField<E> extends _EnumField<E>
     implements ReflectiveEnumConstantField<E> {
   @override
   final int number;
   @override
   final E constant;
 
-  _EnumConstantField(this.number, String name, K kind, this.constant)
-      : super(name, kind);
+  _EnumConstantField(this.number, String name, this.constant) : super(name);
 
   ReflectiveEnumField<E> get asField => this;
 
@@ -468,10 +467,9 @@ class _EnumConstantField<E, K> extends _EnumField<E, K>
 }
 
 // E: enum type
-// K: kind type
 // W: wrapped enum type (for value fields)
 // V: value type
-class _ValueField<E, K, W extends E, V> extends _EnumField<E, K>
+class _ValueField<E, W extends E, V> extends _EnumField<E>
     implements ReflectiveEnumValueField<E, V> {
   @override
   final int number;
@@ -482,11 +480,10 @@ class _ValueField<E, K, W extends E, V> extends _EnumField<E, K>
   _ValueField(
     this.number,
     String name,
-    K kind,
     this.valueSerializer,
     this.wrapFn,
     this.getValue,
-  ) : super(name, kind);
+  ) : super(name);
 
   ReflectiveEnumField<E> get asField => this;
 
@@ -550,7 +547,7 @@ class _ValueField<E, K, W extends E, V> extends _EnumField<E, K>
   }
 }
 
-class _EnumRemovedNumber<E, K> extends _EnumFieldOrRemovedNumber<E, K> {
+class _EnumRemovedNumber<E> extends _EnumFieldOrRemovedNumber<E> {
   @override
   final int number;
 
