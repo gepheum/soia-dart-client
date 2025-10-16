@@ -23,13 +23,6 @@ void main() {
     });
   });
 
-  group('HttpMethod', () {
-    test('enum values are correct', () {
-      expect(HttpMethod.get, isA<HttpMethod>());
-      expect(HttpMethod.post, isA<HttpMethod>());
-    });
-  });
-
   group('RpcException', () {
     test('constructor and toString work correctly', () {
       final exception = RpcException(404, 'Not found');
