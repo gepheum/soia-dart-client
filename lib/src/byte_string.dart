@@ -76,19 +76,9 @@ class ByteString {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ByteString) return false;
-    if (_uint8List.length != other._uint8List.length) return false;
-    for (int i = 0; i < _uint8List.length; i++) {
-      if (_uint8List[i] != other._uint8List[i]) return false;
-    }
-    return true;
+    return internal__listEquality.equals(_uint8List, other._uint8List);
   }
 
   @override
-  int get hashCode {
-    int hash = 0;
-    for (int i = 0; i < _uint8List.length; i++) {
-      hash = hash * 31 + _uint8List[i];
-    }
-    return hash + 3912107;
-  }
+  int get hashCode => internal__listEquality.hash(_uint8List);
 }

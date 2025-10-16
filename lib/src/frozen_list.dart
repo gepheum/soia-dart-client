@@ -5,6 +5,11 @@ sealed class _FrozenList<E> implements List<E> {}
 class _FrozenListImpl<E> extends UnmodifiableListView<E>
     implements _FrozenList<E> {
   _FrozenListImpl(List<E> list) : super(list);
+
+  @override
+  bool operator ==(Object other) => _equalsImpl(this, other);
+  @override
+  int get hashCode => _hashCodeImpl(this);
 }
 
 /// An immutable iterable that supports efficient lookup by key.
@@ -45,6 +50,11 @@ class _KeyedIterableImpl<E, K> extends UnmodifiableListView<E>
     final mapView = (_mapView ??= {for (var e in this) _getKey(e): e});
     return mapView[key];
   }
+
+  @override
+  bool operator ==(Object other) => _equalsImpl(this, other);
+  @override
+  int get hashCode => _hashCodeImpl(this);
 }
 
 class _EmptyFrozenList extends DelegatingList<Never>
@@ -53,6 +63,11 @@ class _EmptyFrozenList extends DelegatingList<Never>
 
   @override
   Never? findByKey(dynamic key) => null;
+
+  @override
+  bool operator ==(Object other) => _equalsImpl(this, other);
+  @override
+  int get hashCode => _hashCodeImpl(this);
 }
 
 Iterable<E> internal__frozenCopy<E>(Iterable<E> elements) {
@@ -111,4 +126,14 @@ KeyedIterable<E, K> internal__keyedMappedCopy<E extends M, K, M>(
       getKey,
     );
   }
+}
+
+bool _equalsImpl(_FrozenList a, Object b) {
+  if (identical(a, b)) return true;
+  if (b is! _FrozenList) return false;
+  return internal__listEquality.equals(a, b);
+}
+
+int _hashCodeImpl(_FrozenList list) {
+  return internal__listEquality.hash(list);
 }
