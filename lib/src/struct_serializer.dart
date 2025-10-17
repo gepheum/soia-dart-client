@@ -198,16 +198,19 @@ class _StructSerializerImpl<Frozen, Mutable>
     _checkNotFinalized();
     _finalized = true;
     _mutableFields.sort((a, b) => a.number.compareTo(b.number));
-    final numSlots =
+    final recognizedSlotCount =
         _mutableFields.isNotEmpty ? _mutableFields.last.number + 1 : 0;
-    _slotToField = List.filled(numSlots, null);
+    _recognizedSlotCount = recognizedSlotCount;
+    _slotToField = List.filled(recognizedSlotCount, null);
     for (final field in _mutableFields) {
       _slotToField[field.number] = field;
     }
-    _zeros = List.filled(numSlots, 0);
-    _recognizedSlotCount =
-        (numSlots - 1 > _maxRemovedNumber ? numSlots - 1 : _maxRemovedNumber) +
-            1;
+    final slotCount = max(
+        recognizedSlotCount,
+        _mutableRemovedNumbers.isNotEmpty
+            ? _mutableRemovedNumbers.reduce(max)
+            : 0);
+    _zeros = List.filled(slotCount, 0);
   }
 
   void _checkNotFinalized() {
