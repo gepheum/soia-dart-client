@@ -1,6 +1,6 @@
 name: soia
 description: A Dart client library for Soia serialization
-version: 0.1.12
+version: 0.1.13
 homepage: https://github.com/gepheum/soia-dart-client
 repository: https://github.com/gepheum/soia-dart-client
 

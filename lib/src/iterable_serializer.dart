@@ -74,14 +74,19 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   void appendString(Iterable<E> input, StringBuffer out, String eolIndent) {
-    out.write('[');
-    var separator = "";
-    for (final E element in input) {
-      out.write(separator);
-      separator = ", ";
-      item.appendString(element, out, eolIndent);
+    if (input.isEmpty) {
+      out.write('[]');
+    } else {
+      final newEolIndent = eolIndent + _indentUnit;
+      out.write('[');
+      for (final E element in input) {
+        out.write(newEolIndent);
+        item.appendString(element, out, newEolIndent);
+        out.write(",");
+      }
+      out.write(eolIndent);
+      out.write(']');
     }
-    out.write(']');
   }
 
   @override
