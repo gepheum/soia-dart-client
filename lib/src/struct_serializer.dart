@@ -392,7 +392,6 @@ class _StructSerializerImpl<Frozen, Mutable>
         final unrecognizedBuffer = Uint8Buffer();
         for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
           _decodeUnused(stream);
-          // In a real implementation, we'd capture the bytes
         }
         final unrecognizedFields = internal__UnrecognizedFields._fromBytes(
           encodedSlotCount,
@@ -406,11 +405,6 @@ class _StructSerializerImpl<Frozen, Mutable>
       }
     }
     return toFrozenFn(mutable);
-  }
-
-  void _decodeUnused(_ByteStream stream) {
-    // Decode and discard a value
-    stream.decodeNumber();
   }
 
   @override

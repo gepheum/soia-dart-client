@@ -1,5 +1,60 @@
 part of "../soia.dart";
 
+void _decodeUnused(_ByteStream stream) {
+  final wire = stream.readByte() & 0xFF;
+  if (wire < 232) {
+    return;
+  }
+
+  switch (wire - 232) {
+    case 0:
+    case 4: // uint16, uint16 - 65536
+      stream.readBytes(2);
+      break;
+    case 1:
+    case 5:
+    case 8: // uint32, int32, float32
+      stream.readBytes(4);
+      break;
+    case 2:
+    case 6:
+    case 7:
+    case 9: // uint64, int64, uint64 timestamp, float64
+      stream.readBytes(8);
+      break;
+    case 3: // uint8 - 256
+      stream.readBytes(1);
+      break;
+    case 11:
+    case 13: // string, bytes
+      final length = stream.decodeNumber();
+      stream.readBytes(length.toInt());
+      break;
+    case 15:
+    case 19:
+    case 20:
+    case 21:
+    case 22: // array length==1, enum value kind==1-4
+      _decodeUnused(stream);
+      break;
+    case 16: // array length==2
+      _decodeUnused(stream);
+      _decodeUnused(stream);
+      break;
+    case 17: // array length==3
+      _decodeUnused(stream);
+      _decodeUnused(stream);
+      _decodeUnused(stream);
+      break;
+    case 18: // array length==N
+      final length = stream.decodeNumber();
+      for (int i = 0; i < length.toInt(); i++) {
+        _decodeUnused(stream);
+      }
+      break;
+  }
+}
+
 class _BinaryWriter {
   static void encodeInt32(int value, Uint8Buffer buffer) {
     if (value >= 0 && value < 232) {

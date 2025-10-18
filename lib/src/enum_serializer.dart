@@ -268,8 +268,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
     if (wire < 242) {
       // A number: rewind and decode
-      stream.position--; // rewind the byte we just read
-      final startPosition = stream.position;
+      final startPosition = stream.position--; // rewind the byte we just read
       final number = stream.decodeNumber().toInt();
       final field = numberToField[number];
 
@@ -293,6 +292,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           }
       }
     } else {
+      final startPosition = stream.position - 1;
       final number = wire == 248 ? stream.decodeNumber().toInt() : wire - 250;
       final field = numberToField[number];
 
@@ -301,10 +301,15 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       } else if (field is _EnumRemovedNumber<E>) {
         result = unknown.constant;
       } else {
+        _decodeUnused(stream);
         if (keepUnrecognizedFields) {
           // For unknown value fields, we'll just return the unknown constant
           // since reconstructing the full bytes is complex
-          result = unknown.constant;
+          final consumed = stream.position - startPosition;
+          final bytes =
+              stream.buffer.buffer.asUint8List(startPosition, consumed);
+          result = unknown
+              .wrapUnrecognized(internal__UnrecognizedEnum._fromBytes(bytes));
         } else {
           result = unknown.constant;
         }
