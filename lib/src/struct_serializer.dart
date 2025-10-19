@@ -389,13 +389,17 @@ class _StructSerializerImpl<Frozen, Mutable>
     if (encodedSlotCount > _recognizedSlotCount) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
-        final unrecognizedBuffer = Uint8Buffer();
+        final startPosition = stream.position;
         for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
           _decodeUnused(stream);
         }
+        // Capture the bytes for the unknown fields
+        final consumed = stream.position - startPosition;
+        final unrecognizedBytes =
+            stream.buffer.buffer.asUint8List(startPosition, consumed);
         final unrecognizedFields = internal__UnrecognizedFields._fromBytes(
           encodedSlotCount,
-          unrecognizedBuffer.buffer.asUint8List(),
+          unrecognizedBytes,
         );
         setUnrecognizedFields(mutable, unrecognizedFields);
       } else {
