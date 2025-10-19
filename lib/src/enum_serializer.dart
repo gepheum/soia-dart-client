@@ -268,7 +268,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
     if (wire < 242) {
       // A number: rewind and decode
-      final startPosition = stream.position--; // rewind the byte we just read
+      final startPosition = --stream.position; // rewind the byte we just read
       final number = stream.decodeNumber().toInt();
       final field = numberToField[number];
 
