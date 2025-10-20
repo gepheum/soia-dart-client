@@ -143,10 +143,13 @@ class _StructSerializerImpl<Frozen, Mutable>
   final Set<int> _mutableRemovedNumbers = <int>{};
   final Map<String, _StructFieldImpl<Frozen, Mutable, dynamic>> _nameToField =
       {};
-  List<_StructFieldImpl<Frozen, Mutable, dynamic>?> _slotToField = [];
-  List<dynamic> _zeros = [];
-  int _recognizedSlotCount = 0;
   int _maxRemovedNumber = -1;
+  // Number of slots including removed fields.
+  int _slotCountInclRemoved = 0;
+  // Length: _slotCountInclRemoved
+  List<_StructFieldImpl<Frozen, Mutable, dynamic>?> _slotToField = [];
+  // Length: _slotCountInclRemoved
+  List<dynamic> _zeros = [];
   bool _finalized = false;
 
   _StructSerializerImpl({
@@ -191,26 +194,26 @@ class _StructSerializerImpl<Frozen, Mutable>
   void addRemovedNumber(int number) {
     _checkNotFinalized();
     _mutableRemovedNumbers.add(number);
-    _maxRemovedNumber = _maxRemovedNumber > number ? _maxRemovedNumber : number;
+    _maxRemovedNumber = max(_maxRemovedNumber, number);
   }
 
   void finalize() {
     _checkNotFinalized();
     _finalized = true;
     _mutableFields.sort((a, b) => a.number.compareTo(b.number));
-    final recognizedSlotCount =
+    final slotCountNoRemoved =
         _mutableFields.isNotEmpty ? _mutableFields.last.number + 1 : 0;
-    _recognizedSlotCount = recognizedSlotCount;
-    _slotToField = List.filled(recognizedSlotCount, null);
+    final slotCountInclRemoved = max(
+        slotCountNoRemoved,
+        _mutableRemovedNumbers.isNotEmpty
+            ? _mutableRemovedNumbers.reduce(max) + 1
+            : 0);
+    _slotCountInclRemoved = slotCountInclRemoved;
+    _slotToField = List.filled(slotCountInclRemoved, null);
     for (final field in _mutableFields) {
       _slotToField[field.number] = field;
     }
-    final slotCount = max(
-        recognizedSlotCount,
-        _mutableRemovedNumbers.isNotEmpty
-            ? _mutableRemovedNumbers.reduce(max)
-            : 0);
-    _zeros = List.filled(slotCount, 0);
+    _zeros = List.filled(slotCountInclRemoved, 0);
   }
 
   void _checkNotFinalized() {
@@ -293,19 +296,19 @@ class _StructSerializerImpl<Frozen, Mutable>
   Frozen _fromDenseJson(List<dynamic> jsonArray, bool keepUnrecognizedFields) {
     final mutable = newMutableFn(null);
     final int numSlotsToFill;
-    if (jsonArray.length > _recognizedSlotCount) {
+    if (jsonArray.length > _slotCountInclRemoved) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
         final unrecognizedFields = internal__UnrecognizedFields._fromJson(
           jsonArray.length,
           jsonArray
-              .sublist(_recognizedSlotCount)
+              .sublist(_slotCountInclRemoved)
               .map((e) => _copyJson(e))
               .toList(),
         );
         setUnrecognizedFields(mutable, unrecognizedFields);
       }
-      numSlotsToFill = _recognizedSlotCount;
+      numSlotsToFill = _slotCountInclRemoved;
     } else {
       numSlotsToFill = jsonArray.length;
     }
@@ -331,12 +334,14 @@ class _StructSerializerImpl<Frozen, Mutable>
   void encode(Frozen input, Uint8Buffer buffer) {
     // Total number of slots to write. Includes removed and unrecognized fields.
     final int totalSlotCount;
+    // Number of slots to write including removed fields but excluding
+    // unrecognized fields.
     final int recognizedSlotCount;
     final Uint8List? unrecognizedBytes;
     final unrecognizedFields = getUnrecognizedFields(input);
     if (unrecognizedFields?._bytes != null) {
       totalSlotCount = unrecognizedFields!._totalSlotCount;
-      recognizedSlotCount = _recognizedSlotCount;
+      recognizedSlotCount = _slotCountInclRemoved;
       unrecognizedBytes = unrecognizedFields._bytes;
     } else {
       // No unrecognized fields
@@ -377,7 +382,7 @@ class _StructSerializerImpl<Frozen, Mutable>
         wire == 250 ? stream.decodeNumber().toInt() : wire - 246;
 
     // Do not read more slots than the number of recognized slots
-    for (int i = 0; i < encodedSlotCount && i < _recognizedSlotCount; i++) {
+    for (int i = 0; i < encodedSlotCount && i < _slotCountInclRemoved; i++) {
       final field = _slotToField[i];
       if (field != null) {
         field.decodeValue(mutable, stream, keepUnrecognizedFields);
@@ -386,11 +391,11 @@ class _StructSerializerImpl<Frozen, Mutable>
         _decodeUnused(stream);
       }
     }
-    if (encodedSlotCount > _recognizedSlotCount) {
+    if (encodedSlotCount > _slotCountInclRemoved) {
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
         final startPosition = stream.position;
-        for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
+        for (int i = _slotCountInclRemoved; i < encodedSlotCount; i++) {
           _decodeUnused(stream);
         }
         // Capture the bytes for the unknown fields
@@ -403,7 +408,7 @@ class _StructSerializerImpl<Frozen, Mutable>
         );
         setUnrecognizedFields(mutable, unrecognizedFields);
       } else {
-        for (int i = _recognizedSlotCount; i < encodedSlotCount; i++) {
+        for (int i = _slotCountInclRemoved; i < encodedSlotCount; i++) {
           _decodeUnused(stream);
         }
       }
@@ -470,7 +475,9 @@ class _StructSerializerImpl<Frozen, Mutable>
 
   @override
   _StructFieldImpl<Frozen, Mutable, dynamic>? getFieldByNumber(int number) {
-    return number < _slotToField.length ? _slotToField[number] : null;
+    return 0 <= number && number < _slotToField.length
+        ? _slotToField[number]
+        : null;
   }
 
   @override
