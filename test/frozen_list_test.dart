@@ -1091,9 +1091,9 @@ void main() {
       });
 
       test('mixed primitive types', () {
-        final list1 = internal__frozenCopy<dynamic>([1, 'hello', true, 3.14]);
-        final list2 = internal__frozenCopy<dynamic>([1, 'hello', true, 3.14]);
-        final list3 = internal__frozenCopy<dynamic>([1, 'hello', false, 3.14]);
+        final list1 = internal__frozenCopy<dynamic>([1, 'hello', true, 2.5]);
+        final list2 = internal__frozenCopy<dynamic>([1, 'hello', true, 2.5]);
+        final list3 = internal__frozenCopy<dynamic>([1, 'hello', false, 2.5]);
 
         expect(list1 == list2, isTrue);
         expect(list1.hashCode, equals(list2.hashCode));

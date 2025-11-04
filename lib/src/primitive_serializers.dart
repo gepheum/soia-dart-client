@@ -95,8 +95,8 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
 }
 
 class _Int64Serializer extends _PrimitiveSerializer<int> {
-  static const int minSafeJavaScriptInt = -9007199254740992; // -(2 ^ 53)
-  static const int maxSafeJavaScriptInt = 9007199254740992; // 2 ^ 53
+  static const int minSafeJavaScriptInt = -9007199254740991; // -(2^53 - 1)
+  static const int maxSafeJavaScriptInt = 9007199254740991; // 2^53 - 1
 
   @override
   bool isDefault(int value) => value == 0;
@@ -146,57 +146,88 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
       PrimitiveDescriptor(PrimitiveType.int64);
 }
 
-class _Uint64Serializer extends _PrimitiveSerializer<int> {
-  static const int maxSafeJavaScriptInt = 9007199254740992;
+class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
+  static const int maxSafeJavaScriptInt = 9007199254740991; // 2^53 - 1
+  static final BigInt maxUint64 = BigInt.parse("18446744073709551615");
+  static final BigInt twoE64 = maxUint64 + BigInt.one;
 
   @override
-  bool isDefault(int value) => value == 0;
+  bool isDefault(BigInt value) => value == BigInt.zero;
 
   @override
-  void encode(int input, Uint8Buffer buffer) {
-    if (input < 232) {
-      buffer.add(input);
-    } else if (input < 4294967296) {
-      if (input < 65536) {
-        buffer.add(232);
-        _BinaryWriter.writeShortLe(input, buffer);
+  void encode(BigInt input, Uint8Buffer buffer) {
+    if (input.isValidInt) {
+      final int intValue = input.toInt();
+      if (intValue < 232) {
+        buffer.add(intValue);
+      } else if (intValue < 4294967296) {
+        if (intValue < 65536) {
+          buffer.add(232);
+          _BinaryWriter.writeShortLe(intValue, buffer);
+        } else {
+          buffer.add(233);
+          _BinaryWriter.writeIntLe(intValue, buffer);
+        }
       } else {
-        buffer.add(233);
-        _BinaryWriter.writeIntLe(input, buffer);
+        buffer.add(234);
+        _BinaryWriter.writeLongLe(intValue, buffer);
       }
+    } else if (input < BigInt.zero) {
+      buffer.add(0);
     } else {
       buffer.add(234);
-      _BinaryWriter.writeLongLe(input, buffer);
+      if (input <= maxUint64) {
+        _BinaryWriter.writeLongLe((input - twoE64).toInt(), buffer);
+      } else {
+        buffer.add(maxUint64.toInt());
+      }
     }
   }
 
   @override
-  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
-    return stream.decodeNumber().toInt();
-  }
-
-  @override
-  dynamic toJson(int input, bool readableFlavor) {
-    if (0 <= input && input <= maxSafeJavaScriptInt) {
-      return input;
+  BigInt decode(_ByteStream stream, bool keepUnrecognizedFields) {
+    final intValue = stream.decodeNumber().toInt();
+    if (intValue < 0) {
+      return BigInt.from(intValue) + twoE64;
     } else {
-      return input.toUnsigned(64).toString();
+      return BigInt.from(intValue);
     }
   }
 
   @override
-  int fromJson(dynamic json, bool keepUnrecognizedFields) {
-    final int number = switch (json) {
-      int() => json,
-      String() => int.parse(json),
-      _ => (json as num).toInt(),
-    };
-    return number.toUnsigned(64);
+  dynamic toJson(BigInt input, bool readableFlavor) {
+    if (input.isValidInt) {
+      final int intValue = input.toInt();
+      if (0 <= intValue && intValue <= maxSafeJavaScriptInt) {
+        return intValue;
+      }
+    }
+    // Else
+    if (input < BigInt.zero) {
+      return "0";
+    } else if (input <= maxUint64) {
+      return input.toString();
+    } else {
+      return maxUint64.toString();
+    }
   }
 
   @override
-  void appendString(int input, StringBuffer out, String eolIndent) {
-    out.write(input);
+  BigInt fromJson(dynamic json, bool keepUnrecognizedFields) {
+    return switch (json) {
+      int() => json < 0 ? (BigInt.from(json) + twoE64) : BigInt.from(json),
+      String() => BigInt.parse(json),
+      _ => BigInt.from((json as num).toInt()),
+    };
+  }
+
+  @override
+  void appendString(BigInt input, StringBuffer out, String eolIndent) {
+    if (input.isValidInt) {
+      out.write('BigInt.from(${input.toString()})');
+    } else {
+      out.write('BigInt.parse("${input.toString()}")');
+    }
   }
 
   @override

@@ -86,7 +86,8 @@ void main() {
           equals(true));
       expect(Serializers.bool.fromBytes(Serializers.float32.toBytes(3.14)),
           equals(true));
-      expect(Serializers.bool.fromBytes(Serializers.uint64.toBytes(0)),
+      expect(
+          Serializers.bool.fromBytes(Serializers.uint64.toBytes(BigInt.zero)),
           equals(false));
       expect(Serializers.bool.fromBytes(Serializers.int64.toBytes(-1)),
           equals(true));
@@ -265,7 +266,7 @@ void main() {
           equals(123)); // Dart's int.parse handles whitespace
 
       // Test that decimal strings throw exceptions (both Dart and Kotlin should fail on these)
-      expect(() => Serializers.int32.fromJson('3.14'), throwsFormatException);
+      expect(() => Serializers.int32.fromJson('2.5'), throwsFormatException);
       expect(() => Serializers.int32.fromJson('-2.7'), throwsFormatException);
     });
 
@@ -313,16 +314,16 @@ void main() {
     });
 
     test('JavaScript safe integer boundaries', () {
-      const int maxSafeInt = 9007199254740992; // 2^53
-      const int minSafeInt = -9007199254740992; // -(2^53)
+      const int maxSafeInt = 9007199254740991; // 2^53 - 1
+      const int minSafeInt = -9007199254740991; // -(2^53 - 1)
 
       // Test boundary values - should be numbers
       expect(Serializers.int64.toJson(maxSafeInt), equals(maxSafeInt));
       expect(Serializers.int64.toJson(minSafeInt), equals(minSafeInt));
 
       // Test values beyond safe range - should be strings
-      const int unsafePositive = 9007199254740993; // 2^53 + 1
-      const int unsafeNegative = -9007199254740993; // -(2^53) - 1
+      const int unsafePositive = 9007199254740992; // 2^53
+      const int unsafeNegative = -9007199254740992; // -(2^53)
 
       expect(Serializers.int64.toJson(unsafePositive), isA<String>());
       expect(Serializers.int64.toJson(unsafeNegative), isA<String>());
@@ -393,10 +394,10 @@ void main() {
     });
 
     test('JSON roundtrip for safe and unsafe values', () {
-      final safeValues = [0, 42, -42, 9007199254740992, -9007199254740992];
+      final safeValues = [0, 42, -42, 9007199254740991, -9007199254740991];
       final unsafeValues = [
-        9007199254740993,
-        -9007199254740993,
+        9007199254740992,
+        -9007199254740992,
         9223372036854775807,
         -9223372036854775808
       ];
@@ -420,27 +421,40 @@ void main() {
   group('Uint64Serializer', () {
     test('basic functionality - JSON serialization', () {
       // Test various uint64 values
-      expect(Serializers.uint64.toJson(0, readableFlavor: true), equals(0));
-      expect(Serializers.uint64.toJson(0, readableFlavor: false), equals(0));
-      expect(Serializers.uint64.toJson(42, readableFlavor: true), equals(42));
-      expect(Serializers.uint64.toJson(42, readableFlavor: false), equals(42));
+      expect(Serializers.uint64.toJson(BigInt.zero, readableFlavor: true),
+          equals(0));
+      expect(Serializers.uint64.toJson(BigInt.zero, readableFlavor: false),
+          equals(0));
+      expect(Serializers.uint64.toJson(BigInt.from(42), readableFlavor: true),
+          equals(42));
+      expect(Serializers.uint64.toJson(BigInt.from(42), readableFlavor: false),
+          equals(42));
+      expect(
+          Serializers.uint64
+              .toJson(BigInt.from(9007199254740991), readableFlavor: false),
+          equals(9007199254740991));
+      expect(
+          Serializers.uint64
+              .toJson(BigInt.parse("9007199254740992"), readableFlavor: false),
+          equals("9007199254740992"));
 
       // Test JSON string serialization
+      expect(Serializers.uint64.toJsonCode(BigInt.zero, readableFlavor: true),
+          equals('0'));
       expect(
-          Serializers.uint64.toJsonCode(0, readableFlavor: true), equals('0'));
-      expect(Serializers.uint64.toJsonCode(42, readableFlavor: true),
+          Serializers.uint64.toJsonCode(BigInt.from(42), readableFlavor: true),
           equals('42'));
     });
 
     test('JavaScript safe integer boundaries', () {
-      const int maxSafeInt = 9007199254740992; // 2^53
+      final maxSafeInt = BigInt.from(9007199254740991); // 2^53 - 1
 
       // Test boundary values - should be numbers
-      expect(Serializers.uint64.toJson(maxSafeInt), equals(maxSafeInt));
-      expect(Serializers.uint64.toJson(0), equals(0));
+      expect(Serializers.uint64.toJson(maxSafeInt), equals(9007199254740991));
+      expect(Serializers.uint64.toJson(BigInt.zero), equals(0));
 
       // Test values beyond safe range - should be strings
-      const int unsafeValue = 9007199254740993; // 2^53 + 1
+      final unsafeValue = BigInt.from(9007199254740992); // 2^53
 
       expect(Serializers.uint64.toJson(unsafeValue), isA<String>());
       expect(Serializers.uint64.toJsonCode(unsafeValue), startsWith('"'));
@@ -448,11 +462,11 @@ void main() {
 
     test('JSON deserialization - positive values only', () {
       // Test positive integer JSON values
-      expect(Serializers.uint64.fromJson(0), equals(0));
-      expect(Serializers.uint64.fromJson(42), equals(42));
-      expect(Serializers.uint64.fromJson(1000), equals(1000));
-      expect(Serializers.uint64.fromJsonCode('0'), equals(0));
-      expect(Serializers.uint64.fromJsonCode('42'), equals(42));
+      expect(Serializers.uint64.fromJson(0), equals(BigInt.zero));
+      expect(Serializers.uint64.fromJson(42), equals(BigInt.from(42)));
+      expect(Serializers.uint64.fromJson(1000), equals(BigInt.from(1000)));
+      expect(Serializers.uint64.fromJsonCode('0'), equals(BigInt.zero));
+      expect(Serializers.uint64.fromJsonCode('42'), equals(BigInt.from(42)));
     });
 
     test('unsigned 64-bit boundaries and conversion', () {
@@ -466,21 +480,25 @@ void main() {
 
       // In Dart, toUnsigned(64) on negative numbers may not wrap to large positive values
       // We test that the function completes without error and returns a value
-      expect(negOneResult, isA<int>());
-      expect(negHundredResult, isA<int>());
+      expect(negOneResult, isA<BigInt>());
+      expect(negHundredResult, isA<BigInt>());
 
       // Test large positive values within Dart's range
-      const int maxDartInt =
-          9223372036854775807; // max int64 Dart can represent
-      expect(Serializers.uint64.fromJson(maxDartInt), equals(maxDartInt));
+      final maxDartInt =
+          BigInt.parse('9223372036854775807'); // max int64 Dart can represent
+      expect(
+          Serializers.uint64.fromJson(maxDartInt.toInt()), equals(maxDartInt));
     });
 
     test('binary deserialization roundtrip', () {
       final testValues = [
-        0, 1, 42, 100, 231, 232, 1000, 65535, 65536, 100000,
-        4294967295, 4294967296, // 32-bit boundary
-        9007199254740992, // JS safe boundary
-        9223372036854775807, // max int64 that Dart can represent
+        BigInt.zero, BigInt.one, BigInt.from(42), BigInt.from(100),
+        BigInt.from(231), BigInt.from(232), BigInt.from(1000),
+        BigInt.from(65535), BigInt.from(65536), BigInt.from(100000),
+        BigInt.from(4294967295), BigInt.from(4294967296), // 32-bit boundary
+        BigInt.from(9007199254740992), // JS safe boundary
+        BigInt.parse(
+            '9223372036854775807'), // max int64 that Dart can represent
       ];
 
       for (final value in testValues) {
@@ -508,9 +526,9 @@ void main() {
       expect(
           Serializers.float32.toJson(0.0, readableFlavor: false), equals(0.0));
       expect(
-          Serializers.float32.toJson(3.14, readableFlavor: true), equals(3.14));
-      expect(Serializers.float32.toJson(3.14, readableFlavor: false),
-          equals(3.14));
+          Serializers.float32.toJson(2.5, readableFlavor: true), equals(2.5));
+      expect(
+          Serializers.float32.toJson(2.5, readableFlavor: false), equals(2.5));
       expect(
           Serializers.float32.toJson(-2.5, readableFlavor: true), equals(-2.5));
       expect(Serializers.float32.toJson(-2.5, readableFlavor: false),
@@ -519,8 +537,8 @@ void main() {
       // Test JSON string serialization
       expect(Serializers.float32.toJsonCode(0.0, readableFlavor: true),
           equals('0.0'));
-      expect(Serializers.float32.toJsonCode(3.14, readableFlavor: true),
-          equals('3.14'));
+      expect(Serializers.float32.toJsonCode(2.5, readableFlavor: true),
+          equals('2.5'));
     });
 
     test('special values - NaN and Infinity', () {
@@ -556,14 +574,14 @@ void main() {
       expect(_bytesToHex(zeroBytes), equals('736f696100')); // "soia" + 0x00
 
       // Test non-zero values use float encoding
-      final nonZeroBytes = Serializers.float32.toBytes(3.14);
+      final nonZeroBytes = Serializers.float32.toBytes(2.5);
       expect(_bytesToHex(nonZeroBytes),
           startsWith('736f6961f0')); // "soia" + 0xF0 wire
     });
 
     test('binary deserialization roundtrip', () {
       final testValues = [
-        0.0, 1.0, -1.0, 3.14, -2.5, 0.5, -0.5,
+        0.0, 1.0, -1.0, 2.5, -2.5, 0.5, -0.5,
         1e10, -1e10, // More reasonable large values for float32
         double.nan, double.infinity, double.negativeInfinity,
       ];
@@ -604,19 +622,18 @@ void main() {
           Serializers.float64.toJson(0.0, readableFlavor: true), equals(0.0));
       expect(
           Serializers.float64.toJson(0.0, readableFlavor: false), equals(0.0));
-      expect(Serializers.float64.toJson(3.14159265359, readableFlavor: true),
-          equals(3.14159265359));
-      expect(Serializers.float64.toJson(3.14159265359, readableFlavor: false),
-          equals(3.14159265359));
+      expect(Serializers.float64.toJson(2.5159265359, readableFlavor: true),
+          equals(2.5159265359));
+      expect(Serializers.float64.toJson(2.5159265359, readableFlavor: false),
+          equals(2.5159265359));
       expect(Serializers.float64.toJson(-2.71828, readableFlavor: true),
           equals(-2.71828));
 
       // Test JSON string serialization
       expect(Serializers.float64.toJsonCode(0.0, readableFlavor: true),
           equals('0.0'));
-      expect(
-          Serializers.float64.toJsonCode(3.14159265359, readableFlavor: true),
-          equals('3.14159265359'));
+      expect(Serializers.float64.toJsonCode(2.5159265359, readableFlavor: true),
+          equals('2.5159265359'));
     });
 
     test('special values - NaN and Infinity', () {
@@ -639,14 +656,14 @@ void main() {
       expect(_bytesToHex(zeroBytes), equals('736f696100')); // "soia" + 0x00
 
       // Test non-zero values use double encoding
-      final nonZeroBytes = Serializers.float64.toBytes(3.14159265359);
+      final nonZeroBytes = Serializers.float64.toBytes(2.5159265359);
       expect(_bytesToHex(nonZeroBytes),
           startsWith('736f6961f1')); // "soia" + 0xF1 wire
     });
 
     test('binary deserialization roundtrip', () {
       final testValues = [
-        0.0, 1.0, -1.0, 3.14159265359, -2.718281828, 0.5, -0.5,
+        0.0, 1.0, -1.0, 2.5159265359, -2.718281828, 0.5, -0.5,
         2.2250738585072014e-308,
         1.7976931348623157e+308, // double boundaries (approximately)
         double.nan, double.infinity, double.negativeInfinity,
@@ -890,9 +907,9 @@ void main() {
 
       // Other numbers should be converted to string
       expect(Serializers.string.fromJson(42), equals('42'));
-      expect(Serializers.string.fromJson(3.14), equals('3.14'));
+      expect(Serializers.string.fromJson(2.5), equals('2.5'));
       expect(Serializers.string.fromJsonCode('42'), equals('42'));
-      expect(Serializers.string.fromJsonCode('3.14'), equals('3.14'));
+      expect(Serializers.string.fromJsonCode('2.5'), equals('2.5'));
     });
 
     test('JSON deserialization - non-string values', () {
@@ -1372,9 +1389,13 @@ void main() {
         (Serializers.optional(Serializers.bool), true, false),
         (Serializers.optional(Serializers.int32), 42, 0),
         (Serializers.optional(Serializers.int64), 42, 0),
-        (Serializers.optional(Serializers.uint64), 42, 0),
+        (
+          Serializers.optional(Serializers.uint64),
+          BigInt.from(42),
+          BigInt.zero
+        ),
         (Serializers.optional(Serializers.float32), 1.5, 0.0),
-        (Serializers.optional(Serializers.float64), 3.14159, 0.0),
+        (Serializers.optional(Serializers.float64), 2.5159, 0.0),
         (Serializers.optional(Serializers.string), 'hello', ''),
         (
           Serializers.optional(Serializers.bytes),
