@@ -465,17 +465,20 @@ class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
 
   @override
   dynamic toJson(ByteString input, bool readableFlavor) {
-    return input.toBase64();
+    return readableFlavor ? 'hex:${input.toBase16()}' : input.toBase64();
   }
 
   @override
   ByteString fromJson(dynamic json, bool keepUnrecognizedFields) {
     if (json is String) {
+      if (json.startsWith('hex:')) {
+        return ByteString.fromBase16(json.substring(4));
+      }
       return ByteString.fromBase64(json);
-    } else if (json is num && json == 0) {
+    } else if (json == 0) {
       return ByteString.empty;
     } else {
-      throw ArgumentError('Expected: base64 string');
+      throw ArgumentError('Expected: base64 string or hex-prefixed string');
     }
   }
 

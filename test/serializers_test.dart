@@ -968,14 +968,14 @@ void main() {
 
   group('BytesSerializer', () {
     test('basic functionality - JSON serialization', () {
-      // Test empty bytes - should be base64 encoded
+      // Test empty bytes - should be hex-prefixed in readable, base64 in dense
       final emptyBytes = ByteString.empty;
       expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: true),
-          equals(''));
+          equals('hex:'));
       expect(Serializers.bytes.toJson(emptyBytes, readableFlavor: false),
           equals(''));
       expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: true),
-          equals('""'));
+          equals('"hex:"'));
       expect(Serializers.bytes.toJsonCode(emptyBytes, readableFlavor: false),
           equals('""'));
 
@@ -983,19 +983,20 @@ void main() {
       final helloBytes = ByteString.copy('hello'.codeUnits);
       final helloBase64 = helloBytes.toBase64();
       expect(Serializers.bytes.toJson(helloBytes, readableFlavor: true),
-          equals(helloBase64));
+          equals('hex:68656c6c6f'));
       expect(Serializers.bytes.toJson(helloBytes, readableFlavor: false),
           equals(helloBase64));
       expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: true),
-          equals('"$helloBase64"'));
+          equals('"hex:68656c6c6f"'));
       expect(Serializers.bytes.toJsonCode(helloBytes, readableFlavor: false),
           equals('"$helloBase64"'));
 
       // Test UTF-8 encoded bytes
       final utf8Bytes = ByteString.copy(utf8.encode('Hello, 世界!'));
       final utf8Base64 = utf8Bytes.toBase64();
+      final utf8Hex = utf8Bytes.toBase16();
       expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: true),
-          equals(utf8Base64));
+          equals('hex:$utf8Hex'));
       expect(Serializers.bytes.toJson(utf8Bytes, readableFlavor: false),
           equals(utf8Base64));
     });
@@ -1024,6 +1025,59 @@ void main() {
           equals(binaryBytes));
     });
 
+    test('JSON deserialization - hex-prefixed string values', () {
+      // Test hex-prefixed string JSON values (readable flavor)
+      expect(Serializers.bytes.fromJson('hex:'), equals(ByteString.empty));
+
+      final helloBytes = ByteString.copy('hello'.codeUnits);
+      final helloHex = helloBytes.toBase16();
+      expect(Serializers.bytes.fromJson('hex:$helloHex'), equals(helloBytes));
+      expect(Serializers.bytes.fromJsonCode('"hex:$helloHex"'),
+          equals(helloBytes));
+
+      final utf8Bytes = ByteString.copy(utf8.encode('Hello, 世界!'));
+      final utf8Hex = utf8Bytes.toBase16();
+      expect(Serializers.bytes.fromJson('hex:$utf8Hex'), equals(utf8Bytes));
+      expect(
+          Serializers.bytes.fromJsonCode('"hex:$utf8Hex"'), equals(utf8Bytes));
+
+      // Test binary data with hex encoding
+      final binaryBytes = ByteString.copy([0, 255, 128, 64, 32]);
+      final binaryHex = binaryBytes.toBase16();
+      expect(Serializers.bytes.fromJson('hex:$binaryHex'), equals(binaryBytes));
+      expect(Serializers.bytes.fromJsonCode('"hex:$binaryHex"'),
+          equals(binaryBytes));
+
+      // Test specific hex values
+      expect(Serializers.bytes.fromJson('hex:48656c6c6f'),
+          equals(ByteString.copy('Hello'.codeUnits)));
+      expect(Serializers.bytes.fromJson('hex:00ff8040'),
+          equals(ByteString.copy([0, 255, 128, 64])));
+    });
+
+    test('JSON roundtrip - readable vs dense flavor', () {
+      // Test roundtrip with both flavors
+      final testBytes =
+          ByteString.copy([0x48, 0x65, 0x6c, 0x6c, 0x6f]); // "Hello"
+
+      // Readable flavor uses hex encoding
+      final readableJson =
+          Serializers.bytes.toJsonCode(testBytes, readableFlavor: true);
+      expect(readableJson, equals('"hex:48656c6c6f"'));
+      final restoredFromReadable = Serializers.bytes.fromJsonCode(readableJson);
+      expect(restoredFromReadable, equals(testBytes));
+
+      // Dense flavor uses base64 encoding
+      final denseJson =
+          Serializers.bytes.toJsonCode(testBytes, readableFlavor: false);
+      expect(denseJson, equals('"SGVsbG8="')); // Base64 for "Hello"
+      final restoredFromDense = Serializers.bytes.fromJsonCode(denseJson);
+      expect(restoredFromDense, equals(testBytes));
+
+      // Both should deserialize to the same value
+      expect(restoredFromReadable, equals(restoredFromDense));
+    });
+
     test('JSON deserialization - special numeric case', () {
       // Test special case: numeric 0 should deserialize to empty bytes
       expect(Serializers.bytes.fromJson(0), equals(ByteString.empty));
@@ -1041,6 +1095,12 @@ void main() {
       expect(() => Serializers.bytes.fromJson('invalid-base64!'),
           throwsA(isA<FormatException>()));
       expect(() => Serializers.bytes.fromJsonCode('"invalid-base64!"'),
+          throwsA(isA<FormatException>()));
+
+      // Test that invalid hex strings (after hex: prefix) cause errors
+      expect(() => Serializers.bytes.fromJson('hex:invalid-hex!'),
+          throwsA(isA<FormatException>()));
+      expect(() => Serializers.bytes.fromJsonCode('"hex:invalid-hex!"'),
           throwsA(isA<FormatException>()));
 
       // Test that non-string, non-zero values cause ArgumentError
