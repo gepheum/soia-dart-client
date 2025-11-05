@@ -107,8 +107,8 @@ class _ByteStream {
       case 11:
       case 13: // string, bytes
         {
-          final length = decodeNumber();
-          position += length.toInt();
+          final length = decodeNumber().toInt();
+          position += length;
           break;
         }
       case 15:
@@ -129,8 +129,8 @@ class _ByteStream {
         break;
       case 18: // array length==N
         {
-          final length = decodeNumber();
-          for (int i = 0; i < length.toInt(); i++) {
+          final length = decodeNumber().toInt();
+          for (int i = 0; i < length; ++i) {
             decodeUnused();
           }
           break;

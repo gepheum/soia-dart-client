@@ -1780,7 +1780,7 @@ void main() {
       expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
       expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
           equals(PrimitiveType.int32));
-      expect(listDescriptor.keyChain, equals(''));
+      expect(listDescriptor.keyChain, isNull);
     });
 
     test('edge cases and error handling', () {
@@ -2040,7 +2040,7 @@ void main() {
       expect(typeDescriptor, isA<ReflectiveListDescriptor>());
 
       final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
-      expect(listDescriptor.keyChain, equals(''));
+      expect(listDescriptor.keyChain, isNull);
     });
 
     test('edge cases and error handling', () {

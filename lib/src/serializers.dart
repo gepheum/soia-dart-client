@@ -67,7 +67,7 @@ class Serializers {
   static Serializer<KeyedIterable<E, K>> keyedIterable<E, K>(
     Serializer<E> item,
     K Function(E) getKey, {
-    String internal__getKeySpec = "",
+    String? internal__getKeySpec = null,
   }) {
     return Serializer._(_IterableSerializer.keyedIterable(
         item._impl, internal__getKeySpec, getKey));

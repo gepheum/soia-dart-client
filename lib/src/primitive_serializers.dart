@@ -527,10 +527,12 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   @override
   DateTime fromJson(dynamic json, bool keepUnrecognizedFields) {
     late int unixMillis;
-    if (json is Map && json.containsKey('unix_millis')) {
+    if (json is Map) {
       unixMillis = (json['unix_millis'] as num).toInt();
+    } else if (json is num) {
+      unixMillis = json.toInt();
     } else {
-      unixMillis = (json as num).toInt();
+      unixMillis = int.parse(json as String);
     }
     return DateTime.fromMillisecondsSinceEpoch(
       _clampUnixMillis(unixMillis),

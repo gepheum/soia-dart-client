@@ -3,7 +3,7 @@ part of "../soia.dart";
 class _IterableSerializer<E, Collection extends Iterable<E>>
     extends _SerializerImpl<Collection> {
   final _SerializerImpl<E> item;
-  final String getKeySpec;
+  final String? getKeySpec;
   final Collection Function(Iterable<E>) iterableToCollection;
   final Collection Function(List<E>) listToCollection;
   final Collection emptyCollection;
@@ -11,11 +11,11 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   static _IterableSerializer<E, Iterable<E>> iterable<E>(
           _SerializerImpl<E> item) =>
       _IterableSerializer<E, Iterable<E>>(
-          item, "", (it) => it.toList(growable: false), (it) => it);
+          item, null, (it) => it.toList(growable: false), (it) => it);
 
   static _IterableSerializer<E, KeyedIterable<E, K>> keyedIterable<E, K>(
     _SerializerImpl<E> item,
-    String getKeySpec,
+    String? getKeySpec,
     K Function(E) getKey,
   ) {
     final toCollection = (Iterable<E> it) => KeyedIterable.copy(it, getKey);

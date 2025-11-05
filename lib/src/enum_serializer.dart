@@ -268,8 +268,15 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
     if (wire < 242) {
       // A number: rewind and decode
-      final startPosition = --stream.position; // rewind the byte we just read
-      final number = stream.decodeNumber().toInt();
+      final int startPosition;
+      final int number;
+      if (wire < 232) {
+        startPosition = stream.position - 1;
+        number = wire;
+      } else {
+        startPosition = --stream.position;
+        number = stream.decodeNumber().toInt();
+      }
       final field = numberToField[number];
 
       switch (field) {
@@ -280,14 +287,16 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         case _ValueField():
           throw ArgumentError('$number refers to a value field');
         default:
-          if (keepUnrecognizedFields) {
-            // Capture the bytes for the unknown enum
-            final unrecognizedBytes =
-                stream.bytes.sublist(startPosition, stream.position);
-            result = unknown.wrapUnrecognized(
-                internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
-          } else {
-            result = unknown.constant;
+          {
+            if (keepUnrecognizedFields) {
+              // Capture the bytes for the unknown enum
+              final unrecognizedBytes =
+                  stream.bytes.sublist(startPosition, stream.position);
+              result = unknown.wrapUnrecognized(
+                  internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
+            } else {
+              result = unknown.constant;
+            }
           }
       }
     } else {
@@ -298,6 +307,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       if (field is _ValueField<E, dynamic, dynamic>) {
         result = field.wrapDecoded(stream, keepUnrecognizedFields);
       } else if (field is _EnumRemovedNumber<E>) {
+        stream.decodeUnused();
         result = unknown.constant;
       } else {
         stream.decodeUnused();
@@ -324,8 +334,10 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   }
 
   @override
-  Iterable<ReflectiveEnumField<E>> get fields =>
-      mutableFields.map((f) => f.asField).toList(growable: false);
+  Iterable<ReflectiveEnumField<E>> get fields => mutableFields
+      .where((f) => f.number != 0)
+      .map((f) => f.asField)
+      .toList(growable: false);
 
   @override
   UnmodifiableSetView<int> get removedNumbers =>
