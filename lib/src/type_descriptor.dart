@@ -2,7 +2,7 @@ part of "../soia.dart";
 
 /// Base interface for all type descriptors
 abstract class _TypeDescriptorBase {
-  dynamic get asJson;
+  Map<String, dynamic> get asJson;
 
   String get asJsonCode;
 }
@@ -14,7 +14,7 @@ abstract class _TypeDescriptorBase {
 /// at runtime; for this, you have to use [ReflectiveTypeDescriptor].
 sealed class TypeDescriptor implements _TypeDescriptorBase {
   /// Converts this type descriptor to its JSON representation.
-  dynamic get asJson => _typeDescriptorAsJsonImpl(this);
+  Map<String, dynamic> get asJson => _typeDescriptorAsJsonImpl(this);
 
   /// Converts this type descriptor to a JSON string representation.
   String get asJsonCode => _typeDescriptorAsJsonCodeImpl(this);
@@ -51,7 +51,7 @@ sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
   TypeDescriptor get notReflective => _notReflectiveImpl(this);
 
   /// Converts this type descriptor to its JSON representation.
-  dynamic get asJson => notReflective.asJson;
+  Map<String, dynamic> get asJson => notReflective.asJson;
 
   /// Converts this type descriptor to a JSON string representation.
   String get asJsonCode => notReflective.asJsonCode;
@@ -436,10 +436,14 @@ TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
 Map<String, dynamic> _typeDescriptorAsJsonImpl(TypeDescriptor descriptor) {
   final recordIdToDefinition = <String, Map<String, dynamic>>{};
   _addRecordDefinitions(descriptor, recordIdToDefinition);
-  return {
-    'records': recordIdToDefinition.values.toList(),
-    'type': _getTypeSignature(descriptor),
-  };
+  return recordIdToDefinition.isNotEmpty
+      ? {
+          'type': _getTypeSignature(descriptor),
+          'records': recordIdToDefinition.values.toList(),
+        }
+      : {
+          'type': _getTypeSignature(descriptor),
+        };
 }
 
 /// Converts this type descriptor to a JSON string representation.

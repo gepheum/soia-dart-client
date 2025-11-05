@@ -388,7 +388,7 @@ class _StructSerializerImpl<Frozen, Mutable>
         field.decodeValue(mutable, stream, keepUnrecognizedFields);
       } else {
         // The field was removed
-        _decodeUnused(stream);
+        stream.decodeUnused();
       }
     }
     if (encodedSlotCount > _slotCountInclRemoved) {
@@ -396,12 +396,11 @@ class _StructSerializerImpl<Frozen, Mutable>
       if (keepUnrecognizedFields) {
         final startPosition = stream.position;
         for (int i = _slotCountInclRemoved; i < encodedSlotCount; i++) {
-          _decodeUnused(stream);
+          stream.decodeUnused();
         }
         // Capture the bytes for the unknown fields
-        final consumed = stream.position - startPosition;
         final unrecognizedBytes =
-            stream.buffer.buffer.asUint8List(startPosition, consumed);
+            stream.bytes.sublist(startPosition, stream.position);
         final unrecognizedFields = internal__UnrecognizedFields._fromBytes(
           encodedSlotCount,
           unrecognizedBytes,
@@ -409,7 +408,7 @@ class _StructSerializerImpl<Frozen, Mutable>
         setUnrecognizedFields(mutable, unrecognizedFields);
       } else {
         for (int i = _slotCountInclRemoved; i < encodedSlotCount; i++) {
-          _decodeUnused(stream);
+          stream.decodeUnused();
         }
       }
     }

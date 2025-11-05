@@ -62,7 +62,7 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
         return emptyCollection;
       }
     } else {
-      throw ArgumentError('Expected: list; wire: $wire');
+      throw FormatException('Expected: list; wire: $wire');
     }
     final first = item.decode(stream, keepUnrecognizedFields);
     final result = List.filled(length, first, growable: false);

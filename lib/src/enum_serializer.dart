@@ -282,11 +282,10 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         default:
           if (keepUnrecognizedFields) {
             // Capture the bytes for the unknown enum
-            final consumed = stream.position - startPosition;
-            final bytes =
-                stream.buffer.buffer.asUint8List(startPosition, consumed);
-            result = unknown
-                .wrapUnrecognized(internal__UnrecognizedEnum._fromBytes(bytes));
+            final unrecognizedBytes =
+                stream.bytes.sublist(startPosition, stream.position);
+            result = unknown.wrapUnrecognized(
+                internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
           } else {
             result = unknown.constant;
           }
@@ -301,15 +300,14 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       } else if (field is _EnumRemovedNumber<E>) {
         result = unknown.constant;
       } else {
-        _decodeUnused(stream);
+        stream.decodeUnused();
         if (keepUnrecognizedFields) {
           // For unknown value fields, we'll just return the unknown constant
           // since reconstructing the full bytes is complex
-          final consumed = stream.position - startPosition;
-          final bytes =
-              stream.buffer.buffer.asUint8List(startPosition, consumed);
-          result = unknown
-              .wrapUnrecognized(internal__UnrecognizedEnum._fromBytes(bytes));
+          final unrecognizedBytes =
+              stream.bytes.sublist(startPosition, stream.position);
+          result = unknown.wrapUnrecognized(
+              internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
         } else {
           result = unknown.constant;
         }

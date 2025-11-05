@@ -1,57 +1,141 @@
 part of "../soia.dart";
 
-void _decodeUnused(_ByteStream stream) {
-  final wire = stream.readByte() & 0xFF;
-  if (wire < 232) {
-    return;
+class _ByteStream {
+  final Uint8List bytes;
+  int position;
+  final ByteData _byteData;
+
+  _ByteStream(this.bytes, this.position)
+      : _byteData = ByteData.sublistView(bytes);
+
+  int peekByte() => bytes[position];
+
+  int readByte() {
+    return bytes[position++];
   }
 
-  switch (wire - 232) {
-    case 0:
-    case 4: // uint16, uint16 - 65536
-      stream.readBytes(2);
-      break;
-    case 1:
-    case 5:
-    case 8: // uint32, int32, float32
-      stream.readBytes(4);
-      break;
-    case 2:
-    case 6:
-    case 7:
-    case 9: // uint64, int64, uint64 timestamp, float64
-      stream.readBytes(8);
-      break;
-    case 3: // uint8 - 256
-      stream.readBytes(1);
-      break;
-    case 11:
-    case 13: // string, bytes
-      final length = stream.decodeNumber();
-      stream.readBytes(length.toInt());
-      break;
-    case 15:
-    case 19:
-    case 20:
-    case 21:
-    case 22: // array length==1, enum value kind==1-4
-      _decodeUnused(stream);
-      break;
-    case 16: // array length==2
-      _decodeUnused(stream);
-      _decodeUnused(stream);
-      break;
-    case 17: // array length==3
-      _decodeUnused(stream);
-      _decodeUnused(stream);
-      _decodeUnused(stream);
-      break;
-    case 18: // array length==N
-      final length = stream.decodeNumber();
-      for (int i = 0; i < length.toInt(); i++) {
-        _decodeUnused(stream);
-      }
-      break;
+  Uint8List readBytes(int count) {
+    final result = bytes.sublist(position, position + count);
+    position += count;
+    return result;
+  }
+
+  num decodeNumber() {
+    final wire = readByte();
+
+    if (wire < 232) {
+      return wire;
+    }
+
+    switch (wire - 232) {
+      case 0:
+        {
+          final result = _byteData.getUint16(position, Endian.little);
+          position += 2;
+          return result;
+        }
+      case 1:
+        {
+          final result = _byteData.getUint32(position, Endian.little);
+          position += 4;
+          return result;
+        }
+      case 2:
+      case 6:
+      case 7:
+        {
+          final result = _byteData.getInt64(position, Endian.little);
+          position += 8;
+          return result;
+        }
+      case 3:
+        return readByte() - 256;
+      case 4:
+        {
+          final result = _byteData.getUint16(position, Endian.little) - 65536;
+          position += 2;
+          return result;
+        }
+      case 5:
+        {
+          final result = _byteData.getInt32(position, Endian.little);
+          position += 4;
+          return result;
+        }
+      case 8:
+        {
+          final result = _byteData.getFloat32(position, Endian.little);
+          position += 4;
+          return result;
+        }
+      case 9:
+        {
+          final result = _byteData.getFloat64(position, Endian.little);
+          position += 8;
+          return result;
+        }
+      default:
+        throw FormatException("Invalid number wire type: $wire");
+    }
+  }
+
+  void decodeUnused() {
+    final wire = readByte() & 0xFF;
+    if (wire < 232) {
+      return;
+    }
+
+    switch (wire - 232) {
+      case 0:
+      case 4: // uint16, uint16 - 65536
+        readBytes(2);
+        break;
+      case 1:
+      case 5:
+      case 8: // uint32, int32, float32
+        readBytes(4);
+        break;
+      case 2:
+      case 6:
+      case 7:
+      case 9: // uint64, int64, uint64 timestamp, float64
+        readBytes(8);
+        break;
+      case 3: // uint8 - 256
+        readBytes(1);
+        break;
+      case 11:
+      case 13: // string, bytes
+        {
+          final length = decodeNumber();
+          position += length.toInt();
+          break;
+        }
+      case 15:
+      case 19:
+      case 20:
+      case 21:
+      case 22: // array length==1, enum value kind==1-4
+        decodeUnused();
+        break;
+      case 16: // array length==2
+        decodeUnused();
+        decodeUnused();
+        break;
+      case 17: // array length==3
+        decodeUnused();
+        decodeUnused();
+        decodeUnused();
+        break;
+      case 18: // array length==N
+        {
+          final length = decodeNumber();
+          for (int i = 0; i < length.toInt(); i++) {
+            decodeUnused();
+          }
+          break;
+        }
+    }
   }
 }
 

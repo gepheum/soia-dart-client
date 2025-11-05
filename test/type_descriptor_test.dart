@@ -51,8 +51,8 @@ void main() {
         final json = descriptor.asJson;
 
         expect(json, isA<Map<String, dynamic>>());
-        final jsonMap = json as Map<String, dynamic>;
-        expect(jsonMap['records'], isEmpty);
+        final jsonMap = json;
+        expect(jsonMap['records'] ?? [], isEmpty);
         expect(jsonMap['type'], isA<Map<String, dynamic>>());
 
         final typeMap = jsonMap['type'] as Map<String, dynamic>;
@@ -99,8 +99,8 @@ void main() {
       final json = optional.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
-      final jsonMap = json as Map<String, dynamic>;
-      expect(jsonMap['records'], isEmpty);
+      final jsonMap = json;
+      expect(jsonMap['records'] ?? [], isEmpty);
       expect(jsonMap['type'], isA<Map<String, dynamic>>());
 
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
@@ -139,8 +139,8 @@ void main() {
       final json = reflectiveOptional.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
-      final jsonMap = json as Map<String, dynamic>;
-      expect(jsonMap['records'], isEmpty);
+      final jsonMap = json;
+      expect(jsonMap['records'] ?? [], isEmpty);
       expect(jsonMap['type'], isA<Map<String, dynamic>>());
 
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
@@ -177,8 +177,8 @@ void main() {
       final json = listDesc.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
-      final jsonMap = json as Map<String, dynamic>;
-      expect(jsonMap['records'], isEmpty);
+      final jsonMap = json;
+      expect(jsonMap['records'] ?? [], isEmpty);
       expect(jsonMap['type'], isA<Map<String, dynamic>>());
 
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
@@ -200,7 +200,7 @@ void main() {
       final listDesc = ListDescriptor(itemType, keyChain);
       final json = listDesc.asJson;
 
-      final jsonMap = json as Map<String, dynamic>;
+      final jsonMap = json;
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
       final valueMap = typeMap['value'] as Map<String, dynamic>;
 
@@ -237,8 +237,8 @@ void main() {
       final json = reflectiveList.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
-      final jsonMap = json as Map<String, dynamic>;
-      expect(jsonMap['records'], isEmpty);
+      final jsonMap = json;
+      expect(jsonMap['records'] ?? [], isEmpty);
       expect(jsonMap['type'], isA<Map<String, dynamic>>());
 
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
@@ -501,7 +501,7 @@ void main() {
       expect(parsed, isA<Map<String, dynamic>>());
 
       final parsedMap = parsed as Map<String, dynamic>;
-      expect(parsedMap['records'], isA<List>());
+      expect(parsedMap['records'] ?? [], isA<List>());
       expect(parsedMap['type'], isA<Map<String, dynamic>>());
     });
   });
