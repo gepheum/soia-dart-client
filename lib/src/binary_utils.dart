@@ -57,17 +57,25 @@ void _decodeUnused(_ByteStream stream) {
 
 class _BinaryWriter {
   static void encodeInt32(int value, Uint8Buffer buffer) {
-    if (value >= 0 && value < 232) {
+    if (value < 0) {
+      if (value >= -256) {
+        buffer.add(235);
+        buffer.add(value + 256);
+      } else if (value >= -65536) {
+        buffer.add(236);
+        writeShortLe(value + 65536, buffer);
+      } else {
+        buffer.add(237);
+        writeIntLe(value >= -2147483648 ? value : -2147483648, buffer);
+      }
+    } else if (value < 232) {
       buffer.add(value);
-    } else if (value >= -128 && value < 128) {
-      buffer.add(235);
-      buffer.add(value & 0xFF);
-    } else if (value >= -32768 && value < 32768) {
-      buffer.add(236);
+    } else if (value < 65536) {
+      buffer.add(232);
       writeShortLe(value, buffer);
     } else {
-      buffer.add(237);
-      writeIntLe(value, buffer);
+      buffer.add(233);
+      writeIntLe(value <= 2147483647 ? value : 2147483647, buffer);
     }
   }
 

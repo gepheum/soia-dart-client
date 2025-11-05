@@ -104,7 +104,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   @override
   void encode(int input, Uint8Buffer buffer) {
     if (input >= -2147483648 && input <= 2147483647) {
-      _Int32Serializer().encode(input, buffer);
+      _BinaryWriter.encodeInt32(input, buffer);
     } else {
       buffer.add(238);
       _BinaryWriter.writeLongLe(input, buffer);
@@ -175,6 +175,7 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
     } else if (input < BigInt.zero) {
       buffer.add(0);
     } else {
+      // max int64 < input <= max uint64
       buffer.add(234);
       if (input <= maxUint64) {
         _BinaryWriter.writeLongLe((input - twoE64).toInt(), buffer);
