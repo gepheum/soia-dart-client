@@ -120,17 +120,16 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   dynamic toJson(int input, bool readableFlavor) {
     return (input >= minSafeJavaScriptInt && input <= maxSafeJavaScriptInt)
         ? input
-        : input.toSigned(64).toString();
+        : input.toString();
   }
 
   @override
   int fromJson(dynamic json, bool keepUnrecognizedFields) {
-    final int number = switch (json) {
+    return switch (json) {
       int() => json,
       String() => int.parse(json),
       _ => (json as num).toInt(),
     };
-    return number.toSigned(64);
   }
 
   @override
@@ -362,7 +361,7 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
   @override
   String decode(_ByteStream stream, bool keepUnrecognizedFields) {
     final wire = stream.readByte();
-    if (wire == 242) {
+    if (wire == 0 || wire == 242) {
       return '';
     } else if (wire == 243) {
       final length = stream.decodeNumber().toInt();

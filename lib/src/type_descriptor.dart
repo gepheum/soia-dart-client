@@ -436,14 +436,10 @@ TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
 Map<String, dynamic> _typeDescriptorAsJsonImpl(TypeDescriptor descriptor) {
   final recordIdToDefinition = <String, Map<String, dynamic>>{};
   _addRecordDefinitions(descriptor, recordIdToDefinition);
-  return recordIdToDefinition.isNotEmpty
-      ? {
-          'type': _getTypeSignature(descriptor),
-          'records': recordIdToDefinition.values.toList(),
-        }
-      : {
-          'type': _getTypeSignature(descriptor),
-        };
+  return {
+    'type': _getTypeSignature(descriptor),
+    'records': recordIdToDefinition.values.toList(),
+  };
 }
 
 /// Converts this type descriptor to a JSON string representation.

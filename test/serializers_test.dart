@@ -230,6 +230,9 @@ void main() {
       final oneBytes = Serializers.int32.toBytes(1);
       expect(_bytesToHex(oneBytes), equals('736f696101')); // "soia" + 0x01
 
+      expect(_bytesToHex(Serializers.int32.toBytes(-255)),
+          equals('736f6961eb01')); // "soia" + 0x01
+
       final negativeOneBytes = Serializers.int32.toBytes(-1);
       expect(_bytesToHex(negativeOneBytes),
           startsWith('736f6961')); // "soia" prefix
@@ -237,7 +240,7 @@ void main() {
 
     test('binary deserialization roundtrip', () {
       final testValues = [
-        0, 1, -1, 42, -42, 100, -100, 1000, -1000,
+        0, 1, -1, 42, -42, 100, -100, -255, -256, 1000, -1000,
         2147483647, -2147483648, // boundary values
       ];
 
