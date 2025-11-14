@@ -2,9 +2,6 @@ part of "../soia.dart";
 
 abstract class _PrimitiveSerializer<T> extends _SerializerImpl<T> {
   String get typeName;
-
-  @override
-  void addRecordDefinitionsTo(Map<String, dynamic> out) {}
 }
 
 class _BoolSerializer extends _PrimitiveSerializer<bool> {

@@ -484,17 +484,6 @@ class _StructSerializerImpl<Frozen, Mutable>
   @override
   ReflectiveTypeDescriptor get typeDescriptor => this;
 
-  @override
-  void addRecordDefinitionsTo(Map<String, dynamic> out) {
-    out[_recordId.toString()] = {
-      'kind': 'struct',
-      'fields': fieldDefinitions(),
-    };
-    for (final dep in dependencies()) {
-      dep.addRecordDefinitionsTo(out);
-    }
-  }
-
   List<Map<String, dynamic>> fieldDefinitions() {
     return _mutableFields
         .map((field) => {

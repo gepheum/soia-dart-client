@@ -158,9 +158,6 @@ abstract class _SerializerImpl<T> {
 
   /// Gets the type descriptor for this serializer
   ReflectiveTypeDescriptor get typeDescriptor;
-
-  /// Adds record definitions to the output map
-  void addRecordDefinitionsTo(Map<String, dynamic> out);
 }
 
 /// Constant for indentation unit

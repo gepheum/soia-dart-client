@@ -366,17 +366,6 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   @override
   ReflectiveTypeDescriptor get typeDescriptor => this;
 
-  @override
-  void addRecordDefinitionsTo(Map<String, dynamic> out) {
-    out[recordId.toString()] = {
-      'kind': 'enum',
-      'fields': fieldDefinitions(),
-    };
-    for (final dep in dependencies()) {
-      dep.addRecordDefinitionsTo(out);
-    }
-  }
-
   List<Map<String, dynamic>> fieldDefinitions() {
     return nameToField.values
         .map((field) {

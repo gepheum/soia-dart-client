@@ -520,12 +520,17 @@ void _addRecordDefinitions(
       };
     }).toList();
 
-    recordIdToDefinition[recordId] = {
+    final recordDefinition = {
       'kind': 'struct',
       'id': recordId,
       'fields': fields,
-      'removed_numbers': typeDescriptor.removedNumbers.toList(),
     };
+    if (typeDescriptor.removedNumbers.isNotEmpty) {
+      final removedNumbers = typeDescriptor.removedNumbers.toList();
+      removedNumbers.sort();
+      recordDefinition['removed_numbers'] = removedNumbers;
+    }
+    recordIdToDefinition[recordId] = recordDefinition;
 
     for (final field in typeDescriptor.fields) {
       _addRecordDefinitions(field.type, recordIdToDefinition);
@@ -548,12 +553,17 @@ void _addRecordDefinitions(
       throw ArgumentError('Unknown enum field type: $f');
     }).toList();
 
-    recordIdToDefinition[recordId] = {
+    final recordDefinition = {
       'kind': 'enum',
       'id': recordId,
       'fields': fields,
-      'removed_numbers': typeDescriptor.removedNumbers.toList(),
     };
+    if (typeDescriptor.removedNumbers.isNotEmpty) {
+      final removedNumbers = typeDescriptor.removedNumbers.toList();
+      removedNumbers.sort();
+      recordDefinition['removed_numbers'] = removedNumbers;
+    }
+    recordIdToDefinition[recordId] = recordDefinition;
 
     for (final field in typeDescriptor.fields) {
       if (field is EnumValueField) {

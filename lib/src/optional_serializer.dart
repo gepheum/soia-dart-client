@@ -47,11 +47,6 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  void addRecordDefinitionsTo(Map<String, dynamic> out) {
-    other.addRecordDefinitionsTo(out);
-  }
-
-  @override
   ReflectiveTypeDescriptor get typeDescriptor =>
       ReflectiveOptionalDescriptor(other.typeDescriptor);
 }

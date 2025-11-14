@@ -107,11 +107,6 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  void addRecordDefinitionsTo(Map<String, dynamic> out) {
-    item.addRecordDefinitionsTo(out);
-  }
-
-  @override
   ReflectiveTypeDescriptor get typeDescriptor =>
       ReflectiveListDescriptor(item.typeDescriptor, getKeySpec);
 }
