@@ -113,7 +113,7 @@ abstract class _ListDescriptorBase<ItemType extends _TypeDescriptorBase>
   ItemType get itemType;
 
   /// Optional key chain for keyed lists that support fast lookup by key.
-  String? get keyChain;
+  String? get keyExtractor;
 }
 
 /// Describes a list type containing elements of a specific type.
@@ -128,9 +128,9 @@ class ListDescriptor extends TypeDescriptor
 
   /// Optional key chain specified in the `.soia` file after the pipe character.
   @override
-  final String? keyChain;
+  final String? keyExtractor;
 
-  ListDescriptor(this.itemType, this.keyChain);
+  ListDescriptor(this.itemType, this.keyExtractor);
 }
 
 class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
@@ -139,9 +139,9 @@ class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
   final ReflectiveTypeDescriptor itemType;
 
   @override
-  final String? keyChain;
+  final String? keyExtractor;
 
-  ReflectiveListDescriptor(this.itemType, this.keyChain);
+  ReflectiveListDescriptor(this.itemType, this.keyExtractor);
 }
 
 /// Base interface for fields in structs and enums.
@@ -401,7 +401,7 @@ TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
       OptionalDescriptor(_notReflectiveImpl(reflective.otherType)),
     ReflectiveListDescriptor() => ListDescriptor(
         _notReflectiveImpl(reflective.itemType),
-        reflective.keyChain,
+        reflective.keyExtractor,
       ),
     ReflectiveStructDescriptor() => StructDescriptor._(
         _RecordId.parse(_getRecordId(reflective)),
@@ -458,12 +458,12 @@ Map<String, dynamic> _getTypeSignature(TypeDescriptor typeDescriptor) {
         'kind': 'optional',
         'value': _getTypeSignature(otherType),
       },
-    ListDescriptor(:final itemType, :final keyChain) => () {
+    ListDescriptor(:final itemType, keyExtractor: final keyExtractor) => () {
         final value = <String, dynamic>{
           'item': _getTypeSignature(itemType),
         };
-        if (keyChain != null) {
-          value['key_chain'] = keyChain;
+        if ((keyExtractor ?? "").isNotEmpty) {
+          value['key_extractor'] = keyExtractor;
         }
         return {
           'kind': 'array',
@@ -524,7 +524,7 @@ void _addRecordDefinitions(
       'kind': 'struct',
       'id': recordId,
       'fields': fields,
-      'removed_fields': typeDescriptor.removedNumbers.toList(),
+      'removed_numbers': typeDescriptor.removedNumbers.toList(),
     };
 
     for (final field in typeDescriptor.fields) {
@@ -552,7 +552,7 @@ void _addRecordDefinitions(
       'kind': 'enum',
       'id': recordId,
       'fields': fields,
-      'removed_fields': typeDescriptor.removedNumbers.toList(),
+      'removed_numbers': typeDescriptor.removedNumbers.toList(),
     };
 
     for (final field in typeDescriptor.fields) {

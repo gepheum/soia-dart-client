@@ -4,12 +4,6 @@ abstract class _PrimitiveSerializer<T> extends _SerializerImpl<T> {
   String get typeName;
 
   @override
-  dynamic get typeSignature => {
-        'kind': 'primitive',
-        'value': typeName,
-      };
-
-  @override
   void addRecordDefinitionsTo(Map<String, dynamic> out) {}
 }
 

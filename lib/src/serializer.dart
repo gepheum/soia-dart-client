@@ -49,7 +49,8 @@ class Serializer<T> {
   /// Deserializes an object from its JSON representation.
   ///
   /// [json] The JSON element to deserialize
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during deserialization
+  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
+  /// deserialization
   /// Returns the deserialized object
   T fromJson(
     dynamic json, {
@@ -61,7 +62,8 @@ class Serializer<T> {
   /// Deserializes an object from its JSON string representation.
   ///
   /// [jsonCode] The JSON string to deserialize
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during deserialization
+  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
+  /// deserialization
   /// Returns the deserialized object
   T fromJsonCode(
     String jsonCode, {
@@ -88,7 +90,8 @@ class Serializer<T> {
   /// Deserializes an object from its binary representation.
   ///
   /// [bytes] The byte array containing the serialized data
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during deserialization
+  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
+  /// deserialization
   /// Returns the deserialized object
   T fromBytes(
     Uint8List bytes, {
@@ -117,8 +120,8 @@ class Serializer<T> {
 
   /// Gets the type descriptor that describes the structure of type [T].
   ///
-  /// This provides reflective information about the type, including field names,
-  /// types, and other metadata useful for introspection and tooling.
+  /// This provides reflective information about the type, including field
+  /// names, types, and other metadata useful for introspection and tooling.
   ReflectiveTypeDescriptor get typeDescriptor => _impl.typeDescriptor;
 }
 
@@ -154,9 +157,6 @@ abstract class _SerializerImpl<T> {
 
   /// Gets the type descriptor for this serializer
   ReflectiveTypeDescriptor get typeDescriptor;
-
-  /// Gets the type signature as a JSON element
-  dynamic get typeSignature;
 
   /// Adds record definitions to the output map
   void addRecordDefinitionsTo(Map<String, dynamic> out);

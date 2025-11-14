@@ -63,7 +63,7 @@ RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
   final kind = json['kind'] as String;
   final recordId = _RecordId.parse(json['id'] as String);
   final removedNumbers = UnmodifiableSetView(
-      (json['removed_fields'] as List<dynamic>?)
+      (json['removed_numbers'] as List<dynamic>?)
               ?.map((it) => it as int)
               .toSet() ??
           <int>{});
@@ -118,7 +118,7 @@ TypeDescriptor _parseTypeDescriptorImpl(
       final valueObject = value as Map<String, dynamic>;
       final itemType =
           _parseTypeDescriptorImpl(valueObject['item']!, recordIdToBundle);
-      final keyChain = valueObject['key_chain'] as String?;
+      final keyChain = valueObject['key_extractor'] as String?;
       return ListDescriptor(itemType, keyChain);
     case 'record':
       final recordId = value as String;

@@ -367,12 +367,6 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   ReflectiveTypeDescriptor get typeDescriptor => this;
 
   @override
-  dynamic get typeSignature => {
-        'kind': 'enum',
-        'value': recordId.toString(),
-      };
-
-  @override
   void addRecordDefinitionsTo(Map<String, dynamic> out) {
     out[recordId.toString()] = {
       'kind': 'enum',
@@ -395,7 +389,8 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
             return {
               'name': field.name,
               'number': field.number,
-              'type': field.valueSerializer._impl.typeSignature,
+              'type': _getTypeSignature(
+                  field.valueSerializer.typeDescriptor.notReflective),
             };
           } else {
             return const <String, dynamic>{};

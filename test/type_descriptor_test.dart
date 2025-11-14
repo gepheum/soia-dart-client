@@ -159,7 +159,7 @@ void main() {
       final listDesc = ListDescriptor(itemType, null);
 
       expect(listDesc.itemType, equals(itemType));
-      expect(listDesc.keyChain, isNull);
+      expect(listDesc.keyExtractor, isNull);
     });
 
     test('supports key chain for keyed lists', () {
@@ -168,7 +168,7 @@ void main() {
       final listDesc = ListDescriptor(itemType, keyChain);
 
       expect(listDesc.itemType, equals(itemType));
-      expect(listDesc.keyChain, equals(keyChain));
+      expect(listDesc.keyExtractor, equals(keyChain));
     });
 
     test('asJson works correctly for list types', () {
@@ -187,14 +187,14 @@ void main() {
 
       final valueMap = typeMap['value'] as Map<String, dynamic>;
       expect(valueMap['item'], isA<Map<String, dynamic>>());
-      expect(valueMap.containsKey('key_chain'), isFalse);
+      expect(valueMap.containsKey('key_extractor'), isFalse);
 
       final itemMap = valueMap['item'] as Map<String, dynamic>;
       expect(itemMap['kind'], equals('primitive'));
       expect(itemMap['value'], equals('float64'));
     });
 
-    test('asJson includes key_chain when present', () {
+    test('asJson includes key_extractor when present', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.string);
       const keyChain = 'user_id';
       final listDesc = ListDescriptor(itemType, keyChain);
@@ -204,7 +204,7 @@ void main() {
       final typeMap = jsonMap['type'] as Map<String, dynamic>;
       final valueMap = typeMap['value'] as Map<String, dynamic>;
 
-      expect(valueMap['key_chain'], equals(keyChain));
+      expect(valueMap['key_extractor'], equals(keyChain));
     });
   });
 
@@ -215,7 +215,7 @@ void main() {
       final reflectiveList = ReflectiveListDescriptor(itemType, keyChain);
 
       expect(reflectiveList.itemType, equals(itemType));
-      expect(reflectiveList.keyChain, equals(keyChain));
+      expect(reflectiveList.keyExtractor, equals(keyChain));
     });
 
     test('notReflective converts to non-reflective list', () {
@@ -227,7 +227,7 @@ void main() {
       expect(notReflective, isA<ListDescriptor>());
       final listDesc = notReflective as ListDescriptor;
       expect(listDesc.itemType, equals(itemType));
-      expect(listDesc.keyChain, equals(keyChain));
+      expect(listDesc.keyExtractor, equals(keyChain));
     });
 
     test('asJson works correctly for reflective list types', () {
@@ -247,7 +247,7 @@ void main() {
 
       final valueMap = typeMap['value'] as Map<String, dynamic>;
       expect(valueMap['item'], isA<Map<String, dynamic>>());
-      expect(valueMap['key_chain'], equals(keyChain));
+      expect(valueMap['key_extractor'], equals(keyChain));
 
       final itemMap = valueMap['item'] as Map<String, dynamic>;
       expect(itemMap['kind'], equals('primitive'));
@@ -358,7 +358,7 @@ void main() {
       expect(descriptor, isA<ListDescriptor>());
       final listDesc = descriptor as ListDescriptor;
       expect(listDesc.itemType, isA<PrimitiveDescriptor>());
-      expect(listDesc.keyChain, isNull);
+      expect(listDesc.keyExtractor, isNull);
 
       final itemDesc = listDesc.itemType as PrimitiveDescriptor;
       expect(itemDesc.primitiveType, equals(PrimitiveType.float64));
@@ -371,7 +371,7 @@ void main() {
           'kind': 'array',
           'value': {
             'item': {'kind': 'primitive', 'value': 'string'},
-            'key_chain': 'id'
+            'key_extractor': 'id'
           }
         }
       };
@@ -380,7 +380,7 @@ void main() {
 
       expect(descriptor, isA<ListDescriptor>());
       final listDesc = descriptor as ListDescriptor;
-      expect(listDesc.keyChain, equals('id'));
+      expect(listDesc.keyExtractor, equals('id'));
     });
 
     test('parseFromJson handles all primitive types', () {
@@ -447,7 +447,7 @@ void main() {
       final listOfOptionalStrings = ListDescriptor(optionalString, 'key');
 
       expect(listOfOptionalStrings.itemType, equals(optionalString));
-      expect(listOfOptionalStrings.keyChain, equals('key'));
+      expect(listOfOptionalStrings.keyExtractor, equals('key'));
       expect(optionalString.otherType, equals(stringType));
     });
 
@@ -479,7 +479,7 @@ void main() {
       expect(jsonCode, contains('"kind": "optional"'));
       expect(jsonCode, contains('"kind": "primitive"'));
       expect(jsonCode, contains('"value": "string"'));
-      expect(jsonCode, contains('"key_chain": "key"'));
+      expect(jsonCode, contains('"key_extractor": "key"'));
 
       // Should be able to parse back to verify valid JSON
       final parsedJson = jsonDecode(jsonCode);

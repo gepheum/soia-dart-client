@@ -485,12 +485,6 @@ class _StructSerializerImpl<Frozen, Mutable>
   ReflectiveTypeDescriptor get typeDescriptor => this;
 
   @override
-  dynamic get typeSignature => {
-        'kind': 'struct',
-        'value': _recordId.toString(),
-      };
-
-  @override
   void addRecordDefinitionsTo(Map<String, dynamic> out) {
     out[_recordId.toString()] = {
       'kind': 'struct',
@@ -505,7 +499,8 @@ class _StructSerializerImpl<Frozen, Mutable>
     return _mutableFields
         .map((field) => {
               'name': field.name,
-              'type': field.serializer._impl.typeSignature,
+              'type': _getTypeSignature(
+                  field.serializer.typeDescriptor.notReflective),
               'number': field.number,
             })
         .toList();

@@ -621,7 +621,7 @@ void main() {
       expect(actualJson, contains('"number": 1'));
       expect(actualJson, contains('"number": 2'));
       expect(actualJson, contains('"number": 3'));
-      expect(actualJson, contains('removed_fields'));
+      expect(actualJson, contains('removed_numbers'));
 
       // Test that parsing the type descriptor works
       final parsed = TypeDescriptor.parseFromJson(typeDescriptor.asJson);

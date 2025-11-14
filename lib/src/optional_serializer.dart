@@ -47,12 +47,6 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  dynamic get typeSignature => {
-        'kind': 'optional',
-        'value': other.typeSignature,
-      };
-
-  @override
   void addRecordDefinitionsTo(Map<String, dynamic> out) {
     other.addRecordDefinitionsTo(out);
   }

@@ -107,12 +107,6 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  dynamic get typeSignature => {
-        'kind': 'list',
-        'value': item.typeSignature,
-      };
-
-  @override
   void addRecordDefinitionsTo(Map<String, dynamic> out) {
     item.addRecordDefinitionsTo(out);
   }
