@@ -39,8 +39,7 @@ class Serializer<T> {
   }) {
     final jsonElement = _impl.toJson(input, readableFlavor);
     if (readableFlavor) {
-      const encoder = JsonEncoder.withIndent('  ');
-      return encoder.convert(jsonElement);
+      return _readableJsonEncoder.convert(jsonElement);
     } else {
       return jsonEncode(jsonElement);
     }
@@ -123,6 +122,8 @@ class Serializer<T> {
   /// This provides reflective information about the type, including field
   /// names, types, and other metadata useful for introspection and tooling.
   ReflectiveTypeDescriptor get typeDescriptor => _impl.typeDescriptor;
+
+  static final _readableJsonEncoder = JsonEncoder.withIndent('  ');
 }
 
 /// Creates a string representation of the input object.
