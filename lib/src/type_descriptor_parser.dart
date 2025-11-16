@@ -119,7 +119,7 @@ TypeDescriptor _parseTypeDescriptorImpl(
       final itemType =
           _parseTypeDescriptorImpl(valueObject['item']!, recordIdToBundle);
       final keyChain = valueObject['key_extractor'] as String?;
-      return ListDescriptor(itemType, keyChain);
+      return ArrayDescriptor(itemType, keyChain);
     case 'record':
       final recordId = value as String;
       final recordBundle = recordIdToBundle[recordId]!;

@@ -1,13 +1,13 @@
 part of "../soia.dart";
 
-/// Base interface for all type descriptors
+/// 🪞 Base interface for all type descriptors
 abstract class _TypeDescriptorBase {
   Map<String, dynamic> get asJson;
 
   String get asJsonCode;
 }
 
-/// Describes a Soia type.
+/// 🪞 Describes a Soia type.
 ///
 /// Type descriptors provide metadata about Soia types, enabling schema
 /// introspection. They don't let you inspect, modify or create soia values at
@@ -33,7 +33,7 @@ sealed class TypeDescriptor implements _TypeDescriptorBase {
   }
 }
 
-/// Base class for reflective type descriptors that provide runtime type
+/// 🪞 Base class for reflective type descriptors that provide runtime type
 /// information.
 ///
 /// Reflective type descriptors offer enhanced introspection capabilities
@@ -51,7 +51,7 @@ sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
   String get asJsonCode => notReflective.asJsonCode;
 }
 
-/// Enumeration of all primitive types supported by Soia.
+/// 🪞 Enumeration of all primitive types supported by Soia.
 enum PrimitiveType {
   bool,
   int32,
@@ -64,7 +64,7 @@ enum PrimitiveType {
   bytes,
 }
 
-/// Describes a primitive soia type.
+/// 🪞 Describes a primitive soia type.
 class PrimitiveDescriptor extends TypeDescriptor
     implements ReflectiveTypeDescriptor {
   /// The specific primitive type being described.
@@ -81,8 +81,8 @@ abstract class _OptionalDescriptorBase<OtherType extends _TypeDescriptorBase>
   OtherType get otherType;
 }
 
-/// Describes an optional type that can hold either a value of the wrapped type
-/// or null.
+/// 🪞 Describes an optional type that can hold either a value of the wrapped
+/// type or null.
 class OptionalDescriptor extends TypeDescriptor
     implements _OptionalDescriptorBase<TypeDescriptor> {
   @override
@@ -91,8 +91,8 @@ class OptionalDescriptor extends TypeDescriptor
   OptionalDescriptor(this.otherType);
 }
 
-/// Describes an optional type that can hold either a value of the wrapped type
-/// or null.
+/// 🪞 Describes an optional type that can hold either a value of the wrapped
+/// type or null.
 class ReflectiveOptionalDescriptor extends ReflectiveTypeDescriptor
     implements _OptionalDescriptorBase<ReflectiveTypeDescriptor> {
   @override
@@ -101,7 +101,7 @@ class ReflectiveOptionalDescriptor extends ReflectiveTypeDescriptor
   ReflectiveOptionalDescriptor(this.otherType);
 }
 
-abstract class _ListDescriptorBase<ItemType extends _TypeDescriptorBase>
+abstract class _ArrayDescriptorBase<ItemType extends _TypeDescriptorBase>
     implements _TypeDescriptorBase {
   /// Describes the type of the array items.
   ItemType get itemType;
@@ -110,10 +110,10 @@ abstract class _ListDescriptorBase<ItemType extends _TypeDescriptorBase>
   String? get keyExtractor;
 }
 
-/// Describes a list type containing elements of a specific type.
-class ListDescriptor extends TypeDescriptor
-    implements _ListDescriptorBase<TypeDescriptor> {
-  /// Describes the type of the list elements.
+/// 🪞 Describes an array type containing elements of a specific type.
+class ArrayDescriptor extends TypeDescriptor
+    implements _ArrayDescriptorBase<TypeDescriptor> {
+  /// Describes the type of the array elements.
   @override
   final TypeDescriptor itemType;
 
@@ -121,22 +121,22 @@ class ListDescriptor extends TypeDescriptor
   @override
   final String? keyExtractor;
 
-  ListDescriptor(this.itemType, this.keyExtractor);
+  ArrayDescriptor(this.itemType, this.keyExtractor);
 }
 
-/// Describes a list type containing elements of a specific type.
-class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
-    implements _ListDescriptorBase<ReflectiveTypeDescriptor> {
+/// 🪞 Describes an array type containing elements of a specific type.
+class ReflectiveArrayDescriptor extends ReflectiveTypeDescriptor
+    implements _ArrayDescriptorBase<ReflectiveTypeDescriptor> {
   @override
   final ReflectiveTypeDescriptor itemType;
 
   @override
   final String? keyExtractor;
 
-  ReflectiveListDescriptor(this.itemType, this.keyExtractor);
+  ReflectiveArrayDescriptor(this.itemType, this.keyExtractor);
 }
 
-/// Describes a field in a struct or an enum.
+/// 🪞 Describes a field in a struct or an enum.
 abstract class Field {
   /// Field name as specified in the `.soia` file, for example 'user_id' or
   /// 'MONDAY'.
@@ -178,7 +178,7 @@ String _getRecordId<F extends Field>(_RecordDescriptorBase<F> record) {
   return '${record.modulePath}:${record.qualifiedName}';
 }
 
-/// Describes a record type (struct or enum).
+/// 🪞 Describes a record type (struct or enum).
 sealed class RecordDescriptor<F extends Field> extends TypeDescriptor
     implements _RecordDescriptorBase<F> {
   Map<String, F>? _nameToField;
@@ -206,7 +206,7 @@ abstract class _StructFieldBase<T extends _TypeDescriptorBase>
   T get type;
 }
 
-/// Describes a field in a struct.
+/// 🪞 Describes a field in a struct.
 class StructField implements _StructFieldBase<TypeDescriptor> {
   /// The field name.
   @override
@@ -223,7 +223,7 @@ class StructField implements _StructFieldBase<TypeDescriptor> {
   StructField(this.name, this.number, this.type);
 }
 
-/// Describes a field in a struct.
+/// 🪞 Describes a field in a struct.
 abstract class ReflectiveStructField<Frozen, Mutable, Value>
     implements _StructFieldBase<ReflectiveTypeDescriptor> {
   /// Extracts the value of the field from the given struct.
@@ -233,7 +233,7 @@ abstract class ReflectiveStructField<Frozen, Mutable, Value>
   void set(Mutable struct, Value value);
 }
 
-/// Describes a Soia struct.
+/// 🪞 Describes a Soia struct.
 class StructDescriptor extends RecordDescriptor<StructField> {
   final _RecordId _recordId;
 
@@ -261,7 +261,7 @@ class StructDescriptor extends RecordDescriptor<StructField> {
   String get modulePath => _recordId.modulePath;
 }
 
-/// Describes a Soia struct.
+/// 🪞 Describes a Soia struct.
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     extends ReflectiveRecordDescriptor<
         ReflectiveStructField<Frozen, Mutable, dynamic>> {
@@ -273,13 +273,13 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
   Frozen toFrozen(Mutable mutable);
 }
 
-/// Describes a field in an enum.
+/// 🪞 Describes a field in an enum.
 sealed class EnumField implements Field {}
 
-/// Describes a field in an enum.
+/// 🪞 Describes a field in an enum.
 sealed class ReflectiveEnumField<E> implements Field {}
 
-/// Describes an enum constant field.
+/// 🪞 Describes an enum constant field.
 class EnumConstantField implements EnumField {
   /// The field name.
   @override
@@ -292,7 +292,7 @@ class EnumConstantField implements EnumField {
   EnumConstantField(this.name, this.number);
 }
 
-/// Describes an enum constant field.
+/// 🪞 Describes an enum constant field.
 abstract class ReflectiveEnumConstantField<E>
     implements ReflectiveEnumField<E> {
   /// The constant value represented by this field.
@@ -305,7 +305,7 @@ abstract class _EnumWrapperFieldBase<T extends _TypeDescriptorBase>
   T get type;
 }
 
-/// Describes an enum wrapper field.
+/// 🪞 Describes an enum wrapper field.
 class EnumWrapperField
     implements EnumField, _EnumWrapperFieldBase<TypeDescriptor> {
   /// The field name.
@@ -323,7 +323,7 @@ class EnumWrapperField
   EnumWrapperField(this.name, this.number, this.type);
 }
 
-/// Describes an enum wrapper field.
+/// 🪞 Describes an enum wrapper field.
 abstract class ReflectiveEnumWrapperField<E, Value>
     implements
         ReflectiveEnumField<E>,
@@ -343,7 +343,7 @@ abstract class ReflectiveEnumWrapperField<E, Value>
 abstract class _EnumDescriptorBase<F extends Field>
     implements _RecordDescriptorBase<F> {}
 
-/// Describes a Soia enum.
+/// 🪞 Describes a Soia enum.
 class EnumDescriptor extends RecordDescriptor<EnumField>
     implements _EnumDescriptorBase<EnumField> {
   final _RecordId _recordId;
@@ -372,20 +372,20 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
   String get modulePath => _recordId.modulePath;
 }
 
-/// Describes a Soia enum.
+/// 🪞 Describes a Soia enum.
 abstract class ReflectiveEnumDescriptor<E>
     extends ReflectiveRecordDescriptor<ReflectiveEnumField<E>> {
   /// Looks up the field corresponding to the given instance of Enum.
   ReflectiveEnumField<E> getField(E e);
 }
 
-/// Converts a reflective type descriptor to a non-reflective one.
+/// 🪞 Converts a reflective type descriptor to a non-reflective one.
 TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
   return switch (reflective) {
     PrimitiveDescriptor() => reflective,
     ReflectiveOptionalDescriptor() =>
       OptionalDescriptor(_notReflectiveImpl(reflective.otherType)),
-    ReflectiveListDescriptor() => ListDescriptor(
+    ReflectiveArrayDescriptor() => ArrayDescriptor(
         _notReflectiveImpl(reflective.itemType),
         reflective.keyExtractor,
       ),
@@ -418,7 +418,7 @@ TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
   };
 }
 
-/// Converts this type descriptor to its JSON representation.
+/// 🪞 Converts this type descriptor to its JSON representation.
 Map<String, dynamic> _typeDescriptorAsJsonImpl(TypeDescriptor descriptor) {
   final recordIdToDefinition = <String, Map<String, dynamic>>{};
   _addRecordDefinitions(descriptor, recordIdToDefinition);
@@ -428,7 +428,7 @@ Map<String, dynamic> _typeDescriptorAsJsonImpl(TypeDescriptor descriptor) {
   };
 }
 
-/// Converts this type descriptor to a JSON string representation.
+/// 🪞 Converts this type descriptor to its stringified JSON representation.
 String _typeDescriptorAsJsonCodeImpl(TypeDescriptor descriptor) {
   const encoder = JsonEncoder.withIndent('  ');
   return encoder.convert(_typeDescriptorAsJsonImpl(descriptor));
@@ -444,7 +444,7 @@ Map<String, dynamic> _getTypeSignature(TypeDescriptor typeDescriptor) {
         'kind': 'optional',
         'value': _getTypeSignature(otherType),
       },
-    ListDescriptor(:final itemType, keyExtractor: final keyExtractor) => () {
+    ArrayDescriptor(:final itemType, keyExtractor: final keyExtractor) => () {
         final value = <String, dynamic>{
           'item': _getTypeSignature(itemType),
         };
@@ -494,7 +494,7 @@ void _addRecordDefinitions(
     // No definitions to add
   } else if (typeDescriptor is OptionalDescriptor) {
     _addRecordDefinitions(typeDescriptor.otherType, recordIdToDefinition);
-  } else if (typeDescriptor is ListDescriptor) {
+  } else if (typeDescriptor is ArrayDescriptor) {
     _addRecordDefinitions(typeDescriptor.itemType, recordIdToDefinition);
   } else if (typeDescriptor is StructDescriptor) {
     final recordId = _getRecordId(typeDescriptor);

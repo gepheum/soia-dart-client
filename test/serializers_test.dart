@@ -1774,13 +1774,13 @@ void main() {
     test('type descriptor', () {
       final intIterableSerializer = Serializers.iterable(Serializers.int32);
       final typeDescriptor = intIterableSerializer.typeDescriptor;
-      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+      expect(typeDescriptor, isA<ReflectiveArrayDescriptor>());
 
-      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
-      expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
-      expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
+      final arrayDescriptor = typeDescriptor as ReflectiveArrayDescriptor;
+      expect(arrayDescriptor.itemType, isA<PrimitiveDescriptor>());
+      expect((arrayDescriptor.itemType as PrimitiveDescriptor).primitiveType,
           equals(PrimitiveType.int32));
-      expect(listDescriptor.keyExtractor, isNull);
+      expect(arrayDescriptor.keyExtractor, isNull);
     });
 
     test('edge cases and error handling', () {
@@ -2023,13 +2023,13 @@ void main() {
           internal__getKeySpec: "toString()");
 
       final typeDescriptor = keyedIntSerializer.typeDescriptor;
-      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+      expect(typeDescriptor, isA<ReflectiveArrayDescriptor>());
 
-      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
-      expect(listDescriptor.itemType, isA<PrimitiveDescriptor>());
-      expect((listDescriptor.itemType as PrimitiveDescriptor).primitiveType,
+      final arrayDescriptor = typeDescriptor as ReflectiveArrayDescriptor;
+      expect(arrayDescriptor.itemType, isA<PrimitiveDescriptor>());
+      expect((arrayDescriptor.itemType as PrimitiveDescriptor).primitiveType,
           equals(PrimitiveType.int32));
-      expect(listDescriptor.keyExtractor, equals("toString()"));
+      expect(arrayDescriptor.keyExtractor, equals("toString()"));
     });
 
     test('type descriptor without keyChain', () {
@@ -2037,10 +2037,10 @@ void main() {
           Serializers.int32, (int value) => value.toString());
 
       final typeDescriptor = keyedIntSerializer.typeDescriptor;
-      expect(typeDescriptor, isA<ReflectiveListDescriptor>());
+      expect(typeDescriptor, isA<ReflectiveArrayDescriptor>());
 
-      final listDescriptor = typeDescriptor as ReflectiveListDescriptor;
-      expect(listDescriptor.keyExtractor, isNull);
+      final arrayDescriptor = typeDescriptor as ReflectiveArrayDescriptor;
+      expect(arrayDescriptor.keyExtractor, isNull);
     });
 
     test('edge cases and error handling', () {

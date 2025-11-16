@@ -108,5 +108,5 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
 
   @override
   ReflectiveTypeDescriptor get typeDescriptor =>
-      ReflectiveListDescriptor(item.typeDescriptor, getKeySpec);
+      ReflectiveArrayDescriptor(item.typeDescriptor, getKeySpec);
 }

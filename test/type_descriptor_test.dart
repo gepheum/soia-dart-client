@@ -156,7 +156,7 @@ void main() {
   group('ListDescriptor', () {
     test('describes list with item type', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.string);
-      final listDesc = ListDescriptor(itemType, null);
+      final listDesc = ArrayDescriptor(itemType, null);
 
       expect(listDesc.itemType, equals(itemType));
       expect(listDesc.keyExtractor, isNull);
@@ -165,7 +165,7 @@ void main() {
     test('supports key chain for keyed lists', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.int32);
       const keyChain = 'id';
-      final listDesc = ListDescriptor(itemType, keyChain);
+      final listDesc = ArrayDescriptor(itemType, keyChain);
 
       expect(listDesc.itemType, equals(itemType));
       expect(listDesc.keyExtractor, equals(keyChain));
@@ -173,7 +173,7 @@ void main() {
 
     test('asJson works correctly for list types', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.float64);
-      final listDesc = ListDescriptor(itemType, null);
+      final listDesc = ArrayDescriptor(itemType, null);
       final json = listDesc.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
@@ -197,7 +197,7 @@ void main() {
     test('asJson includes key_extractor when present', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.string);
       const keyChain = 'user_id';
-      final listDesc = ListDescriptor(itemType, keyChain);
+      final listDesc = ArrayDescriptor(itemType, keyChain);
       final json = listDesc.asJson;
 
       final jsonMap = json;
@@ -212,20 +212,20 @@ void main() {
     test('describes reflective list with item type', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.float64);
       const keyChain = 'index';
-      final reflectiveList = ReflectiveListDescriptor(itemType, keyChain);
+      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
 
-      expect(reflectiveList.itemType, equals(itemType));
-      expect(reflectiveList.keyExtractor, equals(keyChain));
+      expect(reflectiveArray.itemType, equals(itemType));
+      expect(reflectiveArray.keyExtractor, equals(keyChain));
     });
 
     test('notReflective converts to non-reflective list', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.string);
       const keyChain = 'name';
-      final reflectiveList = ReflectiveListDescriptor(itemType, keyChain);
-      final notReflective = reflectiveList.notReflective;
+      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
+      final notReflective = reflectiveArray.notReflective;
 
-      expect(notReflective, isA<ListDescriptor>());
-      final listDesc = notReflective as ListDescriptor;
+      expect(notReflective, isA<ArrayDescriptor>());
+      final listDesc = notReflective as ArrayDescriptor;
       expect(listDesc.itemType, equals(itemType));
       expect(listDesc.keyExtractor, equals(keyChain));
     });
@@ -233,8 +233,8 @@ void main() {
     test('asJson works correctly for reflective list types', () {
       final itemType = PrimitiveDescriptor(PrimitiveType.int64);
       const keyChain = 'id';
-      final reflectiveList = ReflectiveListDescriptor(itemType, keyChain);
-      final json = reflectiveList.asJson;
+      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
+      final json = reflectiveArray.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
       final jsonMap = json;
@@ -355,8 +355,8 @@ void main() {
 
       final descriptor = TypeDescriptor.parseFromJson(json);
 
-      expect(descriptor, isA<ListDescriptor>());
-      final listDesc = descriptor as ListDescriptor;
+      expect(descriptor, isA<ArrayDescriptor>());
+      final listDesc = descriptor as ArrayDescriptor;
       expect(listDesc.itemType, isA<PrimitiveDescriptor>());
       expect(listDesc.keyExtractor, isNull);
 
@@ -378,8 +378,8 @@ void main() {
 
       final descriptor = TypeDescriptor.parseFromJson(json);
 
-      expect(descriptor, isA<ListDescriptor>());
-      final listDesc = descriptor as ListDescriptor;
+      expect(descriptor, isA<ArrayDescriptor>());
+      final listDesc = descriptor as ArrayDescriptor;
       expect(listDesc.keyExtractor, equals('id'));
     });
 
@@ -444,7 +444,7 @@ void main() {
       // Create a complex nested type: List<Optional<String>>
       final stringType = PrimitiveDescriptor(PrimitiveType.string);
       final optionalString = OptionalDescriptor(stringType);
-      final listOfOptionalStrings = ListDescriptor(optionalString, 'key');
+      final listOfOptionalStrings = ArrayDescriptor(optionalString, 'key');
 
       expect(listOfOptionalStrings.itemType, equals(optionalString));
       expect(listOfOptionalStrings.keyExtractor, equals('key'));
@@ -467,7 +467,7 @@ void main() {
       // This test specifically verifies that the infinite loop bug has been fixed
       final stringType = PrimitiveDescriptor(PrimitiveType.string);
       final optionalString = OptionalDescriptor(stringType);
-      final listOfOptionalStrings = ListDescriptor(optionalString, 'key');
+      final listOfOptionalStrings = ArrayDescriptor(optionalString, 'key');
 
       // These calls should complete without infinite loops
       final json = listOfOptionalStrings.asJson;
