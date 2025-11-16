@@ -50,7 +50,7 @@ class ColorCustomOption extends Color {
   get kind => ColorKind.custom;
 }
 
-// Complex enum with both constants and value fields
+// Complex enum with both constants and wrapper fields
 
 enum StatusKind {
   unknown(0),
@@ -123,7 +123,7 @@ void main() {
       colorEnumBuilder.addConstantField(1, 'red', 'red', colorRed);
       colorEnumBuilder.addConstantField(2, 'green', 'green', colorGreen);
       colorEnumBuilder.addConstantField(3, 'blue', 'blue', colorBlue);
-      colorEnumBuilder.addValueField<ColorCustomOption, int>(
+      colorEnumBuilder.addWrapperField<ColorCustomOption, int>(
         4,
         'custom',
         'wrapCustom',
@@ -136,7 +136,7 @@ void main() {
 
       colorSerializer = colorEnumBuilder.serializer;
 
-      // Complex enum with both constants and value fields
+      // Complex enum with both constants and wrapper fields
       statusEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color.Status',
         unknownInstance: statusUnknown,
@@ -149,7 +149,7 @@ void main() {
       statusEnumBuilder.addConstantField(1, 'active', 'active', StatusActive());
       statusEnumBuilder.addConstantField(
           2, 'inactive', 'inactive', StatusInactive());
-      statusEnumBuilder.addValueField<StatusPendingOption, String>(
+      statusEnumBuilder.addWrapperField<StatusPendingOption, String>(
         3,
         'pending',
         'pending',
@@ -206,10 +206,10 @@ void main() {
           isA<ColorBlue>());
     });
 
-    test('enum serializer - value fields dense JSON', () {
+    test('enum serializer - wrapper fields dense JSON', () {
       final customColor = ColorCustomOption(0xFF0000);
 
-      // Test value field serialization in dense format
+      // Test wrapper field serialization in dense format
       final customJson =
           colorSerializer.toJson(customColor, readableFlavor: false);
       expect(customJson, isA<List>());
@@ -226,10 +226,10 @@ void main() {
       expect((restored as ColorCustomOption).rgb, equals(0xFF0000));
     });
 
-    test('enum serializer - value fields readable JSON', () {
+    test('enum serializer - wrapper fields readable JSON', () {
       final customColor = ColorCustomOption(0x00FF00);
 
-      // Test value field serialization in readable format
+      // Test wrapper field serialization in readable format
       final customJson =
           colorSerializer.toJson(customColor, readableFlavor: true);
       expect(customJson, isA<Map>());
@@ -263,10 +263,10 @@ void main() {
       expect(colorSerializer.fromBytes(blueBytes), isA<ColorBlue>());
     });
 
-    test('enum serializer - binary format value fields', () {
+    test('enum serializer - binary format wrapper fields', () {
       final customColor = ColorCustomOption(42);
 
-      // Test binary encoding for value fields
+      // Test binary encoding for wrapper fields
       final customBytes = colorSerializer.toBytes(customColor);
       expect(_bytesToHex(customBytes), startsWith('736f6961'));
 
@@ -287,7 +287,7 @@ void main() {
           colorSerializer.fromJson('purple', keepUnrecognizedFields: false);
       expect(unknownName, isA<ColorUnknown>());
 
-      // Test unknown value field
+      // Test unknown wrapper field
       final unknownValue =
           colorSerializer.fromJson([99, 123], keepUnrecognizedFields: false);
       expect(unknownValue, isA<ColorUnknown>());
@@ -301,7 +301,7 @@ void main() {
       final unknownEnum = (unknownConstant as ColorUnknown).unrecognized;
       expect(unknownEnum, isNotNull);
 
-      // Test unknown value field with keepUnrecognizedFields = true
+      // Test unknown wrapper field with keepUnrecognizedFields = true
       final unknownValueJson = [99, 123];
       final unknownValue = colorSerializer.fromJson(unknownValueJson,
           keepUnrecognizedFields: true);
@@ -433,7 +433,8 @@ void main() {
     });
 
     test('enum serializer - json format consistency', () {
-      // Test that dense and readable formats are different for value fields but same for constants
+      // Test that dense and readable formats are different for wrapper fields
+      // but same for constants
       final redConstant = colorRed;
       final customValue = ColorCustomOption(0xABCDEF);
 
@@ -444,7 +445,7 @@ void main() {
           colorSerializer.toJsonCode(redConstant, readableFlavor: true);
       expect(redDenseJson, isNot(equals(redReadableJson)));
 
-      // Value fields should be different between dense/readable
+      // Wrapper fields should be different between dense/readable
       final customDenseJson =
           colorSerializer.toJsonCode(customValue, readableFlavor: false);
       final customReadableJson =
@@ -473,7 +474,7 @@ void main() {
         expect(restored.runtimeType, equals(constant.runtimeType));
       }
 
-      // Test value field
+      // Test wrapper field
       final customColor = ColorCustomOption(42);
       final bytes = colorSerializer.toBytes(customColor);
       final restored = colorSerializer.fromBytes(bytes);
@@ -550,8 +551,8 @@ void main() {
       // Should be able to add constants before finalization
       builder.addConstantField(1, 'red', 'red', colorRed);
 
-      // Should be able to add value fields before finalization
-      builder.addValueField<ColorCustomOption, int>(
+      // Should be able to add wrapper fields before finalization
+      builder.addWrapperField<ColorCustomOption, int>(
         ColorKind.custom.ordinal,
         'custom',
         'custom',
@@ -581,9 +582,9 @@ void main() {
         throwsStateError,
       );
 
-      // Should not be able to add value fields after finalization
+      // Should not be able to add wrapper fields after finalization
       expect(
-        () => builder.addValueField<ColorCustomOption, int>(
+        () => builder.addWrapperField<ColorCustomOption, int>(
           4,
           'custom2',
           'custom2',

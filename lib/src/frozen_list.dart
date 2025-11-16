@@ -12,7 +12,10 @@ class _FrozenListImpl<E> extends UnmodifiableListView<E>
   int get hashCode => _hashCodeImpl(this);
 }
 
-/// An immutable iterable that supports efficient lookup by key.
+/// An immutable iterable that supports fast lookup by key through [findByKey].
+///
+/// A key is extracted from each element using the function passed to
+/// [copy]. Each element in the iterable is assumed to "contain" its own key.
 ///
 /// This is a specialized collection that combines the functionality of a list
 /// with fast key-based lookup, similar to a map but maintaining insertion
@@ -33,6 +36,7 @@ sealed class KeyedIterable<E, K> implements Iterable<E> {
   ///
   /// Returns the element associated with the given [key], or null if no
   /// element with that key exists.
+  /// If multiple elements have the same key, returns the last one.
   E? findByKey(K key);
 }
 

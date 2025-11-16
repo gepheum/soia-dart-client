@@ -279,12 +279,12 @@ void main() {
     });
   });
 
-  group('EnumValueField', () {
-    test('creates value field with name, number, and type', () {
+  group('EnumWrapperField', () {
+    test('creates wrapper field with name, number, and type', () {
       const name = 'custom_value';
       const number = 100;
       final type = PrimitiveDescriptor(PrimitiveType.int32);
-      final field = EnumValueField(name, number, type);
+      final field = EnumWrapperField(name, number, type);
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
@@ -454,11 +454,11 @@ void main() {
     test('field types work correctly', () {
       final stringType = PrimitiveDescriptor(PrimitiveType.string);
       final structField = StructField('name', 1, stringType);
-      final enumValueField = EnumValueField('value', 2, stringType);
+      final enumWrapperField = EnumWrapperField('value', 2, stringType);
       final enumConstantField = EnumConstantField('CONSTANT', 3);
 
       expect(structField.type, equals(stringType));
-      expect(enumValueField.type, equals(stringType));
+      expect(enumWrapperField.type, equals(stringType));
       expect(enumConstantField.name, equals('CONSTANT'));
       expect(enumConstantField.number, equals(3));
     });

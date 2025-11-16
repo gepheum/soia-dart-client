@@ -40,7 +40,7 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
         final typeJson = fieldObject['type'];
         if (typeJson != null) {
           final type = _parseTypeDescriptorImpl(typeJson, recordIdToBundle);
-          return EnumValueField(name, number, type);
+          return EnumWrapperField(name, number, type);
         } else {
           return EnumConstantField(name, number);
         }

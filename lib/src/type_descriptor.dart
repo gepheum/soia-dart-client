@@ -10,27 +10,23 @@ abstract class _TypeDescriptorBase {
 /// Describes a Soia type.
 ///
 /// Type descriptors provide metadata about Soia types, enabling schema
-/// introspection. They don't let you to inspect, modify or create soia values
-/// at runtime; for this, you have to use [ReflectiveTypeDescriptor].
+/// introspection. They don't let you inspect, modify or create soia values at
+/// runtime; for this, you have to use [ReflectiveTypeDescriptor].
 sealed class TypeDescriptor implements _TypeDescriptorBase {
-  /// Converts this type descriptor to its JSON representation.
+  /// Returns the JSON representation of this type descriptor.
   Map<String, dynamic> get asJson => _typeDescriptorAsJsonImpl(this);
 
-  /// Converts this type descriptor to a JSON string representation.
+  /// Returns the stringified JSON representation of this type descriptor.
   String get asJsonCode => _typeDescriptorAsJsonCodeImpl(this);
 
-  /// Parses a type descriptor from its JSON representation.
-  ///
-  /// [json] The JSON object containing the type descriptor data
-  /// Returns the parsed TypeDescriptor instance
+  /// Parses a type descriptor from its JSON representation, as returned by
+  /// [asJson].
   static TypeDescriptor parseFromJson(dynamic json) {
     return _parseTypeDescriptor(json);
   }
 
-  /// Parses a type descriptor from its JSON string representation.
-  ///
-  /// [jsonCode] The JSON string containing the type descriptor data
-  /// Returns the parsed TypeDescriptor instance
+  /// Parses a type descriptor from its JSON string representation, as returned
+  /// by [asJsonCode].
   static TypeDescriptor parseFromJsonCode(String jsonCode) {
     final json = jsonDecode(jsonCode);
     return _parseTypeDescriptor(json);
@@ -44,16 +40,14 @@ sealed class TypeDescriptor implements _TypeDescriptorBase {
 /// compared to their non-reflective counterparts, enabling runtime manipulation
 /// and analysis of soia values.
 sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
-  /// Converts this type descriptor to a non-reflective version.
-  ///
-  /// Non-reflective descriptors contain the same type information but without
-  /// runtime reflection capabilities.
+  /// Returns a non-reflective type descriptor equivalent to this reflective
+  /// descriptor.
   TypeDescriptor get notReflective => _notReflectiveImpl(this);
 
-  /// Converts this type descriptor to its JSON representation.
+  /// Returns the JSON representation of this type descriptor.
   Map<String, dynamic> get asJson => notReflective.asJson;
 
-  /// Converts this type descriptor to a JSON string representation.
+  /// Returns the stringified JSON representation of this type descriptor.
   String get asJsonCode => notReflective.asJsonCode;
 }
 
@@ -70,7 +64,7 @@ enum PrimitiveType {
   bytes,
 }
 
-/// Describes a primitive type such as integers, strings, booleans, etc.
+/// Describes a primitive soia type.
 class PrimitiveDescriptor extends TypeDescriptor
     implements ReflectiveTypeDescriptor {
   /// The specific primitive type being described.
@@ -117,9 +111,6 @@ abstract class _ListDescriptorBase<ItemType extends _TypeDescriptorBase>
 }
 
 /// Describes a list type containing elements of a specific type.
-///
-/// Lists represent ordered collections of elements, all of the same type.
-/// They can optionally support keyed access for efficient lookup operations.
 class ListDescriptor extends TypeDescriptor
     implements _ListDescriptorBase<TypeDescriptor> {
   /// Describes the type of the list elements.
@@ -133,6 +124,7 @@ class ListDescriptor extends TypeDescriptor
   ListDescriptor(this.itemType, this.keyExtractor);
 }
 
+/// Describes a list type containing elements of a specific type.
 class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
     implements _ListDescriptorBase<ReflectiveTypeDescriptor> {
   @override
@@ -144,12 +136,10 @@ class ReflectiveListDescriptor extends ReflectiveTypeDescriptor
   ReflectiveListDescriptor(this.itemType, this.keyExtractor);
 }
 
-/// Base interface for fields in structs and enums.
-///
-/// Fields represent individual data elements within structured types,
-/// each identified by a name and unique number for serialization purposes.
+/// Describes a field in a struct or an enum.
 abstract class Field {
-  /// Field name as specified in the `.soia` file, e.g. "user_id".
+  /// Field name as specified in the `.soia` file, for example 'user_id' or
+  /// 'MONDAY'.
   String get name;
 
   /// Unique field number used for serialization.
@@ -216,10 +206,7 @@ abstract class _StructFieldBase<T extends _TypeDescriptorBase>
   T get type;
 }
 
-/// Represents a field within a struct type.
-///
-/// Struct fields define the structure and types of data that can be stored
-/// in struct instances, providing the metadata needed for serialization.
+/// Describes a field in a struct.
 class StructField implements _StructFieldBase<TypeDescriptor> {
   /// The field name.
   @override
@@ -236,6 +223,7 @@ class StructField implements _StructFieldBase<TypeDescriptor> {
   StructField(this.name, this.number, this.type);
 }
 
+/// Describes a field in a struct.
 abstract class ReflectiveStructField<Frozen, Mutable, Value>
     implements _StructFieldBase<ReflectiveTypeDescriptor> {
   /// Extracts the value of the field from the given struct.
@@ -245,7 +233,7 @@ abstract class ReflectiveStructField<Frozen, Mutable, Value>
   void set(Mutable struct, Value value);
 }
 
-/// Describes a Soia struct type with its fields and structure.
+/// Describes a Soia struct.
 class StructDescriptor extends RecordDescriptor<StructField> {
   final _RecordId _recordId;
 
@@ -273,6 +261,7 @@ class StructDescriptor extends RecordDescriptor<StructField> {
   String get modulePath => _recordId.modulePath;
 }
 
+/// Describes a Soia struct.
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     extends ReflectiveRecordDescriptor<
         ReflectiveStructField<Frozen, Mutable, dynamic>> {
@@ -284,15 +273,13 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
   Frozen toFrozen(Mutable mutable);
 }
 
+/// Describes a field in an enum.
 sealed class EnumField implements Field {}
 
+/// Describes a field in an enum.
 sealed class ReflectiveEnumField<E> implements Field {}
 
-/// Describes an enum constant field: a field that represents a simple named
-/// value.
-///
-/// Constant fields represent enum variants that carry no additional data,
-/// similar to traditional enum constants in most programming languages.
+/// Describes an enum constant field.
 class EnumConstantField implements EnumField {
   /// The field name.
   @override
@@ -305,23 +292,22 @@ class EnumConstantField implements EnumField {
   EnumConstantField(this.name, this.number);
 }
 
+/// Describes an enum constant field.
 abstract class ReflectiveEnumConstantField<E>
     implements ReflectiveEnumField<E> {
   /// The constant value represented by this field.
   E get constant;
 }
 
-abstract class _EnumValueFieldBase<T extends _TypeDescriptorBase>
+abstract class _EnumWrapperFieldBase<T extends _TypeDescriptorBase>
     implements Field {
   /// The type of the value associated with this enum field.
   T get type;
 }
 
-/// Describes an enum value field: a field that can hold additional data.
-///
-/// Value fields represent enum variants that carry associated data of a
-/// specific type
-class EnumValueField implements EnumField, _EnumValueFieldBase<TypeDescriptor> {
+/// Describes an enum wrapper field.
+class EnumWrapperField
+    implements EnumField, _EnumWrapperFieldBase<TypeDescriptor> {
   /// The field name.
   @override
   final String name;
@@ -334,14 +320,14 @@ class EnumValueField implements EnumField, _EnumValueFieldBase<TypeDescriptor> {
   @override
   final TypeDescriptor type;
 
-  EnumValueField(this.name, this.number, this.type);
+  EnumWrapperField(this.name, this.number, this.type);
 }
 
-/// Reflective interface for enum value fields.
-abstract class ReflectiveEnumValueField<E, Value>
+/// Describes an enum wrapper field.
+abstract class ReflectiveEnumWrapperField<E, Value>
     implements
         ReflectiveEnumField<E>,
-        _EnumValueFieldBase<ReflectiveTypeDescriptor> {
+        _EnumWrapperFieldBase<ReflectiveTypeDescriptor> {
   /// Returns whether the given enum instance if it matches this enum field.
   bool test(E e);
 
@@ -357,7 +343,7 @@ abstract class ReflectiveEnumValueField<E, Value>
 abstract class _EnumDescriptorBase<F extends Field>
     implements _RecordDescriptorBase<F> {}
 
-/// Describes a Soia enum type with its possible values and associated data.
+/// Describes a Soia enum.
 class EnumDescriptor extends RecordDescriptor<EnumField>
     implements _EnumDescriptorBase<EnumField> {
   final _RecordId _recordId;
@@ -386,7 +372,7 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
   String get modulePath => _recordId.modulePath;
 }
 
-/// Reflective interface for enum descriptors.
+/// Describes a Soia enum.
 abstract class ReflectiveEnumDescriptor<E>
     extends ReflectiveRecordDescriptor<ReflectiveEnumField<E>> {
   /// Looks up the field corresponding to the given instance of Enum.
@@ -418,8 +404,8 @@ TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
         _RecordId.parse(_getRecordId(reflective)),
         reflective.removedNumbers,
         reflective.fields.map((f) {
-          if (f is ReflectiveEnumValueField) {
-            return EnumValueField(
+          if (f is ReflectiveEnumWrapperField) {
+            return EnumWrapperField(
               f.name,
               f.number,
               _notReflectiveImpl(f.type),
@@ -538,7 +524,7 @@ void _addRecordDefinitions(
   } else if (typeDescriptor is EnumDescriptor) {
     final recordId = _getRecordId(typeDescriptor);
     final fields = typeDescriptor.fields.map((f) {
-      if (f is EnumValueField) {
+      if (f is EnumWrapperField) {
         return {
           'name': f.name,
           'number': f.number,
@@ -566,7 +552,7 @@ void _addRecordDefinitions(
     recordIdToDefinition[recordId] = recordDefinition;
 
     for (final field in typeDescriptor.fields) {
-      if (field is EnumValueField) {
+      if (field is EnumWrapperField) {
         _addRecordDefinitions(field.type, recordIdToDefinition);
       }
     }

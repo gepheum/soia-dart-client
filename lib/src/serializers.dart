@@ -1,11 +1,7 @@
 part of "../soia.dart";
 
-/// Provides predefined serializers for all primitive types and utilities for creating
-/// composite serializers such as optional and list serializers.
-///
-/// This class serves as the main entry point for accessing serializers for basic types
-/// like integers, strings, timestamps, etc., as well as for constructing more complex
-/// serializers for optional values and collections.
+/// Provides serializers for all primitive types and utilities for creating
+/// composite serializers such as optional and iterable serializers.
 class Serializers {
   Serializers._() {}
 
@@ -34,13 +30,10 @@ class Serializers {
   static final Serializer<DateTime> timestamp =
       Serializer._(_TimestampSerializer());
 
-  /// Serializer for Boolean values.
+  /// Serializer for boolean values.
   static final bool = Serializer._(_BoolSerializer());
 
-  /// Creates a serializer for optional values of type [T].
-  ///
-  /// [other] The serializer for the wrapped type
-  /// Returns a serializer that can handle null values of the given type
+  /// Creates a serializer for optional values of type [T]?.
   static Serializer<T?> optional<T>(Serializer<T> other) {
     final otherImpl = other._impl;
     if (otherImpl is _OptionalSerializer<T>) {
@@ -51,19 +44,11 @@ class Serializers {
   }
 
   /// Creates a serializer for iterables of elements of type [E].
-  ///
-  /// [item] The serializer for individual iterable elements
-  /// Returns a serializer that can handle iterables of the given element type
   static Serializer<Iterable<E>> iterable<E>(Serializer<E> item) {
     return Serializer._(_IterableSerializer.iterable(item._impl));
   }
 
   /// Creates a serializer for keyed iterables that support fast lookup by key.
-  ///
-  /// [item] The serializer for individual iterable elements
-  /// [getKey] Function to extract the key from each element
-  /// Returns a serializer that can handle keyed iterables with efficient
-  /// key-based lookup
   static Serializer<KeyedIterable<E, K>> keyedIterable<E, K>(
     Serializer<E> item,
     K Function(E) getKey, {

@@ -55,7 +55,7 @@ class internal__EnumSerializerBuilder<Enum> {
     _impl.addConstantField(number, name, dartName, instance);
   }
 
-  void addValueField<Wrapper extends Enum, Value>(
+  void addWrapperField<Wrapper extends Enum, Value>(
     int number,
     String name,
     String dartName,
@@ -64,7 +64,7 @@ class internal__EnumSerializerBuilder<Enum> {
     Value Function(Wrapper) getValue, {
     required int ordinal,
   }) {
-    _impl.addValueField<Wrapper, Value>(
+    _impl.addWrapperField<Wrapper, Value>(
       number,
       name,
       dartName,
@@ -118,7 +118,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     );
   }
 
-  void addValueField<W extends E, V>(
+  void addWrapperField<W extends E, V>(
     int number,
     String name,
     String dartName,
@@ -131,7 +131,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     final wrapFunctionName = '${dartClassName}.${dartName}';
     addFieldImpl(
         ordinal: ordinal,
-        field: _ValueField<E, W, V>(
+        field: _WrapperField<E, W, V>(
           number,
           name,
           valueSerializer,
@@ -205,8 +205,8 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           return field.constant;
         case _EnumRemovedNumber():
           return unknown.constant;
-        case _ValueField():
-          throw ArgumentError('$number refers to a value field');
+        case _WrapperField():
+          throw ArgumentError('$number refers to a wrapper field');
         default:
           if (keepUnrecognizedFields) {
             return unknown
@@ -228,7 +228,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           first is int ? first : (first is String ? int.tryParse(first) : null);
       if (number != null) {
         final field = numberToField[number];
-        if (field is _ValueField<E, dynamic, dynamic>) {
+        if (field is _WrapperField<E, dynamic, dynamic>) {
           final second = json[1];
           return field.wrapFromJson(second, keepUnrecognizedFields);
         } else if (field is _EnumRemovedNumber<E>) {
@@ -247,7 +247,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       final value = json['value'];
       if (name != null && value != null) {
         final field = nameToField[name];
-        if (field is _ValueField<E, dynamic, dynamic>) {
+        if (field is _WrapperField<E, dynamic, dynamic>) {
           return field.wrapFromJson(value, keepUnrecognizedFields);
         }
       }
@@ -284,8 +284,8 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           result = field.constant;
         case _EnumRemovedNumber():
           result = unknown.constant;
-        case _ValueField():
-          throw ArgumentError('$number refers to a value field');
+        case _WrapperField():
+          throw ArgumentError('$number refers to a wrapper field');
         default:
           {
             if (keepUnrecognizedFields) {
@@ -304,7 +304,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       final number = wire == 248 ? stream.decodeNumber().toInt() : wire - 250;
       final field = numberToField[number];
 
-      if (field is _ValueField<E, dynamic, dynamic>) {
+      if (field is _WrapperField<E, dynamic, dynamic>) {
         result = field.wrapDecoded(stream, keepUnrecognizedFields);
       } else if (field is _EnumRemovedNumber<E>) {
         stream.decodeUnused();
@@ -312,7 +312,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       } else {
         stream.decodeUnused();
         if (keepUnrecognizedFields) {
-          // For unknown value fields, we'll just return the unknown constant
+          // For unknown wrapper fields, we'll just return the unknown constant
           // since reconstructing the full bytes is complex
           final unrecognizedBytes =
               stream.bytes.sublist(startPosition, stream.position);
@@ -374,7 +374,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
               'name': field.name,
               'number': field.number,
             };
-          } else if (field is _ValueField<E, dynamic, dynamic>) {
+          } else if (field is _WrapperField<E, dynamic, dynamic>) {
             return {
               'name': field.name,
               'number': field.number,
@@ -391,7 +391,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   List<_SerializerImpl<dynamic>> dependencies() {
     return mutableFields
-        .whereType<_ValueField>()
+        .whereType<_WrapperField>()
         .map((field) => field.valueSerializer._impl)
         .toList();
   }
@@ -492,10 +492,10 @@ class _EnumConstantField<E> extends _EnumField<E>
 }
 
 // E: enum type
-// W: wrapped enum type (for value fields)
+// W: wrapped enum type (for wrapper fields)
 // V: value type
-class _ValueField<E, W extends E, V> extends _EnumField<E>
-    implements ReflectiveEnumValueField<E, V> {
+class _WrapperField<E, W extends E, V> extends _EnumField<E>
+    implements ReflectiveEnumWrapperField<E, V> {
   @override
   final int number;
   final Serializer<V> valueSerializer;
@@ -503,7 +503,7 @@ class _ValueField<E, W extends E, V> extends _EnumField<E>
   final V Function(W) getValue;
   final String wrapFunctionName;
 
-  _ValueField(
+  _WrapperField(
     this.number,
     String name,
     this.valueSerializer,

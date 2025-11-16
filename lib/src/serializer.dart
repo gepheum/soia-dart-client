@@ -1,23 +1,25 @@
 part of "../soia.dart";
 
-/// A serializer for converting objects of type [T] to and from various formats
-/// including JSON and binary.
-///
-/// This class provides comprehensive serialization capabilities for Soia types,
-/// supporting both human-readable JSON and efficient binary encoding formats.
+/// Converts objects of type [T] to and from JSON or binary format.
 class Serializer<T> {
   final _SerializerImpl<T> _impl;
 
   const Serializer._(this._impl);
 
   /// Converts an object to its JSON representation.
+  /// If you just need the stringified JSON, call [toJsonCode] instead.
   ///
-  /// [input] The object to serialize
-  /// [readableFlavor] Whether to produce a more human-readable and less compact
-  ///     JSON representation. Not suitable for persistence: renaming fields in
-  ///     the '.soia' file, which is allowed by design, will break backward
-  ///     compatibility.
-  /// Returns the JSON representation as a dynamic object
+  /// The [readableFlavor] param controls whether to use readable or dense JSON
+  /// flavor. If 'readable', structs are serialized as JSON objects, and enum
+  /// constants are serialized as strings.
+  /// If 'dense', structs are serialized as JSON arrays, where the field numbers
+  /// in the index definition match the indexes in the array. Enum constants are
+  /// serialized as numbers.
+  ///
+  /// The 'readable' flavor is more verbose and readable, but it should not be
+  /// used if you need persistence, because soia allows fields to be renamed in
+  /// record definitions. In other words, never store a readable JSON on disk or
+  /// in a database.
   dynamic toJson(
     T input, {
     bool readableFlavor = false,
@@ -25,14 +27,19 @@ class Serializer<T> {
     return _impl.toJson(input, readableFlavor);
   }
 
-  /// Converts an object to its JSON string representation.
+  /// Converts an object to its stringified JSON representation.
   ///
-  /// [input] The object to serialize
-  /// [readableFlavor] Whether to produce a more human-readable and less compact
-  ///     JSON representation. Not suitable for persistence: renaming fields in
-  ///     the '.soia' file, which is allowed by design, will break backward
-  ///     compatibility.
-  /// Returns the JSON representation as a string
+  /// The [readableFlavor] param controls whether to use readable or dense JSON
+  /// flavor. If 'readable', structs are serialized as JSON objects, and enum
+  /// constants are serialized as strings.
+  /// If 'dense', structs are serialized as JSON arrays, where the field numbers
+  /// in the index definition match the indexes in the array. Enum constants are
+  /// serialized as numbers.
+  ///
+  /// The 'readable' flavor is more verbose and readable, but it should not be
+  /// used if you need persistence, because soia allows fields to be renamed in
+  /// record definitions. In other words, never store a readable JSON on disk or
+  /// in a database.
   String toJsonCode(
     T input, {
     bool readableFlavor = false,
@@ -46,11 +53,11 @@ class Serializer<T> {
   }
 
   /// Deserializes an object from its JSON representation.
+  /// Works with both dense and readable JSON flavors.
   ///
-  /// [json] The JSON element to deserialize
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
-  /// deserialization
-  /// Returns the deserialized object
+  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// returned value. If the value is later re-serialized in JSON format (dense
+  /// flavor), the unrecognized fields will be present in the serialized form.
   T fromJson(
     dynamic json, {
     bool keepUnrecognizedFields = false,
@@ -58,12 +65,12 @@ class Serializer<T> {
     return _impl.fromJson(json, keepUnrecognizedFields);
   }
 
-  /// Deserializes an object from its JSON string representation.
+  /// Deserializes an object from its stringified JSON representation.
+  /// Works with both dense and readable JSON flavors.
   ///
-  /// [jsonCode] The JSON string to deserialize
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
-  /// deserialization
-  /// Returns the deserialized object
+  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// returned value. If the value is later re-serialized in JSON format (dense
+  /// flavor), the unrecognized fields will be present in the serialized form.
   T fromJsonCode(
     String jsonCode, {
     bool keepUnrecognizedFields = false,
@@ -73,12 +80,6 @@ class Serializer<T> {
   }
 
   /// Converts an object to its binary representation.
-  ///
-  /// The binary format includes a "soia" header followed by the encoded data,
-  /// providing an efficient storage format for Soia objects.
-  ///
-  /// [input] The object to serialize
-  /// Returns the binary representation as a Uint8List
   Uint8List toBytes(T input) {
     final buffer = Uint8Buffer();
     buffer.addAll('soia'.codeUnits);
@@ -88,10 +89,9 @@ class Serializer<T> {
 
   /// Deserializes an object from its binary representation.
   ///
-  /// [bytes] The byte array containing the serialized data
-  /// [keepUnrecognizedFields] Whether to keep unrecognized fields during
-  /// deserialization
-  /// Returns the deserialized object
+  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// returned value. If the value is later re-serialized in binary format, the
+  /// unrecognized fields will be present in the serialized form.
   T fromBytes(
     Uint8List bytes, {
     bool keepUnrecognizedFields = false,
@@ -117,19 +117,15 @@ class Serializer<T> {
     }
   }
 
-  /// Gets the type descriptor that describes the structure of type [T].
-  ///
-  /// This provides reflective information about the type, including field
-  /// names, types, and other metadata useful for introspection and tooling.
+  /// The type descriptor that describes [T].
+  /// Provides reflective information about the type. For structs and enums, it
+  /// includes field names types, and other metadata useful for introspection
+  /// and tooling.
   ReflectiveTypeDescriptor get typeDescriptor => _impl.typeDescriptor;
 
   static final _readableJsonEncoder = JsonEncoder.withIndent('  ');
 }
 
-/// Creates a string representation of the input object.
-///
-/// [input] The object to convert to string
-/// Returns a formatted string representation
 String internal__stringify<T>(T input, Serializer<T> serializer) {
   final stringBuffer = StringBuffer();
   serializer._impl.appendString(input, stringBuffer, '\n');
