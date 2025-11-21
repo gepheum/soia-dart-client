@@ -517,18 +517,20 @@ void _addRecordDefinitions(
     _addRecordDefinitions(typeDescriptor.itemType, recordIdToDefinition);
   } else if (typeDescriptor is StructDescriptor) {
     final recordId = _getRecordId(typeDescriptor);
-    final fields = typeDescriptor.fields.map((f) {
-      return {
-        'name': f.name,
-        'number': f.number,
-        'type': _getTypeSignature(f.type),
-      };
-    }).toList();
+    if (recordIdToDefinition.containsKey(recordId)) {
+      return;
+    }
 
     final recordDefinition = {
       'kind': 'struct',
       'id': recordId,
-      'fields': fields,
+      'fields': typeDescriptor.fields.map((f) {
+        return {
+          'name': f.name,
+          'number': f.number,
+          'type': _getTypeSignature(f.type),
+        };
+      }).toList(),
     };
     if (typeDescriptor.removedNumbers.isNotEmpty) {
       final removedNumbers = typeDescriptor.removedNumbers.toList();
@@ -542,26 +544,28 @@ void _addRecordDefinitions(
     }
   } else if (typeDescriptor is EnumDescriptor) {
     final recordId = _getRecordId(typeDescriptor);
-    final fields = typeDescriptor.fields.map((f) {
-      if (f is EnumWrapperField) {
-        return {
-          'name': f.name,
-          'number': f.number,
-          'type': _getTypeSignature(f.type),
-        };
-      } else if (f is EnumConstantField) {
-        return {
-          'name': f.name,
-          'number': f.number,
-        };
-      }
-      throw ArgumentError('Unknown enum field type: $f');
-    }).toList();
+    if (recordIdToDefinition.containsKey(recordId)) {
+      return;
+    }
 
     final recordDefinition = {
       'kind': 'enum',
       'id': recordId,
-      'fields': fields,
+      'fields': typeDescriptor.fields.map((f) {
+        if (f is EnumWrapperField) {
+          return {
+            'name': f.name,
+            'number': f.number,
+            'type': _getTypeSignature(f.type),
+          };
+        } else if (f is EnumConstantField) {
+          return {
+            'name': f.name,
+            'number': f.number,
+          };
+        }
+        throw ArgumentError('Unknown enum field type: $f');
+      }).toList(),
     };
     if (typeDescriptor.removedNumbers.isNotEmpty) {
       final removedNumbers = typeDescriptor.removedNumbers.toList();
