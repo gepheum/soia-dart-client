@@ -380,41 +380,60 @@ abstract class ReflectiveEnumDescriptor<E>
 }
 
 /// 🪞 Converts a reflective type descriptor to a non-reflective one.
-TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective) {
+TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective,
+    [Map<ReflectiveTypeDescriptor, TypeDescriptor>? inProgress]) {
+  inProgress ??= {};
+  {
+    final inProgressResult = inProgress[reflective];
+    if (inProgressResult != null) {
+      return inProgressResult;
+    }
+  }
   return switch (reflective) {
     PrimitiveDescriptor() => reflective,
-    ReflectiveOptionalDescriptor() =>
-      OptionalDescriptor(_notReflectiveImpl(reflective.otherType)),
+    ReflectiveOptionalDescriptor() => OptionalDescriptor(
+        _notReflectiveImpl(reflective.otherType, inProgress),
+      ),
     ReflectiveArrayDescriptor() => ArrayDescriptor(
-        _notReflectiveImpl(reflective.itemType),
+        _notReflectiveImpl(reflective.itemType, inProgress),
         reflective.keyExtractor,
       ),
-    ReflectiveStructDescriptor() => StructDescriptor._(
-        _RecordId.parse(_getRecordId(reflective)),
-        reflective.removedNumbers,
-        reflective.fields.map((f) {
+    ReflectiveStructDescriptor() => () {
+        final result = StructDescriptor._(
+          _RecordId.parse(_getRecordId(reflective)),
+          reflective.removedNumbers,
+          [],
+        );
+        inProgress![reflective] = result;
+        result._fields = reflective.fields.map((f) {
           return StructField(
             f.name,
             f.number,
-            _notReflectiveImpl(f.type),
+            _notReflectiveImpl(f.type, inProgress),
           );
-        }),
-      ),
-    ReflectiveEnumDescriptor() => EnumDescriptor._(
-        _RecordId.parse(_getRecordId(reflective)),
-        reflective.removedNumbers,
-        reflective.fields.map((f) {
+        }).toList();
+        return result;
+      }(),
+    ReflectiveEnumDescriptor() => () {
+        final result = EnumDescriptor._(
+          _RecordId.parse(_getRecordId(reflective)),
+          reflective.removedNumbers,
+          [],
+        );
+        inProgress![reflective] = result;
+        result._fields = reflective.fields.map((f) {
           if (f is ReflectiveEnumWrapperField) {
             return EnumWrapperField(
               f.name,
               f.number,
-              _notReflectiveImpl(f.type),
+              _notReflectiveImpl(f.type, inProgress),
             );
           } else {
             return EnumConstantField(f.name, f.number);
           }
-        }),
-      ),
+        }).toList();
+        return result;
+      }(),
   };
 }
 
