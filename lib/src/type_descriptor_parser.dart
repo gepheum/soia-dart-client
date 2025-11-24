@@ -91,23 +91,23 @@ TypeDescriptor _parseTypeDescriptorImpl(
       final primitiveValue = value as String;
       switch (primitiveValue) {
         case 'bool':
-          return Serializers.bool.typeDescriptor.notReflective;
+          return BoolDescriptor._();
         case 'int32':
-          return Serializers.int32.typeDescriptor.notReflective;
+          return Int32Descriptor._();
         case 'int64':
-          return Serializers.int64.typeDescriptor.notReflective;
+          return Int64Descriptor._();
         case 'uint64':
-          return Serializers.uint64.typeDescriptor.notReflective;
+          return Uint64Descriptor._();
         case 'float32':
-          return Serializers.float32.typeDescriptor.notReflective;
+          return Float32Descriptor._();
         case 'float64':
-          return Serializers.float64.typeDescriptor.notReflective;
+          return Float64Descriptor._();
         case 'timestamp':
-          return Serializers.timestamp.typeDescriptor.notReflective;
+          return TimestampDescriptor._();
         case 'string':
-          return Serializers.string.typeDescriptor.notReflective;
+          return StringDescriptor._();
         case 'bytes':
-          return Serializers.bytes.typeDescriptor.notReflective;
+          return BytesDescriptor._();
         default:
           throw ArgumentError('unknown primitive: $primitiveValue');
       }

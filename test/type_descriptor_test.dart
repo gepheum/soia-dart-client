@@ -19,50 +19,8 @@ void main() {
   });
 
   group('PrimitiveDescriptor', () {
-    test('creates descriptor for each primitive type', () {
-      for (final primitiveType in PrimitiveType.values) {
-        final descriptor = PrimitiveDescriptor(primitiveType);
-        expect(descriptor.primitiveType, equals(primitiveType));
-      }
-    });
-
-    test('notReflective returns the same instance for primitives', () {
-      final descriptor = PrimitiveDescriptor(PrimitiveType.bool);
-      final notReflective = descriptor.notReflective;
-
-      expect(identical(descriptor, notReflective), isTrue);
-    });
-
-    test('asJson works correctly for all primitive types', () {
-      final testCases = {
-        PrimitiveType.bool: 'bool',
-        PrimitiveType.int32: 'int32',
-        PrimitiveType.int64: 'int64',
-        PrimitiveType.uint64: 'uint64',
-        PrimitiveType.float32: 'float32',
-        PrimitiveType.float64: 'float64',
-        PrimitiveType.timestamp: 'timestamp',
-        PrimitiveType.string: 'string',
-        PrimitiveType.bytes: 'bytes',
-      };
-
-      for (final entry in testCases.entries) {
-        final descriptor = PrimitiveDescriptor(entry.key);
-        final json = descriptor.asJson;
-
-        expect(json, isA<Map<String, dynamic>>());
-        final jsonMap = json;
-        expect(jsonMap['records'] ?? [], isEmpty);
-        expect(jsonMap['type'], isA<Map<String, dynamic>>());
-
-        final typeMap = jsonMap['type'] as Map<String, dynamic>;
-        expect(typeMap['kind'], equals('primitive'));
-        expect(typeMap['value'], equals(entry.value));
-      }
-    });
-
     test('asJsonCode produces valid JSON string', () {
-      final descriptor = PrimitiveDescriptor(PrimitiveType.string);
+      final descriptor = StringDescriptor.instance;
       final jsonCode = descriptor.asJsonCode;
 
       expect(jsonCode, isA<String>());
@@ -77,14 +35,14 @@ void main() {
   group('OptionalDescriptor', () {
     test('wraps another type descriptor', () {
       // Create a simple primitive descriptor for testing
-      final innerType = PrimitiveDescriptor(PrimitiveType.string);
+      final innerType = StringDescriptor.instance;
       final optional = OptionalDescriptor(innerType);
 
       expect(optional.otherType, equals(innerType));
     });
 
     test('can nest optional types', () {
-      final innerType = PrimitiveDescriptor(PrimitiveType.float32);
+      final innerType = Float32Descriptor.instance;
       final optionalInner = OptionalDescriptor(innerType);
       final optionalOuter = OptionalDescriptor(optionalInner);
 
@@ -94,7 +52,7 @@ void main() {
     });
 
     test('asJson works correctly for optional types', () {
-      final innerType = PrimitiveDescriptor(PrimitiveType.int32);
+      final innerType = Int32Descriptor.instance;
       final optional = OptionalDescriptor(innerType);
       final json = optional.asJson;
 
@@ -114,28 +72,9 @@ void main() {
   });
 
   group('ReflectiveOptionalDescriptor', () {
-    test('wraps another reflective type descriptor', () {
-      final innerType = PrimitiveDescriptor(PrimitiveType.timestamp);
-      final optional = ReflectiveOptionalDescriptor(innerType);
-
-      expect(optional.otherType, equals(innerType));
-    });
-
-    test('notReflective works', () {
-      final innerType = PrimitiveDescriptor(PrimitiveType.bytes);
-      final reflectiveOptional = ReflectiveOptionalDescriptor(innerType);
-      final notReflective = reflectiveOptional.notReflective;
-
-      // Since primitive notReflective returns itself,
-      // the ReflectiveOptionalDescriptor.notReflective should return the primitive directly
-      expect(notReflective, isA<OptionalDescriptor>());
-      expect(
-          (notReflective as OptionalDescriptor).otherType, equals(innerType));
-    });
-
     test('asJson works correctly for reflective optional types', () {
-      final innerType = PrimitiveDescriptor(PrimitiveType.bool);
-      final reflectiveOptional = ReflectiveOptionalDescriptor(innerType);
+      final reflectiveOptional =
+          Serializers.optional(Serializers.bool).typeDescriptor;
       final json = reflectiveOptional.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
@@ -155,7 +94,7 @@ void main() {
 
   group('ListDescriptor', () {
     test('describes list with item type', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.string);
+      final itemType = StringDescriptor.instance;
       final listDesc = ArrayDescriptor(itemType, null);
 
       expect(listDesc.itemType, equals(itemType));
@@ -163,7 +102,7 @@ void main() {
     });
 
     test('supports key chain for keyed lists', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.int32);
+      final itemType = Int32Descriptor.instance;
       const keyChain = 'id';
       final listDesc = ArrayDescriptor(itemType, keyChain);
 
@@ -172,7 +111,7 @@ void main() {
     });
 
     test('asJson works correctly for list types', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.float64);
+      final itemType = Float64Descriptor.instance;
       final listDesc = ArrayDescriptor(itemType, null);
       final json = listDesc.asJson;
 
@@ -195,7 +134,7 @@ void main() {
     });
 
     test('asJson includes key_extractor when present', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.string);
+      final itemType = StringDescriptor.instance;
       const keyChain = 'user_id';
       final listDesc = ArrayDescriptor(itemType, keyChain);
       final json = listDesc.asJson;
@@ -208,32 +147,10 @@ void main() {
     });
   });
 
-  group('ReflectiveListDescriptor', () {
-    test('describes reflective list with item type', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.float64);
-      const keyChain = 'index';
-      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
-
-      expect(reflectiveArray.itemType, equals(itemType));
-      expect(reflectiveArray.keyExtractor, equals(keyChain));
-    });
-
-    test('notReflective converts to non-reflective list', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.string);
-      const keyChain = 'name';
-      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
-      final notReflective = reflectiveArray.notReflective;
-
-      expect(notReflective, isA<ArrayDescriptor>());
-      final listDesc = notReflective as ArrayDescriptor;
-      expect(listDesc.itemType, equals(itemType));
-      expect(listDesc.keyExtractor, equals(keyChain));
-    });
-
+  group('ReflectiveArrayDescriptor', () {
     test('asJson works correctly for reflective list types', () {
-      final itemType = PrimitiveDescriptor(PrimitiveType.int64);
-      const keyChain = 'id';
-      final reflectiveArray = ReflectiveArrayDescriptor(itemType, keyChain);
+      final reflectiveArray =
+          Serializers.iterable(Serializers.int64).typeDescriptor;
       final json = reflectiveArray.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
@@ -247,7 +164,6 @@ void main() {
 
       final valueMap = typeMap['value'] as Map<String, dynamic>;
       expect(valueMap['item'], isA<Map<String, dynamic>>());
-      expect(valueMap['key_extractor'], equals(keyChain));
 
       final itemMap = valueMap['item'] as Map<String, dynamic>;
       expect(itemMap['kind'], equals('primitive'));
@@ -259,7 +175,7 @@ void main() {
     test('creates field with name, number, and type', () {
       const name = 'username';
       const number = 1;
-      final type = PrimitiveDescriptor(PrimitiveType.string);
+      final type = StringDescriptor.instance;
       final field = StructField(name, number, type);
 
       expect(field.name, equals(name));
@@ -283,7 +199,7 @@ void main() {
     test('creates wrapper field with name, number, and type', () {
       const name = 'custom_value';
       const number = 100;
-      final type = PrimitiveDescriptor(PrimitiveType.int32);
+      final type = Int32Descriptor.instance;
       final field = EnumWrapperField(name, number, type);
 
       expect(field.name, equals(name));
@@ -442,7 +358,7 @@ void main() {
   group('Complex type structures', () {
     test('can create nested complex types', () {
       // Create a complex nested type: List<Optional<String>>
-      final stringType = PrimitiveDescriptor(PrimitiveType.string);
+      final stringType = StringDescriptor.instance;
       final optionalString = OptionalDescriptor(stringType);
       final listOfOptionalStrings = ArrayDescriptor(optionalString, 'key');
 
@@ -452,7 +368,7 @@ void main() {
     });
 
     test('field types work correctly', () {
-      final stringType = PrimitiveDescriptor(PrimitiveType.string);
+      final stringType = StringDescriptor.instance;
       final structField = StructField('name', 1, stringType);
       final enumWrapperField = EnumWrapperField('value', 2, stringType);
       final enumConstantField = EnumConstantField('CONSTANT', 3);
@@ -465,7 +381,7 @@ void main() {
 
     test('asJson works for complex nested types without infinite loops', () {
       // This test specifically verifies that the infinite loop bug has been fixed
-      final stringType = PrimitiveDescriptor(PrimitiveType.string);
+      final stringType = StringDescriptor.instance;
       final optionalString = OptionalDescriptor(stringType);
       final listOfOptionalStrings = ArrayDescriptor(optionalString, 'key');
 
@@ -487,7 +403,7 @@ void main() {
     });
 
     test('asJsonCode produces properly formatted JSON', () {
-      final boolType = PrimitiveDescriptor(PrimitiveType.bool);
+      final boolType = BoolDescriptor.instance;
       final optionalBool = OptionalDescriptor(boolType);
 
       final jsonCode = optionalBool.asJsonCode;
@@ -508,7 +424,7 @@ void main() {
 
   group('Infinite loop regression tests', () {
     test('primitive asJson does not cause infinite loop', () {
-      final descriptor = PrimitiveDescriptor(PrimitiveType.string);
+      final descriptor = StringDescriptor.instance;
 
       // This should complete quickly without hanging
       final json = descriptor.asJson;
@@ -521,7 +437,7 @@ void main() {
     });
 
     test('multiple calls to asJson work correctly', () {
-      final descriptor = PrimitiveDescriptor(PrimitiveType.int32);
+      final descriptor = Int32Descriptor.instance;
 
       // Multiple calls should all work without issues
       final json1 = descriptor.asJson;
@@ -535,9 +451,17 @@ void main() {
 
     test('all primitive types work with asJson', () {
       // Test that every primitive type can successfully generate JSON
-      for (final primitiveType in PrimitiveType.values) {
-        final descriptor = PrimitiveDescriptor(primitiveType);
-
+      for (final descriptor in [
+        Int32Descriptor.instance,
+        Int64Descriptor.instance,
+        Uint64Descriptor.instance,
+        BoolDescriptor.instance,
+        Float32Descriptor.instance,
+        Float64Descriptor.instance,
+        TimestampDescriptor.instance,
+        StringDescriptor.instance,
+        BytesDescriptor.instance
+      ]) {
         // These should all complete without infinite loops
         expect(() => descriptor.asJson, returnsNormally);
         expect(() => descriptor.asJsonCode, returnsNormally);

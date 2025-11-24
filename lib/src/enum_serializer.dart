@@ -97,7 +97,8 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     this.dartClassName,
     this.unknown,
     this.getOrdinal,
-  ) : recordId = _RecordId.parse(recordId);
+  )   : recordId = _RecordId.parse(recordId),
+        super._();
 
   @override
   String get name => recordId.name;
@@ -364,7 +365,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   }
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor => this;
+  ReflectiveTypeDescriptor<E> get typeDescriptor => this;
 
   List<Map<String, dynamic>> fieldDefinitions() {
     return nameToField.values

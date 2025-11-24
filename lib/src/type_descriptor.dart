@@ -39,7 +39,7 @@ sealed class TypeDescriptor implements _TypeDescriptorBase {
 /// Reflective type descriptors offer enhanced introspection capabilities
 /// compared to their non-reflective counterparts, enabling runtime manipulation
 /// and analysis of soia values.
-sealed class ReflectiveTypeDescriptor implements _TypeDescriptorBase {
+sealed class ReflectiveTypeDescriptor<T> implements _TypeDescriptorBase {
   /// Returns a non-reflective type descriptor equivalent to this reflective
   /// descriptor.
   TypeDescriptor get notReflective => _notReflectiveImpl(this);
@@ -65,15 +65,69 @@ enum PrimitiveType {
 }
 
 /// 🪞 Describes a primitive soia type.
-class PrimitiveDescriptor extends TypeDescriptor
-    implements ReflectiveTypeDescriptor {
+sealed class PrimitiveDescriptor<T> extends TypeDescriptor
+    implements ReflectiveTypeDescriptor<T> {
   /// The specific primitive type being described.
   final PrimitiveType primitiveType;
 
-  PrimitiveDescriptor(this.primitiveType);
+  PrimitiveDescriptor._(this.primitiveType);
 
   @override
   PrimitiveDescriptor get notReflective => this;
+}
+
+class BoolDescriptor extends PrimitiveDescriptor<bool> {
+  static final instance = BoolDescriptor._();
+
+  BoolDescriptor._() : super._(PrimitiveType.bool);
+}
+
+class Int32Descriptor extends PrimitiveDescriptor<int> {
+  static final instance = Int32Descriptor._();
+
+  Int32Descriptor._() : super._(PrimitiveType.int32);
+}
+
+class Int64Descriptor extends PrimitiveDescriptor<int> {
+  static final instance = Int64Descriptor._();
+
+  Int64Descriptor._() : super._(PrimitiveType.int64);
+}
+
+class Uint64Descriptor extends PrimitiveDescriptor<BigInt> {
+  static final instance = Uint64Descriptor._();
+
+  Uint64Descriptor._() : super._(PrimitiveType.uint64);
+}
+
+class Float32Descriptor extends PrimitiveDescriptor<double> {
+  static final instance = Float32Descriptor._();
+
+  Float32Descriptor._() : super._(PrimitiveType.float32);
+}
+
+class Float64Descriptor extends PrimitiveDescriptor<double> {
+  static final instance = Float64Descriptor._();
+
+  Float64Descriptor._() : super._(PrimitiveType.float64);
+}
+
+class TimestampDescriptor extends PrimitiveDescriptor<DateTime> {
+  static final instance = TimestampDescriptor._();
+
+  TimestampDescriptor._() : super._(PrimitiveType.timestamp);
+}
+
+class StringDescriptor extends PrimitiveDescriptor<String> {
+  static final instance = StringDescriptor._();
+
+  StringDescriptor._() : super._(PrimitiveType.string);
+}
+
+class BytesDescriptor extends PrimitiveDescriptor<ByteString> {
+  static final instance = BytesDescriptor._();
+
+  BytesDescriptor._() : super._(PrimitiveType.bytes);
 }
 
 abstract class _OptionalDescriptorBase<OtherType extends _TypeDescriptorBase>
@@ -93,12 +147,12 @@ class OptionalDescriptor extends TypeDescriptor
 
 /// 🪞 Describes an optional type that can hold either a value of the wrapped
 /// type or null.
-class ReflectiveOptionalDescriptor extends ReflectiveTypeDescriptor
-    implements _OptionalDescriptorBase<ReflectiveTypeDescriptor> {
+class ReflectiveOptionalDescriptor<T> extends ReflectiveTypeDescriptor<T?>
+    implements _OptionalDescriptorBase<ReflectiveTypeDescriptor<T>> {
   @override
-  final ReflectiveTypeDescriptor otherType;
+  final ReflectiveTypeDescriptor<T> otherType;
 
-  ReflectiveOptionalDescriptor(this.otherType);
+  ReflectiveOptionalDescriptor._(this.otherType);
 }
 
 abstract class _ArrayDescriptorBase<ItemType extends _TypeDescriptorBase>
@@ -125,15 +179,16 @@ class ArrayDescriptor extends TypeDescriptor
 }
 
 /// 🪞 Describes an array type containing elements of a specific type.
-class ReflectiveArrayDescriptor extends ReflectiveTypeDescriptor
-    implements _ArrayDescriptorBase<ReflectiveTypeDescriptor> {
+class ReflectiveArrayDescriptor<T, Collection extends Iterable<T>>
+    extends ReflectiveTypeDescriptor<Collection>
+    implements _ArrayDescriptorBase<ReflectiveTypeDescriptor<T>> {
   @override
-  final ReflectiveTypeDescriptor itemType;
+  final ReflectiveTypeDescriptor<T> itemType;
 
   @override
   final String? keyExtractor;
 
-  ReflectiveArrayDescriptor(this.itemType, this.keyExtractor);
+  ReflectiveArrayDescriptor._(this.itemType, this.keyExtractor);
 }
 
 /// 🪞 Describes a field in a struct or an enum.
@@ -197,8 +252,8 @@ sealed class RecordDescriptor<F extends Field> extends TypeDescriptor
   }
 }
 
-sealed class ReflectiveRecordDescriptor<F extends Field>
-    extends ReflectiveTypeDescriptor implements _RecordDescriptorBase<F> {}
+sealed class ReflectiveRecordDescriptor<T, F extends Field>
+    extends ReflectiveTypeDescriptor<T> implements _RecordDescriptorBase<F> {}
 
 abstract class _StructFieldBase<T extends _TypeDescriptorBase>
     implements Field {
@@ -263,8 +318,10 @@ class StructDescriptor extends RecordDescriptor<StructField> {
 
 /// 🪞 Describes a Soia struct.
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
-    extends ReflectiveRecordDescriptor<
+    extends ReflectiveRecordDescriptor<Frozen,
         ReflectiveStructField<Frozen, Mutable, dynamic>> {
+  ReflectiveStructDescriptor._();
+
   /// Returns a new instance of the generated mutable class for a struct.
   /// Performs a shallow copy of `initializer` if `initializer` is specified.
   Mutable newMutable([Frozen? initializer]);
@@ -374,7 +431,9 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
 
 /// 🪞 Describes a Soia enum.
 abstract class ReflectiveEnumDescriptor<E>
-    extends ReflectiveRecordDescriptor<ReflectiveEnumField<E>> {
+    extends ReflectiveRecordDescriptor<E, ReflectiveEnumField<E>> {
+  ReflectiveEnumDescriptor._();
+
   /// Looks up the field corresponding to the given instance of Enum.
   ReflectiveEnumField<E> getField(E e);
 }

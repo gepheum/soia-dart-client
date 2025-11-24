@@ -47,6 +47,6 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      ReflectiveOptionalDescriptor(other.typeDescriptor);
+  ReflectiveTypeDescriptor<T?> get typeDescriptor =>
+      ReflectiveOptionalDescriptor._(other.typeDescriptor);
 }

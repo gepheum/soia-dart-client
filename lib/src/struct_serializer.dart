@@ -159,7 +159,8 @@ class _StructSerializerImpl<Frozen, Mutable>
     required this.toFrozenFn,
     required this.getUnrecognizedFields,
     required this.setUnrecognizedFields,
-  }) : _recordId = _RecordId.parse(recordId);
+  })  : _recordId = _RecordId.parse(recordId),
+        super._();
 
   @override
   String get name => _recordId.name;
@@ -482,7 +483,7 @@ class _StructSerializerImpl<Frozen, Mutable>
   Frozen toFrozen(Mutable mutable) => toFrozenFn(mutable);
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor => this;
+  ReflectiveTypeDescriptor<Frozen> get typeDescriptor => this;
 
   List<Map<String, dynamic>> fieldDefinitions() {
     return _mutableFields

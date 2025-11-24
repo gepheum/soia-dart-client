@@ -121,7 +121,7 @@ class Serializer<T> {
   /// Provides reflective information about the type. For structs and enums, it
   /// includes field names types, and other metadata useful for introspection
   /// and tooling.
-  ReflectiveTypeDescriptor get typeDescriptor => _impl.typeDescriptor;
+  ReflectiveTypeDescriptor<T> get typeDescriptor => _impl.typeDescriptor;
 
   static final _readableJsonEncoder = JsonEncoder.withIndent('  ');
 }
@@ -153,7 +153,7 @@ abstract class _SerializerImpl<T> {
   void appendString(T input, StringBuffer out, String eolIndent);
 
   /// Gets the type descriptor for this serializer
-  ReflectiveTypeDescriptor get typeDescriptor;
+  ReflectiveTypeDescriptor<T> get typeDescriptor;
 }
 
 /// Constant for indentation unit

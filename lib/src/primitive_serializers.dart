@@ -41,8 +41,7 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
   String get typeName => 'bool';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.bool);
+  ReflectiveTypeDescriptor<bool> get typeDescriptor => BoolDescriptor.instance;
 }
 
 class _Int32Serializer extends _PrimitiveSerializer<int> {
@@ -81,8 +80,7 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
   String get typeName => 'int32';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.int32);
+  ReflectiveTypeDescriptor<int> get typeDescriptor => Int32Descriptor.instance;
 }
 
 class _Int64Serializer extends _PrimitiveSerializer<int> {
@@ -132,8 +130,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   String get typeName => 'int64';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.int64);
+  ReflectiveTypeDescriptor<int> get typeDescriptor => Int64Descriptor.instance;
 }
 
 class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
@@ -225,8 +222,8 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
   String get typeName => 'uint64';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.uint64);
+  ReflectiveTypeDescriptor<BigInt> get typeDescriptor =>
+      Uint64Descriptor.instance;
 }
 
 class _Float32Serializer extends _PrimitiveSerializer<double> {
@@ -277,8 +274,8 @@ class _Float32Serializer extends _PrimitiveSerializer<double> {
   String get typeName => 'float32';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.float32);
+  ReflectiveTypeDescriptor<double> get typeDescriptor =>
+      Float32Descriptor.instance;
 }
 
 class _Float64Serializer extends _PrimitiveSerializer<double> {
@@ -329,8 +326,8 @@ class _Float64Serializer extends _PrimitiveSerializer<double> {
   String get typeName => 'float64';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.float64);
+  ReflectiveTypeDescriptor<double> get typeDescriptor =>
+      Float64Descriptor.instance;
 }
 
 class _StringSerializer extends _PrimitiveSerializer<String> {
@@ -419,8 +416,8 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
   String get typeName => 'string';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.string);
+  ReflectiveTypeDescriptor<String> get typeDescriptor =>
+      StringDescriptor.instance;
 }
 
 class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
@@ -477,8 +474,8 @@ class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
   String get typeName => 'bytes';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.bytes);
+  ReflectiveTypeDescriptor<ByteString> get typeDescriptor =>
+      BytesDescriptor.instance;
 }
 
 class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
@@ -552,6 +549,6 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   String get typeName => 'timestamp';
 
   @override
-  ReflectiveTypeDescriptor get typeDescriptor =>
-      PrimitiveDescriptor(PrimitiveType.timestamp);
+  ReflectiveTypeDescriptor<DateTime> get typeDescriptor =>
+      TimestampDescriptor.instance;
 }
