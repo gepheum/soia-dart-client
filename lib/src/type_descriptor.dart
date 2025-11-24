@@ -280,7 +280,7 @@ class StructField implements _StructFieldBase<TypeDescriptor> {
 
 /// 🪞 Describes a field in a struct.
 abstract class ReflectiveStructField<Frozen, Mutable, Value>
-    implements _StructFieldBase<ReflectiveTypeDescriptor> {
+    implements _StructFieldBase<ReflectiveTypeDescriptor<Value>> {
   /// Extracts the value of the field from the given struct.
   Value get(Frozen struct);
 
@@ -384,7 +384,7 @@ class EnumWrapperField
 abstract class ReflectiveEnumWrapperField<E, Value>
     implements
         ReflectiveEnumField<E>,
-        _EnumWrapperFieldBase<ReflectiveTypeDescriptor> {
+        _EnumWrapperFieldBase<ReflectiveTypeDescriptor<Value>> {
   /// Returns whether the given enum instance if it matches this enum field.
   bool test(E e);
 
@@ -439,8 +439,10 @@ abstract class ReflectiveEnumDescriptor<E>
 }
 
 /// 🪞 Converts a reflective type descriptor to a non-reflective one.
-TypeDescriptor _notReflectiveImpl(ReflectiveTypeDescriptor reflective,
-    [Map<ReflectiveTypeDescriptor, TypeDescriptor>? inProgress]) {
+TypeDescriptor _notReflectiveImpl(
+  ReflectiveTypeDescriptor reflective, [
+  Map<ReflectiveTypeDescriptor, TypeDescriptor>? inProgress,
+]) {
   inProgress ??= {};
   {
     final inProgressResult = inProgress[reflective];

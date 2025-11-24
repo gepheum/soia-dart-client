@@ -118,7 +118,7 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   }
 
   @override
-  ReflectiveTypeDescriptor get type => serializer._impl.typeDescriptor;
+  ReflectiveTypeDescriptor<Value> get type => serializer._impl.typeDescriptor;
 
   @override
   void set(Mutable struct, Value value) => setter(struct, value);

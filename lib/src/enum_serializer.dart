@@ -552,7 +552,7 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   }
 
   @override
-  ReflectiveTypeDescriptor get type => valueSerializer._impl.typeDescriptor;
+  ReflectiveTypeDescriptor<V> get type => valueSerializer._impl.typeDescriptor;
 
   @override
   bool test(E e) => e is W;
