@@ -180,6 +180,14 @@ abstract class ReflectiveOptionalDescriptor<NotNull>
   @override
   ReflectiveTypeDescriptor<NotNull> get otherType;
 
+  NotNull? applyTransformer(NotNull? input, ReflectiveTransformer transformer) {
+    if (input == null) {
+      return null;
+    } else {
+      return transformer.transform(input, otherType);
+    }
+  }
+
   ReflectiveOptionalDescriptor._();
 }
 
@@ -215,6 +223,24 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
   String? get keyExtractor;
 
   Collection toCollection(Iterable<E> iterable);
+
+  Collection applyTransformer(
+      Collection collection, ReflectiveTransformer transformer) {
+    final newCollection =
+        collection.map((e) => transformer.transform(e, itemType));
+    // Try to preserve object identity if no elements changed
+    final allIdentical = () {
+      final oldIterator = collection.iterator;
+      final newIterator = newCollection.iterator;
+      while (oldIterator.moveNext() && newIterator.moveNext()) {
+        if (!identical(oldIterator.current, newIterator.current)) {
+          return false;
+        }
+      }
+      return true;
+    }();
+    return allIdentical ? collection : toCollection(newCollection);
+  }
 
   ReflectiveArrayDescriptor._();
 }
@@ -372,7 +398,7 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
   /// Converts a mutable struct instance to its frozen (immutable) form.
   Frozen toFrozen(Mutable mutable);
 
-  Frozen transformEachField(Frozen struct, ReflectiveTransformer transformer) {
+  Frozen applyTransformer(Frozen struct, ReflectiveTransformer transformer) {
     final mutable = newMutable();
     bool allIdentical = true;
     for (final field in fields) {
@@ -496,7 +522,7 @@ abstract class ReflectiveEnumDescriptor<E>
   /// Looks up the field corresponding to the given instance of Enum.
   ReflectiveEnumField<E> getField(E e);
 
-  E rewrap(E e, ReflectiveTransformer transformer) {
+  E applyTransformer(E e, ReflectiveTransformer transformer) {
     final field = getField(e);
     if (field is ReflectiveEnumWrapperField<E, dynamic>) {
       final value = field.get(e);
@@ -643,7 +669,7 @@ String _primitiveTypeToString(PrimitiveType type) {
 }
 
 void _addRecordDefinitions(
-  _TypeDescriptorBase typeDescriptor,
+  TypeDescriptor typeDescriptor,
   Map<String, Map<String, dynamic>> recordIdToDefinition,
 ) {
   if (typeDescriptor is PrimitiveDescriptor) {
