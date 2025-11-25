@@ -1,7 +1,8 @@
 part of "../soia.dart";
 
 class _IterableSerializer<E, Collection extends Iterable<E>>
-    extends _SerializerImpl<Collection> {
+    extends ReflectiveArrayDescriptor<E, Collection>
+    implements _SerializerImpl<Collection> {
   final _SerializerImpl<E> item;
   final String? getKeySpec;
   final Collection Function(Iterable<E>) iterableToCollection;
@@ -28,7 +29,8 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
     this.getKeySpec,
     this.iterableToCollection,
     this.listToCollection,
-  ) : emptyCollection = iterableToCollection(<E>[]);
+  )   : emptyCollection = iterableToCollection(<E>[]),
+        super._();
 
   @override
   bool isDefault(Iterable<E> value) => value.isEmpty;
@@ -107,7 +109,19 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  ReflectiveTypeDescriptor<Collection> get typeDescriptor =>
-      ReflectiveArrayDescriptor<E, Collection>._(
-          item.typeDescriptor, getKeySpec);
+  Collection get defaultValue => emptyCollection;
+
+  @override
+  ReflectiveTypeDescriptor<E> get itemType => item.typeDescriptor;
+
+  @override
+  String? get keyExtractor => getKeySpec;
+
+  @override
+  Collection toCollection(Iterable<E> iterable) {
+    return iterableToCollection(iterable);
+  }
+
+  @override
+  ReflectiveTypeDescriptor<Collection> get typeDescriptor => this;
 }

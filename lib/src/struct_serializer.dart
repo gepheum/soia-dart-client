@@ -69,7 +69,7 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
 
 /// Implementation of struct field
 class _StructFieldImpl<Frozen, Mutable, Value>
-    implements ReflectiveStructField<Frozen, Mutable, Value> {
+    extends ReflectiveStructField<Frozen, Mutable, Value> {
   @override
   final String name;
   final String dartName;
@@ -86,7 +86,7 @@ class _StructFieldImpl<Frozen, Mutable, Value>
     this.serializer,
     this.getter,
     this.setter,
-  );
+  ) : super._();
 
   bool valueIsDefault(Frozen input) {
     return serializer._impl.isDefault(getter(input));
@@ -483,20 +483,8 @@ class _StructSerializerImpl<Frozen, Mutable>
   Frozen toFrozen(Mutable mutable) => toFrozenFn(mutable);
 
   @override
+  Frozen get defaultValue => defaultInstance;
+
+  @override
   ReflectiveTypeDescriptor<Frozen> get typeDescriptor => this;
-
-  List<Map<String, dynamic>> fieldDefinitions() {
-    return _mutableFields
-        .map((field) => {
-              'name': field.name,
-              'type': _getTypeSignature(
-                  field.serializer.typeDescriptor.notReflective),
-              'number': field.number,
-            })
-        .toList();
-  }
-
-  List<_SerializerImpl<dynamic>> dependencies() {
-    return _mutableFields.map((field) => field.serializer._impl).toList();
-  }
 }

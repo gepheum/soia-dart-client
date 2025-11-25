@@ -1,15 +1,16 @@
 part of "../soia.dart";
 
-class _OptionalSerializer<T> extends _SerializerImpl<T?> {
-  final _SerializerImpl<T> other;
+class _OptionalSerializer<NotNull> extends ReflectiveOptionalDescriptor<NotNull>
+    implements _SerializerImpl<NotNull?> {
+  final _SerializerImpl<NotNull> other;
 
-  _OptionalSerializer(this.other);
-
-  @override
-  bool isDefault(T? value) => value == null;
+  _OptionalSerializer(this.other) : super._();
 
   @override
-  void encode(T? input, Uint8Buffer buffer) {
+  bool isDefault(NotNull? value) => value == null;
+
+  @override
+  void encode(NotNull? input, Uint8Buffer buffer) {
     if (input == null) {
       buffer.add(255);
     } else {
@@ -18,7 +19,7 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  T? decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  NotNull? decode(_ByteStream stream, bool keepUnrecognizedFields) {
     if (stream.peekByte() == 255) {
       stream.position++;
       return null;
@@ -28,7 +29,7 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  void appendString(T? input, StringBuffer out, String eolIndent) {
+  void appendString(NotNull? input, StringBuffer out, String eolIndent) {
     if (input == null) {
       out.write('null');
     } else {
@@ -37,16 +38,21 @@ class _OptionalSerializer<T> extends _SerializerImpl<T?> {
   }
 
   @override
-  dynamic toJson(T? input, bool readableFlavor) {
+  dynamic toJson(NotNull? input, bool readableFlavor) {
     return input == null ? null : other.toJson(input, readableFlavor);
   }
 
   @override
-  T? fromJson(dynamic json, bool keepUnrecognizedFields) {
+  NotNull? fromJson(dynamic json, bool keepUnrecognizedFields) {
     return json == null ? null : other.fromJson(json, keepUnrecognizedFields);
   }
 
   @override
-  ReflectiveTypeDescriptor<T?> get typeDescriptor =>
-      ReflectiveOptionalDescriptor._(other.typeDescriptor);
+  NotNull? get defaultValue => null;
+
+  @override
+  ReflectiveTypeDescriptor<NotNull> get otherType => other.typeDescriptor;
+
+  @override
+  ReflectiveTypeDescriptor<NotNull?> get typeDescriptor => this;
 }

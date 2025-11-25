@@ -365,37 +365,10 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   }
 
   @override
+  E get defaultValue => unknown.constant;
+
+  @override
   ReflectiveTypeDescriptor<E> get typeDescriptor => this;
-
-  List<Map<String, dynamic>> fieldDefinitions() {
-    return nameToField.values
-        .map((field) {
-          if (field is _EnumConstantField<E>) {
-            return {
-              'name': field.name,
-              'number': field.number,
-            };
-          } else if (field is _WrapperField<E, dynamic, dynamic>) {
-            return {
-              'name': field.name,
-              'number': field.number,
-              'type': _getTypeSignature(
-                  field.valueSerializer.typeDescriptor.notReflective),
-            };
-          } else {
-            return const <String, dynamic>{};
-          }
-        })
-        .where((def) => def.isNotEmpty)
-        .toList();
-  }
-
-  List<_SerializerImpl<dynamic>> dependencies() {
-    return mutableFields
-        .whereType<_WrapperField>()
-        .map((field) => field.valueSerializer._impl)
-        .toList();
-  }
 }
 
 // Abstract base class for enum field implementations

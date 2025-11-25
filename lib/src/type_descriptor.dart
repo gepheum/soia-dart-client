@@ -49,6 +49,12 @@ sealed class ReflectiveTypeDescriptor<T> implements _TypeDescriptorBase {
 
   /// Returns the stringified JSON representation of this type descriptor.
   String get asJsonCode => notReflective.asJsonCode;
+
+  T get defaultValue;
+
+  void accept(ReflectiveTypeVisitor<T> visitor) {
+    _acceptImpl(this, visitor);
+  }
 }
 
 /// 🪞 Enumeration of all primitive types supported by Soia.
@@ -74,10 +80,15 @@ sealed class PrimitiveDescriptor<T> extends TypeDescriptor
 
   @override
   PrimitiveDescriptor get notReflective => this;
+  void accept(ReflectiveTypeVisitor<T> visitor) {
+    _acceptImpl(this, visitor);
+  }
 }
 
 class BoolDescriptor extends PrimitiveDescriptor<bool> {
   static final instance = BoolDescriptor._();
+
+  bool get defaultValue => false;
 
   BoolDescriptor._() : super._(PrimitiveType.bool);
 }
@@ -85,11 +96,15 @@ class BoolDescriptor extends PrimitiveDescriptor<bool> {
 class Int32Descriptor extends PrimitiveDescriptor<int> {
   static final instance = Int32Descriptor._();
 
+  int get defaultValue => 0;
+
   Int32Descriptor._() : super._(PrimitiveType.int32);
 }
 
 class Int64Descriptor extends PrimitiveDescriptor<int> {
   static final instance = Int64Descriptor._();
+
+  int get defaultValue => 0;
 
   Int64Descriptor._() : super._(PrimitiveType.int64);
 }
@@ -97,11 +112,15 @@ class Int64Descriptor extends PrimitiveDescriptor<int> {
 class Uint64Descriptor extends PrimitiveDescriptor<BigInt> {
   static final instance = Uint64Descriptor._();
 
+  BigInt get defaultValue => BigInt.zero;
+
   Uint64Descriptor._() : super._(PrimitiveType.uint64);
 }
 
 class Float32Descriptor extends PrimitiveDescriptor<double> {
   static final instance = Float32Descriptor._();
+
+  double get defaultValue => 0.0;
 
   Float32Descriptor._() : super._(PrimitiveType.float32);
 }
@@ -109,11 +128,15 @@ class Float32Descriptor extends PrimitiveDescriptor<double> {
 class Float64Descriptor extends PrimitiveDescriptor<double> {
   static final instance = Float64Descriptor._();
 
+  double get defaultValue => 0.0;
+
   Float64Descriptor._() : super._(PrimitiveType.float64);
 }
 
 class TimestampDescriptor extends PrimitiveDescriptor<DateTime> {
   static final instance = TimestampDescriptor._();
+
+  DateTime get defaultValue => unixEpoch;
 
   TimestampDescriptor._() : super._(PrimitiveType.timestamp);
 }
@@ -121,11 +144,15 @@ class TimestampDescriptor extends PrimitiveDescriptor<DateTime> {
 class StringDescriptor extends PrimitiveDescriptor<String> {
   static final instance = StringDescriptor._();
 
+  String get defaultValue => '';
+
   StringDescriptor._() : super._(PrimitiveType.string);
 }
 
 class BytesDescriptor extends PrimitiveDescriptor<ByteString> {
   static final instance = BytesDescriptor._();
+
+  ByteString get defaultValue => ByteString.empty;
 
   BytesDescriptor._() : super._(PrimitiveType.bytes);
 }
@@ -147,12 +174,13 @@ class OptionalDescriptor extends TypeDescriptor
 
 /// 🪞 Describes an optional type that can hold either a value of the wrapped
 /// type or null.
-class ReflectiveOptionalDescriptor<T> extends ReflectiveTypeDescriptor<T?>
-    implements _OptionalDescriptorBase<ReflectiveTypeDescriptor<T>> {
+abstract class ReflectiveOptionalDescriptor<NotNull>
+    extends ReflectiveTypeDescriptor<NotNull?>
+    implements _OptionalDescriptorBase<ReflectiveTypeDescriptor<NotNull>> {
   @override
-  final ReflectiveTypeDescriptor<T> otherType;
+  ReflectiveTypeDescriptor<NotNull> get otherType;
 
-  ReflectiveOptionalDescriptor._(this.otherType);
+  ReflectiveOptionalDescriptor._();
 }
 
 abstract class _ArrayDescriptorBase<ItemType extends _TypeDescriptorBase>
@@ -179,16 +207,16 @@ class ArrayDescriptor extends TypeDescriptor
 }
 
 /// 🪞 Describes an array type containing elements of a specific type.
-class ReflectiveArrayDescriptor<T, Collection extends Iterable<T>>
+abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
     extends ReflectiveTypeDescriptor<Collection>
-    implements _ArrayDescriptorBase<ReflectiveTypeDescriptor<T>> {
-  @override
-  final ReflectiveTypeDescriptor<T> itemType;
+    implements _ArrayDescriptorBase<ReflectiveTypeDescriptor<E>> {
+  ReflectiveTypeDescriptor<E> get itemType;
 
-  @override
-  final String? keyExtractor;
+  String? get keyExtractor;
 
-  ReflectiveArrayDescriptor._(this.itemType, this.keyExtractor);
+  Collection toCollection(Iterable<E> iterable);
+
+  ReflectiveArrayDescriptor._();
 }
 
 /// 🪞 Describes a field in a struct or an enum.
@@ -199,6 +227,8 @@ abstract class Field {
 
   /// Unique field number used for serialization.
   int get number;
+
+  Field._();
 }
 
 abstract class _RecordDescriptorBase<F extends Field>
@@ -286,6 +316,21 @@ abstract class ReflectiveStructField<Frozen, Mutable, Value>
 
   /// Assigns the given value to the field of the given struct.
   void set(Mutable struct, Value value);
+
+  void copy(
+    Frozen source,
+    Mutable target, {
+    ReflectiveTransformer transformer = ReflectiveTransformer.identity,
+  }) {
+    set(
+        target,
+        transformer.transform(
+          get(source),
+          type,
+        ));
+  }
+
+  ReflectiveStructField._();
 }
 
 /// 🪞 Describes a Soia struct.
@@ -320,14 +365,26 @@ class StructDescriptor extends RecordDescriptor<StructField> {
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     extends ReflectiveRecordDescriptor<Frozen,
         ReflectiveStructField<Frozen, Mutable, dynamic>> {
-  ReflectiveStructDescriptor._();
-
   /// Returns a new instance of the generated mutable class for a struct.
   /// Performs a shallow copy of `initializer` if `initializer` is specified.
   Mutable newMutable([Frozen? initializer]);
 
   /// Converts a mutable struct instance to its frozen (immutable) form.
   Frozen toFrozen(Mutable mutable);
+
+  Frozen transformEachField(Frozen struct, ReflectiveTransformer transformer) {
+    final mutable = newMutable();
+    bool allIdentical = true;
+    for (final field in fields) {
+      final oldValue = field.get(struct);
+      final newValue = transformer.transform(oldValue, field.type);
+      allIdentical = allIdentical && identical(newValue, oldValue);
+      field.set(mutable, newValue);
+    }
+    return allIdentical ? struct : toFrozen(mutable);
+  }
+
+  ReflectiveStructDescriptor._();
 }
 
 /// 🪞 Describes a field in an enum.
@@ -354,6 +411,8 @@ abstract class ReflectiveEnumConstantField<E>
     implements ReflectiveEnumField<E> {
   /// The constant value represented by this field.
   E get constant;
+
+  ReflectiveEnumConstantField._();
 }
 
 abstract class _EnumWrapperFieldBase<T extends _TypeDescriptorBase>
@@ -395,6 +454,8 @@ abstract class ReflectiveEnumWrapperField<E, Value>
   /// Returns a new enum instance matching this enum field and holding the given
   /// value.
   E wrap(Value value);
+
+  ReflectiveEnumWrapperField._();
 }
 
 abstract class _EnumDescriptorBase<F extends Field>
@@ -432,10 +493,25 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
 /// 🪞 Describes a Soia enum.
 abstract class ReflectiveEnumDescriptor<E>
     extends ReflectiveRecordDescriptor<E, ReflectiveEnumField<E>> {
-  ReflectiveEnumDescriptor._();
-
   /// Looks up the field corresponding to the given instance of Enum.
   ReflectiveEnumField<E> getField(E e);
+
+  E rewrap(E e, ReflectiveTransformer transformer) {
+    final field = getField(e);
+    if (field is ReflectiveEnumWrapperField<E, dynamic>) {
+      final value = field.get(e);
+      final transformedValue = transformer.transform(value, field.type);
+      if (identical(transformedValue, value)) {
+        return e;
+      } else {
+        return field.wrap(transformedValue);
+      }
+    } else {
+      return e;
+    }
+  }
+
+  ReflectiveEnumDescriptor._();
 }
 
 /// 🪞 Converts a reflective type descriptor to a non-reflective one.
