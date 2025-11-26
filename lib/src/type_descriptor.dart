@@ -400,14 +400,16 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
 
   Frozen applyTransformer(Frozen struct, ReflectiveTransformer transformer) {
     final mutable = newMutable();
-    bool allIdentical = true;
     for (final field in fields) {
-      final oldValue = field.get(struct);
-      final newValue = transformer.transform(oldValue, field.type);
-      allIdentical = allIdentical && identical(newValue, oldValue);
-      field.set(mutable, newValue);
+      field.copy(struct, mutable, transformer: transformer);
     }
-    return allIdentical ? struct : toFrozen(mutable);
+    final newStruct = toFrozen(mutable);
+    final allIdentical = fields.every((field) {
+      final oldValue = field.get(struct);
+      final newValue = field.get(newStruct);
+      return identical(oldValue, newValue);
+    });
+    return allIdentical ? struct : newStruct;
   }
 
   ReflectiveStructDescriptor._();
