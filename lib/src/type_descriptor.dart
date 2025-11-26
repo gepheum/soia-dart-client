@@ -184,7 +184,7 @@ abstract class ReflectiveOptionalDescriptor<NotNull>
     if (input == null) {
       return null;
     } else {
-      return transformer.transform(input, otherType);
+      return transformer.transform<NotNull>(input, otherType);
     }
   }
 
