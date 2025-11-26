@@ -25,7 +25,8 @@ class internal__EnumSerializerBuilder<Enum> {
     required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
     required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
   }) {
-    final String dartClassName = recordId.replaceAll(".", "_");
+    final String dartClassName =
+        _RecordId.parse(recordId).qualifiedName.replaceAll(".", "_");
     final impl = _EnumSerializerImpl._(
       recordId,
       dartClassName,
