@@ -24,6 +24,7 @@ part 'src/serializers.dart';
 part 'src/service.dart';
 part 'src/service_client.dart';
 part 'src/struct_serializer.dart';
+part 'src/transformer.dart';
 part 'src/type_descriptor.dart';
 part 'src/type_descriptor_parser.dart';
 part 'src/type_visitor.dart';

@@ -245,18 +245,7 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
   Collection map(Collection collection, ReflectiveTransformer transformer) {
     final newCollection =
         collection.map((e) => transformer.transform(e, itemType));
-    // Try to preserve object identity if no elements changed
-    final allIdentical = () {
-      final oldIterator = collection.iterator;
-      final newIterator = newCollection.iterator;
-      while (oldIterator.moveNext() && newIterator.moveNext()) {
-        if (!identical(oldIterator.current, newIterator.current)) {
-          return false;
-        }
-      }
-      return true;
-    }();
-    return allIdentical ? collection : toCollection(newCollection);
+    return toCollection(newCollection);
   }
 
   ReflectiveArrayDescriptor._();
@@ -426,13 +415,7 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     for (final field in fields) {
       field.copy(struct, mutable, transformer: transformer);
     }
-    final newStruct = toFrozen(mutable);
-    final allIdentical = fields.every((field) {
-      final oldValue = field.get(struct);
-      final newValue = field.get(newStruct);
-      return identical(oldValue, newValue);
-    });
-    return allIdentical ? struct : newStruct;
+    return toFrozen(mutable);
   }
 
   ReflectiveStructDescriptor._();

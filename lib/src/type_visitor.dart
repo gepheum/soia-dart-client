@@ -43,30 +43,48 @@ abstract class ReflectiveTypeVisitor<T> {
   );
 
   /// Visits a boolean primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [bool].
   void visitBool(TypeEquivalence<T, bool> equivalence);
 
   /// Visits a 32-bit signed integer primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [int].
   void visitInt32(TypeEquivalence<T, int> equivalence);
 
   /// Visits a 64-bit signed integer primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [int].
   void visitInt64(TypeEquivalence<T, int> equivalence);
 
   /// Visits a 64-bit unsigned integer primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [BigInt].
   void visitUint64(TypeEquivalence<T, BigInt> equivalence);
 
   /// Visits a 32-bit floating point primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [double].
   void visitFloat32(TypeEquivalence<T, double> equivalence);
 
   /// Visits a 64-bit floating point primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [double].
   void visitFloat64(TypeEquivalence<T, double> equivalence);
 
   /// Visits a timestamp primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [DateTime].
   void visitTimestamp(TypeEquivalence<T, DateTime> equivalence);
 
   /// Visits a string primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [String].
   void visitString(TypeEquivalence<T, String> equivalence);
 
   /// Visits a bytes primitive type.
+  ///
+  /// [equivalence] allows safe conversion between [T] and [ByteString].
   void visitBytes(TypeEquivalence<T, ByteString> equivalence);
 }
 
@@ -185,40 +203,12 @@ void _visitArrayImpl<E, Collection extends Iterable<E>, T>(
 /// runtime, even if Dart's static type checker sees them as different types.
 ///
 /// Provides safe casting methods to make the static type checker happy.
-class TypeEquivalence<T, U> {
-  const TypeEquivalence._();
+final class TypeEquivalence<T, U> {
+  TypeEquivalence._();
 
   /// Converts from type [U] to type [T].
   T toT(U u) => u as T;
 
   /// Converts from type [T] to type [U].
   U fromT(T t) => t as U;
-}
-
-/// 🪞 A function object that takes in a Soia value of any type and returns a
-/// new value of the same type.
-///
-/// Usage: write your own implementations of this interface, and pass it to
-/// methods such as [ReflectiveStructDescriptor.mapFields] to recursively
-/// transform a Soia value.
-///
-/// See a complete example at
-/// https://github.com/gepheum/soia-dart-example/blob/main/lib/all_strings_to_upper_case.dart
-abstract class ReflectiveTransformer {
-  /// Returns values unchanged.
-  static const ReflectiveTransformer identity = _IdentityTransformer();
-
-  /// Expects a Soia value of any type, returns a value of the same type.
-  T transform<T>(T input, ReflectiveTypeDescriptor<T> descriptor);
-
-  const ReflectiveTransformer();
-}
-
-class _IdentityTransformer extends ReflectiveTransformer {
-  const _IdentityTransformer();
-
-  @override
-  T transform<T>(T input, ReflectiveTypeDescriptor<T> descriptor) {
-    return input;
-  }
 }
