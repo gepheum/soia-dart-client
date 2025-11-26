@@ -481,6 +481,8 @@ abstract class ReflectiveEnumWrapperField<E, Value>
   /// value.
   E wrap(Value value);
 
+  E applyTransformer(E e, ReflectiveTransformer transformer);
+
   ReflectiveEnumWrapperField._();
 }
 
@@ -525,13 +527,7 @@ abstract class ReflectiveEnumDescriptor<E>
   E applyTransformer(E e, ReflectiveTransformer transformer) {
     final field = getField(e);
     if (field is ReflectiveEnumWrapperField<E, dynamic>) {
-      final value = field.get(e);
-      final transformedValue = transformer.transform(value, field.type);
-      if (identical(transformedValue, value)) {
-        return e;
-      } else {
-        return field.wrap(transformedValue);
-      }
+      return field.applyTransformer(e, transformer);
     } else {
       return e;
     }

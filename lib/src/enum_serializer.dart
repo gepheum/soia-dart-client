@@ -536,6 +536,17 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   @override
   W wrap(V value) => wrapFn(value);
 
+  @override
+  E applyTransformer(E e, ReflectiveTransformer transformer) {
+    final value = get(e);
+    final transformedValue = transformer.transform(value, type);
+    if (identical(transformedValue, value)) {
+      return e;
+    } else {
+      return wrap(transformedValue);
+    }
+  }
+
   W wrapFromJson(dynamic json, bool keepUnrecognizedFields) {
     final value = valueSerializer.fromJson(json,
         keepUnrecognizedFields: keepUnrecognizedFields);
