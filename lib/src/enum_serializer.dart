@@ -538,7 +538,7 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   W wrap(V value) => wrapFn(value);
 
   @override
-  E applyTransformer(E e, ReflectiveTransformer transformer) {
+  E mapValue(E e, ReflectiveTransformer transformer) {
     final value = get(e);
     final transformedValue = transformer.transform(value, type);
     if (identical(transformedValue, value)) {
