@@ -89,47 +89,144 @@ class Service<RequestMeta> {
       const encoder = JsonEncoder.withIndent('  ');
       final jsonCode = encoder.convert(json);
       return RawResponse(jsonCode, ResponseType.okJson);
-    } else if (requestBody == 'restudio') {
+    } else if (requestBody == 'debug' || requestBody == 'restudio') {
       return const RawResponse(_restudioHtml, ResponseType.okHtml);
     }
 
-    final regex = RegExp(r'^([^:]*):([^:]*):([^:]*):([\s\S]*?)$');
-    final match = regex.firstMatch(requestBody);
-    if (match == null) {
-      return const RawResponse(
-        'bad request: invalid request format',
-        ResponseType.badRequest,
-      );
+    // Parse request
+    final String methodName;
+    final int? methodNumber;
+    final String format;
+    final dynamic requestData;
+    final bool requestDataIsJson;
+
+    final firstChar = requestBody[0];
+    if (firstChar == '{' || firstChar.trim().isEmpty) {
+      // A JSON object
+      final dynamic reqBodyJson;
+      try {
+        reqBodyJson = jsonDecode(requestBody);
+      } catch (e) {
+        return const RawResponse(
+          'bad request: invalid JSON',
+          ResponseType.badRequest,
+        );
+      }
+
+      if (reqBodyJson is! Map) {
+        return const RawResponse(
+          'bad request: expected JSON object',
+          ResponseType.badRequest,
+        );
+      }
+
+      final methodField = reqBodyJson['method'];
+      if (methodField == null) {
+        return const RawResponse(
+          'bad request: missing \'method\' field in JSON',
+          ResponseType.badRequest,
+        );
+      }
+
+      if (methodField is String) {
+        methodName = methodField;
+        methodNumber = null;
+      } else if (methodField is int) {
+        methodName = '?';
+        methodNumber = methodField;
+      } else {
+        return const RawResponse(
+          'bad request: \'method\' field must be a string or an integer',
+          ResponseType.badRequest,
+        );
+      }
+
+      format = 'readable';
+      final requestField = reqBodyJson['request'];
+      if (requestField == null) {
+        return const RawResponse(
+          'bad request: missing \'request\' field in JSON',
+          ResponseType.badRequest,
+        );
+      }
+      requestData = requestField;
+      requestDataIsJson = true;
+    } else {
+      // A colon-separated string
+      final regex = RegExp(r'^([^:]*):([^:]*):([^:]*):([\s\S]*?)$');
+      final match = regex.firstMatch(requestBody);
+      if (match == null) {
+        return const RawResponse(
+          'bad request: invalid request format',
+          ResponseType.badRequest,
+        );
+      }
+
+      methodName = match.group(1)!;
+      final methodNumberStr = match.group(2)!;
+      format = match.group(3)!;
+      requestData = match.group(4)!;
+      requestDataIsJson = false;
+
+      if (methodNumberStr.isNotEmpty) {
+        final methodNumberRegex = RegExp(r'^-?[0-9]+$');
+        if (!methodNumberRegex.hasMatch(methodNumberStr)) {
+          return const RawResponse(
+            'bad request: can\'t parse method number',
+            ResponseType.badRequest,
+          );
+        }
+        methodNumber = int.parse(methodNumberStr);
+      } else {
+        methodNumber = null;
+      }
     }
 
-    final methodName = match.group(1)!;
-    final methodNumberStr = match.group(2)!;
-    final format = match.group(3)!;
-    final requestData = match.group(4)!;
-
-    final methodNumberRegex = RegExp(r'^-?[0-9]+$');
-    if (!methodNumberRegex.hasMatch(methodNumberStr)) {
-      return const RawResponse(
-        'bad request: can\'t parse method number',
-        ResponseType.badRequest,
-      );
+    // Look up method by number or name
+    final int resolvedMethodNumber;
+    if (methodNumber == null) {
+      // Try to get the method number by name
+      final nameMatches = _methodImpls.values
+          .where((m) => m.method.name == methodName)
+          .toList();
+      if (nameMatches.isEmpty) {
+        return RawResponse(
+          'bad request: method not found: $methodName',
+          ResponseType.badRequest,
+        );
+      } else if (nameMatches.length > 1) {
+        return RawResponse(
+          'bad request: method name \'$methodName\' is ambiguous; '
+          'use method number instead',
+          ResponseType.badRequest,
+        );
+      }
+      resolvedMethodNumber = nameMatches[0].method.number;
+    } else {
+      resolvedMethodNumber = methodNumber;
     }
-    final methodNumber = int.parse(methodNumberStr);
 
-    final methodImpl = _methodImpls[methodNumber];
+    final methodImpl = _methodImpls[resolvedMethodNumber];
     if (methodImpl == null) {
       return RawResponse(
-        'bad request: method not found: $methodName; number: $methodNumber',
+        'bad request: method not found: $methodName; number: $resolvedMethodNumber',
         ResponseType.badRequest,
       );
     }
 
     final dynamic request;
     try {
-      request = methodImpl.method.requestSerializer.fromJsonCode(
-        requestData,
-        keepUnrecognizedFields: keepUnrecognizedFields,
-      );
+      if (requestDataIsJson) {
+        request = methodImpl.method.requestSerializer.fromJson(
+          requestData,
+          keepUnrecognizedFields: keepUnrecognizedFields,
+        );
+      } else {
+        request = methodImpl.method.requestSerializer.fromJsonCode(
+          requestData as String,
+          keepUnrecognizedFields: keepUnrecognizedFields,
+        );
+      }
     } catch (e) {
       return RawResponse(
         'bad request: can\'t parse JSON: ${e.toString()}',
