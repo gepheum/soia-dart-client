@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  soia: ^0.2.11  # Use the latest version
+  soia: ^0.3.0  # Use the latest version
 ```
 
 Then run:
