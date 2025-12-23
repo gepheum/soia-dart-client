@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 class _ByteStream {
   final Uint8List bytes;

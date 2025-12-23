@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 class _OptionalSerializer<NotNull> extends ReflectiveOptionalDescriptor<NotNull>
     implements _SerializerImpl<NotNull?> {

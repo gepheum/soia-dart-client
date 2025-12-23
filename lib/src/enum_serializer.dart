@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Specialization of a [Serializer] for generated enum types.
 class EnumSerializer<Enum> extends Serializer<Enum> {
@@ -25,8 +25,9 @@ class internal__EnumSerializerBuilder<Enum> {
     required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
     required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
   }) {
-    final String dartClassName =
-        _RecordId.parse(recordId).qualifiedName.replaceAll(".", "_");
+    final String dartClassName = _RecordId.parse(
+      recordId,
+    ).qualifiedName.replaceAll(".", "_");
     final impl = _EnumSerializerImpl._(
       recordId,
       dartClassName,
@@ -39,7 +40,9 @@ class internal__EnumSerializerBuilder<Enum> {
       getOrdinal,
     );
     return internal__EnumSerializerBuilder<Enum>._(
-        impl, EnumSerializer._(impl));
+      impl,
+      EnumSerializer._(impl),
+    );
   }
 
   bool mustInitialize() {
@@ -52,7 +55,11 @@ class internal__EnumSerializerBuilder<Enum> {
   }
 
   void addConstantField(
-      int number, String name, String dartName, Enum instance) {
+    int number,
+    String name,
+    String dartName,
+    Enum instance,
+  ) {
     _impl.addConstantField(number, name, dartName, instance);
   }
 
@@ -132,15 +139,16 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     checkNotFinalized();
     final wrapFunctionName = '${dartClassName}.${dartName}';
     addFieldImpl(
-        ordinal: ordinal,
-        field: _WrapperField<E, W, V>(
-          number,
-          name,
-          valueSerializer,
-          wrap,
-          getValue,
-          wrapFunctionName,
-        ));
+      ordinal: ordinal,
+      field: _WrapperField<E, W, V>(
+        number,
+        name,
+        valueSerializer,
+        wrap,
+        getValue,
+        wrapFunctionName,
+      ),
+    );
   }
 
   void addRemovedNumber(int number) {
@@ -211,8 +219,9 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           throw ArgumentError('$number refers to a wrapper field');
         default:
           if (keepUnrecognizedFields) {
-            return unknown
-                .wrapUnrecognized(internal__UnrecognizedEnum._fromJson(json));
+            return unknown.wrapUnrecognized(
+              internal__UnrecognizedEnum._fromJson(json),
+            );
           } else {
             return unknown.constant;
           }
@@ -237,8 +246,9 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           return unknown.constant;
         } else {
           if (keepUnrecognizedFields) {
-            return unknown
-                .wrapUnrecognized(internal__UnrecognizedEnum._fromJson(json));
+            return unknown.wrapUnrecognized(
+              internal__UnrecognizedEnum._fromJson(json),
+            );
           } else {
             return unknown.constant;
           }
@@ -292,10 +302,13 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           {
             if (keepUnrecognizedFields) {
               // Capture the bytes for the unknown enum
-              final unrecognizedBytes =
-                  stream.bytes.sublist(startPosition, stream.position);
+              final unrecognizedBytes = stream.bytes.sublist(
+                startPosition,
+                stream.position,
+              );
               result = unknown.wrapUnrecognized(
-                  internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
+                internal__UnrecognizedEnum._fromBytes(unrecognizedBytes),
+              );
             } else {
               result = unknown.constant;
             }
@@ -316,10 +329,13 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         if (keepUnrecognizedFields) {
           // For unknown wrapper fields, we'll just return the unknown constant
           // since reconstructing the full bytes is complex
-          final unrecognizedBytes =
-              stream.bytes.sublist(startPosition, stream.position);
+          final unrecognizedBytes = stream.bytes.sublist(
+            startPosition,
+            stream.position,
+          );
           result = unknown.wrapUnrecognized(
-              internal__UnrecognizedEnum._fromBytes(unrecognizedBytes));
+            internal__UnrecognizedEnum._fromBytes(unrecognizedBytes),
+          );
         } else {
           result = unknown.constant;
         }
@@ -355,7 +371,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     return switch (field) {
       _EnumField<E> f => f.asField,
       _EnumRemovedNumber<E>() => null,
-      null => null
+      null => null,
     };
   }
 
@@ -492,13 +508,12 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   @override
   dynamic toJson(E input, bool readableFlavor) {
     final value = getValue(input as W);
-    final valueToJson =
-        valueSerializer.toJson(value, readableFlavor: readableFlavor);
+    final valueToJson = valueSerializer.toJson(
+      value,
+      readableFlavor: readableFlavor,
+    );
     if (readableFlavor) {
-      return {
-        'kind': name,
-        'value': valueToJson,
-      };
+      return {'kind': name, 'value': valueToJson};
     } else {
       return [number, valueToJson];
     }
@@ -549,8 +564,10 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   }
 
   W wrapFromJson(dynamic json, bool keepUnrecognizedFields) {
-    final value = valueSerializer.fromJson(json,
-        keepUnrecognizedFields: keepUnrecognizedFields);
+    final value = valueSerializer.fromJson(
+      json,
+      keepUnrecognizedFields: keepUnrecognizedFields,
+    );
     return wrap(value);
   }
 

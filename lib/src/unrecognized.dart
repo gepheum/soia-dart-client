@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 class internal__UnrecognizedFields {
   final int _totalSlotCount;
@@ -6,8 +6,9 @@ class internal__UnrecognizedFields {
   final Uint8List? _bytes;
 
   internal__UnrecognizedFields._fromJson(
-      this._totalSlotCount, this._jsonElements)
-      : _bytes = null;
+    this._totalSlotCount,
+    this._jsonElements,
+  ) : _bytes = null;
 
   internal__UnrecognizedFields._fromBytes(this._totalSlotCount, this._bytes)
       : _jsonElements = null;

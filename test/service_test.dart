@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 void main() {
   group('RawResponse', () {
@@ -52,6 +52,7 @@ void main() {
         1,
         Serializers.string,
         Serializers.string,
+        "doc text",
       );
 
       final method2 = Method<String, String>(
@@ -59,6 +60,7 @@ void main() {
         1, // Same number as method1
         Serializers.string,
         Serializers.string,
+        "doc text",
       );
 
       builder.addMethod(method1, (request, meta) async => 'response1');
@@ -77,6 +79,7 @@ void main() {
         1,
         Serializers.string,
         Serializers.string,
+        "doc text",
       );
 
       final method2 = Method<String, String>(
@@ -84,6 +87,7 @@ void main() {
         2, // Different number
         Serializers.string,
         Serializers.string,
+        "doc text",
       );
 
       expect(
@@ -104,6 +108,7 @@ void main() {
         1,
         Serializers.string,
         Serializers.string,
+        "doc text",
       );
 
       service = Service.builder()
@@ -192,15 +197,20 @@ void main() {
         return auth.startsWith('Bearer ') ? auth.substring(7) : 'anonymous';
       })
           .addMethod<String, String>(
-            Method('echo', 1, Serializers.string, Serializers.string),
+            Method(
+              'echo',
+              1,
+              Serializers.string,
+              Serializers.string,
+              "doc text",
+            ),
             (request, token) async => 'User $token: $request',
           )
           .build();
 
-      final response = await service.handleRequest(
-        'echo:1::"hello"',
-        {'authorization': 'Bearer user123'},
-      );
+      final response = await service.handleRequest('echo:1::"hello"', {
+        'authorization': 'Bearer user123',
+      });
 
       expect(response.statusCode, equals(200));
       expect(response.data, equals('"User user123: hello"'));

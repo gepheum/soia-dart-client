@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Specialization of a [Serializer] for generated struct types.
 class StructSerializer<Frozen, Mutable> extends Serializer<Frozen> {
@@ -97,9 +97,14 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   }
 
   void valueFromJson(
-      Mutable mutable, dynamic json, bool keepUnrecognizedFields) {
-    final value = serializer.fromJson(json,
-        keepUnrecognizedFields: keepUnrecognizedFields);
+    Mutable mutable,
+    dynamic json,
+    bool keepUnrecognizedFields,
+  ) {
+    final value = serializer.fromJson(
+      json,
+      keepUnrecognizedFields: keepUnrecognizedFields,
+    );
     setter(mutable, value);
   }
 
@@ -108,7 +113,10 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   }
 
   void decodeValue(
-      Mutable mutable, _ByteStream stream, bool keepUnrecognizedFields) {
+    Mutable mutable,
+    _ByteStream stream,
+    bool keepUnrecognizedFields,
+  ) {
     final value = serializer._impl.decode(stream, keepUnrecognizedFields);
     setter(mutable, value);
   }
@@ -205,10 +213,11 @@ class _StructSerializerImpl<Frozen, Mutable>
     final slotCountNoRemoved =
         _mutableFields.isNotEmpty ? _mutableFields.last.number + 1 : 0;
     final slotCountInclRemoved = max(
-        slotCountNoRemoved,
-        _mutableRemovedNumbers.isNotEmpty
-            ? _mutableRemovedNumbers.reduce(max) + 1
-            : 0);
+      slotCountNoRemoved,
+      _mutableRemovedNumbers.isNotEmpty
+          ? _mutableRemovedNumbers.reduce(max) + 1
+          : 0,
+    );
     _slotCountInclRemoved = slotCountInclRemoved;
     _slotToField = List.filled(slotCountInclRemoved, null);
     for (final field in _mutableFields) {
@@ -318,7 +327,10 @@ class _StructSerializerImpl<Frozen, Mutable>
         break;
       }
       field.valueFromJson(
-          mutable, jsonArray[field.number], keepUnrecognizedFields);
+        mutable,
+        jsonArray[field.number],
+        keepUnrecognizedFields,
+      );
     }
     return toFrozenFn(mutable);
   }
@@ -400,8 +412,10 @@ class _StructSerializerImpl<Frozen, Mutable>
       // We have some unrecognized fields
       if (keepUnrecognizedFields) {
         // Capture the bytes for the unknown fields
-        final unrecognizedBytes =
-            stream.bytes.sublist(startPosition, stream.position);
+        final unrecognizedBytes = stream.bytes.sublist(
+          startPosition,
+          stream.position,
+        );
         final unrecognizedFields = internal__UnrecognizedFields._fromBytes(
           encodedSlotCount,
           unrecognizedBytes,

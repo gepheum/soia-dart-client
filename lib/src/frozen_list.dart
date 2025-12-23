@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 sealed class _FrozenList<E> implements List<E> {}
 
@@ -83,7 +83,9 @@ Iterable<E> internal__frozenCopy<E>(Iterable<E> elements) {
 }
 
 Iterable<E> internal__frozenMappedCopy<E extends M, M>(
-    Iterable<M> elements, E Function(M) toFrozen) {
+  Iterable<M> elements,
+  E Function(M) toFrozen,
+) {
   if (elements is _FrozenList<E>) {
     return elements;
   } else {

@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 class _IterableSerializer<E, Collection extends Iterable<E>>
     extends ReflectiveArrayDescriptor<E, Collection>
@@ -10,9 +10,14 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   final Collection emptyCollection;
 
   static _IterableSerializer<E, Iterable<E>> iterable<E>(
-          _SerializerImpl<E> item) =>
+    _SerializerImpl<E> item,
+  ) =>
       _IterableSerializer<E, Iterable<E>>(
-          item, null, (it) => it.toList(growable: false), (it) => it);
+        item,
+        null,
+        (it) => it.toList(growable: false),
+        (it) => it,
+      );
 
   static _IterableSerializer<E, KeyedIterable<E, K>> keyedIterable<E, K>(
     _SerializerImpl<E> item,
@@ -21,7 +26,11 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   ) {
     final toCollection = (Iterable<E> it) => KeyedIterable.copy(it, getKey);
     return _IterableSerializer<E, KeyedIterable<E, K>>(
-        item, getKeySpec, toCollection, toCollection);
+      item,
+      getKeySpec,
+      toCollection,
+      toCollection,
+    );
   }
 
   _IterableSerializer(
@@ -105,7 +114,8 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
     }
     final list = json as List;
     return iterableToCollection(
-        list.map((e) => item.fromJson(e, keepUnrecognizedFields)));
+      list.map((e) => item.fromJson(e, keepUnrecognizedFields)),
+    );
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 void main() {
   group('ServiceClient', () {
@@ -11,10 +11,7 @@ void main() {
     });
 
     test('constructor accepts valid service URL', () {
-      expect(
-        () => ServiceClient('https://example.com/api'),
-        returnsNormally,
-      );
+      expect(() => ServiceClient('https://example.com/api'), returnsNormally);
     });
 
     test('close method works without throwing', () {

@@ -1,6 +1,6 @@
-part of '../soia.dart';
+part of '../skir.dart';
 
-/// 🪞 Visitor for performing type-specific reflective operations on Soia types.
+/// 🪞 Visitor for performing type-specific reflective operations on skir types.
 ///
 /// Implement this interface to execute different logic based on whether a type
 /// is a struct, enum, optional, array, or primitive. While you could achieve
@@ -16,17 +16,13 @@ part of '../soia.dart';
 /// [ReflectiveTypeDescriptor.accept].
 ///
 /// See a complete example at
-/// https://github.com/gepheum/soia-dart-example/blob/main/lib/all_strings_to_upper_case.dart
+/// https://github.com/gepheum/skir-dart-example/blob/main/lib/all_strings_to_upper_case.dart
 abstract class ReflectiveTypeVisitor<T> {
   /// Visits a struct type.
-  void visitStruct<Mutable>(
-    ReflectiveStructDescriptor<T, Mutable> descriptor,
-  );
+  void visitStruct<Mutable>(ReflectiveStructDescriptor<T, Mutable> descriptor);
 
   /// Visits an enum type.
-  void visitEnum(
-    ReflectiveEnumDescriptor<T> descriptor,
-  );
+  void visitEnum(ReflectiveEnumDescriptor<T> descriptor);
 
   /// Visits an optional type (nullable type).
   void visitOptional<NotNull>(
@@ -95,7 +91,7 @@ abstract class ReflectiveTypeVisitor<T> {
 /// specific visit methods while leaving the others as no-ops.
 ///
 /// See a complete example at
-/// https://github.com/gepheum/soia-dart-example/blob/main/lib/all_strings_to_upper_case.dart
+/// https://github.com/gepheum/skir-dart-example/blob/main/lib/all_strings_to_upper_case.dart
 class NoopReflectiveTypeVisitor<T> implements ReflectiveTypeVisitor<T> {
   @override
   void visitStruct<Mutable>(
@@ -151,23 +147,16 @@ void _acceptImpl<T>(
 ) {
   switch (descriptor) {
     case ReflectiveStructDescriptor<dynamic, dynamic>():
-      visitor.visitStruct(
-        descriptor as ReflectiveStructDescriptor<T, dynamic>,
-      );
+      visitor.visitStruct(descriptor as ReflectiveStructDescriptor<T, dynamic>);
     case ReflectiveEnumDescriptor<dynamic>():
-      visitor.visitEnum(
-        descriptor as ReflectiveEnumDescriptor<T>,
-      );
+      visitor.visitEnum(descriptor as ReflectiveEnumDescriptor<T>);
     case ReflectiveOptionalDescriptor<dynamic>():
       visitor.visitOptional(
         descriptor as ReflectiveOptionalDescriptor,
         TypeEquivalence<T, T>._(),
       );
     case ReflectiveArrayDescriptor<dynamic, Iterable<dynamic>>():
-      _visitArrayImpl(
-        descriptor as ReflectiveArrayDescriptor,
-        visitor,
-      );
+      _visitArrayImpl(descriptor as ReflectiveArrayDescriptor, visitor);
     case BoolDescriptor():
       visitor.visitBool(TypeEquivalence<T, bool>._());
     case Int32Descriptor():
@@ -193,10 +182,7 @@ void _visitArrayImpl<E, Collection extends Iterable<E>, T>(
   ReflectiveArrayDescriptor<E, Collection> descriptor,
   ReflectiveTypeVisitor<T> visitor,
 ) {
-  visitor.visitArray(
-    descriptor,
-    TypeEquivalence<T, Collection>._(),
-  );
+  visitor.visitArray(descriptor, TypeEquivalence<T, Collection>._());
 }
 
 /// 🪞 A witness that two types [T] and [U] are guaranteed to be identical at

@@ -1,6 +1,6 @@
-# Soia Client
+# skir Client
 
-Dart client library for Soia serialization and RPC communication.
+Dart client library for skir serialization and RPC communication.
 
 ## Installation
 
@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  soia: ^0.3.0  # Use the latest version
+  skir: ^0.3.0  # Use the latest version
 ```
 
 Then run:

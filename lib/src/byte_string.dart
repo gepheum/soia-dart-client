@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// An immutable array of bytes.
 class ByteString {

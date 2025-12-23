@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 // Test data structures
 class PersonFrozen {
@@ -150,19 +150,25 @@ void main() {
 
     test('struct serializer - basic serialization', () {
       // Test JSON serialization - default should be empty array/object
-      final defaultDenseJson =
-          personSerializer.toJson(defaultPerson, readableFlavor: false);
+      final defaultDenseJson = personSerializer.toJson(
+        defaultPerson,
+        readableFlavor: false,
+      );
       expect(defaultDenseJson, isA<List>());
       expect((defaultDenseJson as List), isEmpty);
 
-      final defaultReadableJson =
-          personSerializer.toJson(defaultPerson, readableFlavor: true);
+      final defaultReadableJson = personSerializer.toJson(
+        defaultPerson,
+        readableFlavor: true,
+      );
       expect(defaultReadableJson, isA<Map>());
       expect((defaultReadableJson as Map), isEmpty);
 
       // Test with empty array which should work
-      final restoredFromArray =
-          personSerializer.fromJson([], keepUnrecognizedFields: false);
+      final restoredFromArray = personSerializer.fromJson(
+        [],
+        keepUnrecognizedFields: false,
+      );
       expect(restoredFromArray, equals(defaultPerson));
     });
 
@@ -187,8 +193,10 @@ void main() {
       expect(jsonArray[4], isA<List>()); // tags array
 
       // Test roundtrip
-      final restored =
-          personSerializer.fromJson(denseJson, keepUnrecognizedFields: false);
+      final restored = personSerializer.fromJson(
+        denseJson,
+        keepUnrecognizedFields: false,
+      );
       expect(restored.name, equals(person.name));
       expect(restored.age, equals(person.age));
       expect(restored.email, equals(person.email));
@@ -206,21 +214,27 @@ void main() {
       );
 
       // Test readable JSON - should be an object with only non-default values
-      final readableJson =
-          personSerializer.toJson(person, readableFlavor: true);
+      final readableJson = personSerializer.toJson(
+        person,
+        readableFlavor: true,
+      );
       expect(readableJson, isA<Map>());
 
       final jsonObject = readableJson as Map<String, dynamic>;
       expect(jsonObject, containsPair('name', 'Bob'));
       expect(jsonObject, containsPair('age', 25));
-      expect(jsonObject.containsKey('email'),
-          isFalse); // null/default value should be omitted
+      expect(
+        jsonObject.containsKey('email'),
+        isFalse,
+      ); // null/default value should be omitted
       expect(jsonObject, containsPair('is_active', true));
       expect(jsonObject, containsPair('tags', ['tester']));
 
       // Test roundtrip
-      final restored = personSerializer.fromJson(readableJson,
-          keepUnrecognizedFields: false);
+      final restored = personSerializer.fromJson(
+        readableJson,
+        keepUnrecognizedFields: false,
+      );
       expect(restored.name, equals(person.name));
       expect(restored.age, equals(person.age));
       expect(restored.email, equals(person.email));
@@ -258,10 +272,14 @@ void main() {
       );
 
       // Test JSON roundtrip with both flavors
-      final denseJson =
-          personSerializer.toJsonCode(testPerson, readableFlavor: false);
-      final readableJson =
-          personSerializer.toJsonCode(testPerson, readableFlavor: true);
+      final denseJson = personSerializer.toJsonCode(
+        testPerson,
+        readableFlavor: false,
+      );
+      final readableJson = personSerializer.toJsonCode(
+        testPerson,
+        readableFlavor: true,
+      );
 
       final restoredFromDense = personSerializer.fromJsonCode(denseJson);
       final restoredFromReadable = personSerializer.fromJsonCode(readableJson);
@@ -317,16 +335,10 @@ void main() {
       );
 
       // Adding removed numbers after finalization should throw
-      expect(
-        () => testBuilder.addRemovedNumber(5),
-        throwsStateError,
-      );
+      expect(() => testBuilder.addRemovedNumber(5), throwsStateError);
 
       // Double finalization should throw
-      expect(
-        () => testBuilder.finalize(),
-        throwsStateError,
-      );
+      expect(() => testBuilder.finalize(), throwsStateError);
     });
 
     test('.serializer field access', () {
@@ -441,16 +453,10 @@ void main() {
       );
 
       // Should not be able to add removed numbers after finalization
-      expect(
-        () => builder.addRemovedNumber(6),
-        throwsStateError,
-      );
+      expect(() => builder.addRemovedNumber(6), throwsStateError);
 
       // Should not be able to finalize again
-      expect(
-        () => builder.finalize(),
-        throwsStateError,
-      );
+      expect(() => builder.finalize(), throwsStateError);
     });
 
     test('struct serializer - type descriptor', () {

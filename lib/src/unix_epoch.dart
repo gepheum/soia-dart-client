@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// The Unix epoch timestamp (January 1, 1970, 00:00:00 UTC).
 ///

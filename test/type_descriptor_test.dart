@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 void main() {
   group('PrimitiveType', () {
@@ -47,8 +47,10 @@ void main() {
       final optionalOuter = OptionalDescriptor(optionalInner);
 
       expect(optionalOuter.otherType, equals(optionalInner));
-      expect((optionalOuter.otherType as OptionalDescriptor).otherType,
-          equals(innerType));
+      expect(
+        (optionalOuter.otherType as OptionalDescriptor).otherType,
+        equals(innerType),
+      );
     });
 
     test('asJson works correctly for optional types', () {
@@ -73,8 +75,9 @@ void main() {
 
   group('ReflectiveOptionalDescriptor', () {
     test('asJson works correctly for reflective optional types', () {
-      final reflectiveOptional =
-          Serializers.optional(Serializers.bool).typeDescriptor;
+      final reflectiveOptional = Serializers.optional(
+        Serializers.bool,
+      ).typeDescriptor;
       final json = reflectiveOptional.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
@@ -149,8 +152,9 @@ void main() {
 
   group('ReflectiveArrayDescriptor', () {
     test('asJson works correctly for reflective list types', () {
-      final reflectiveArray =
-          Serializers.iterable(Serializers.int64).typeDescriptor;
+      final reflectiveArray = Serializers.iterable(
+        Serializers.int64,
+      ).typeDescriptor;
       final json = reflectiveArray.asJson;
 
       expect(json, isA<Map<String, dynamic>>());
@@ -230,7 +234,7 @@ void main() {
     test('parseFromJson creates descriptor from JSON object', () {
       final json = {
         'records': <dynamic>[],
-        'type': {'kind': 'primitive', 'value': 'int32'}
+        'type': {'kind': 'primitive', 'value': 'int32'},
       };
 
       final descriptor = TypeDescriptor.parseFromJson(json);
@@ -245,8 +249,8 @@ void main() {
         'records': <dynamic>[],
         'type': {
           'kind': 'optional',
-          'value': {'kind': 'primitive', 'value': 'bool'}
-        }
+          'value': {'kind': 'primitive', 'value': 'bool'},
+        },
       };
 
       final descriptor = TypeDescriptor.parseFromJson(json);
@@ -264,9 +268,9 @@ void main() {
         'type': {
           'kind': 'array',
           'value': {
-            'item': {'kind': 'primitive', 'value': 'float64'}
-          }
-        }
+            'item': {'kind': 'primitive', 'value': 'float64'},
+          },
+        },
       };
 
       final descriptor = TypeDescriptor.parseFromJson(json);
@@ -287,9 +291,9 @@ void main() {
           'kind': 'array',
           'value': {
             'item': {'kind': 'primitive', 'value': 'string'},
-            'key_extractor': 'id'
-          }
-        }
+            'key_extractor': 'id',
+          },
+        },
       };
 
       final descriptor = TypeDescriptor.parseFromJson(json);
@@ -315,15 +319,18 @@ void main() {
       for (final entry in primitiveTestCases.entries) {
         final json = {
           'records': <dynamic>[],
-          'type': {'kind': 'primitive', 'value': entry.key}
+          'type': {'kind': 'primitive', 'value': entry.key},
         };
 
         final descriptor = TypeDescriptor.parseFromJson(json);
         expect(descriptor, isA<PrimitiveDescriptor>());
 
         final primitiveDesc = descriptor as PrimitiveDescriptor;
-        expect(primitiveDesc.primitiveType, equals(entry.value),
-            reason: 'Failed for primitive type: ${entry.key}');
+        expect(
+          primitiveDesc.primitiveType,
+          equals(entry.value),
+          reason: 'Failed for primitive type: ${entry.key}',
+        );
       }
     });
   });
@@ -332,7 +339,7 @@ void main() {
     test('parseFromJson throws on unknown primitive type', () {
       final json = {
         'records': <dynamic>[],
-        'type': {'kind': 'primitive', 'value': 'unknown_type'}
+        'type': {'kind': 'primitive', 'value': 'unknown_type'},
       };
 
       expect(() => TypeDescriptor.parseFromJson(json), throwsArgumentError);
@@ -341,7 +348,7 @@ void main() {
     test('parseFromJson throws on unknown type kind', () {
       final json = {
         'records': <dynamic>[],
-        'type': {'kind': 'unknown_kind', 'value': 'something'}
+        'type': {'kind': 'unknown_kind', 'value': 'something'},
       };
 
       expect(() => TypeDescriptor.parseFromJson(json), throwsArgumentError);
@@ -350,8 +357,10 @@ void main() {
     test('parseFromJsonCode throws on invalid JSON', () {
       const invalidJson = '{ invalid json }';
 
-      expect(() => TypeDescriptor.parseFromJsonCode(invalidJson),
-          throwsA(isA<FormatException>()));
+      expect(
+        () => TypeDescriptor.parseFromJsonCode(invalidJson),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 
@@ -460,7 +469,7 @@ void main() {
         Float64Descriptor.instance,
         TimestampDescriptor.instance,
         StringDescriptor.instance,
-        BytesDescriptor.instance
+        BytesDescriptor.instance,
       ]) {
         // These should all complete without infinite loops
         expect(() => descriptor.asJson, returnsNormally);

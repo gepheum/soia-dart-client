@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 void main() {
   group('KeyedIterable', () {
@@ -12,15 +12,17 @@ void main() {
         expect(empty.toList(), equals([]));
       });
 
-      test('typed empty() creates an empty keyed iterable with proper types',
-          () {
-        final KeyedIterable<String, int> empty = KeyedIterable.empty;
+      test(
+        'typed empty() creates an empty keyed iterable with proper types',
+        () {
+          final KeyedIterable<String, int> empty = KeyedIterable.empty;
 
-        expect(empty, isEmpty);
-        expect(empty.length, equals(0));
-        expect(empty.toList(), equals([]));
-        expect(empty.findByKey(1), isNull);
-      });
+          expect(empty, isEmpty);
+          expect(empty.length, equals(0));
+          expect(empty.toList(), equals([]));
+          expect(empty.findByKey(1), isNull);
+        },
+      );
 
       test('copy() creates a keyed iterable from elements', () {
         final elements = ['apple', 'banana', 'cherry'];
@@ -46,7 +48,9 @@ void main() {
 
         expect(keyed.findByKey(5), equals('apple'));
         expect(
-            keyed.findByKey(6), equals('cherry')); // Last element with length 6
+          keyed.findByKey(6),
+          equals('cherry'),
+        ); // Last element with length 6
       });
 
       test('returns null for non-existent key', () {
@@ -168,7 +172,9 @@ void main() {
         expect(copy.toList(), equals(original.toList()));
         expect(copy.findByKey(5), equals('apple'));
         expect(
-            copy.findByKey(6), equals('cherry')); // Last element with length 6
+          copy.findByKey(6),
+          equals('cherry'),
+        ); // Last element with length 6
       });
 
       test('function reference equality affects reuse', () {
@@ -270,15 +276,19 @@ void main() {
         final keyed = KeyedIterable.copy(elements, (e) => e.length);
 
         // When the mapping function is effectively identity, should reuse
-        final mapped =
-            internal__frozenMappedCopy<String, String>(keyed, (e) => e);
+        final mapped = internal__frozenMappedCopy<String, String>(
+          keyed,
+          (e) => e,
+        );
         expect(identical(keyed, mapped), isTrue);
       });
 
       test('reuses KeyedIterable.empty singleton when mapping empty', () {
         final KeyedIterable<String, int> empty = KeyedIterable.empty;
         final mapped = internal__frozenMappedCopy<String, String>(
-            empty, (e) => e.toUpperCase());
+          empty,
+          (e) => e.toUpperCase(),
+        );
 
         // Should reuse the exact same instance even with mapping
         expect(identical(empty, mapped), isTrue);
@@ -287,7 +297,9 @@ void main() {
       test('creates new frozen list when mapping changes elements', () {
         final elements = ['apple', 'banana', 'cherry'];
         final mapped = internal__frozenMappedCopy<String, String>(
-            elements, (e) => e.toUpperCase());
+          elements,
+          (e) => e.toUpperCase(),
+        );
 
         expect(mapped, isNot(same(elements)));
         expect(mapped.toList(), equals(['APPLE', 'BANANA', 'CHERRY']));
@@ -297,7 +309,9 @@ void main() {
       test('creates new frozen list from empty regular list with mapping', () {
         final elements = <String>[];
         final mapped = internal__frozenMappedCopy<String, String>(
-            elements, (e) => e.toUpperCase());
+          elements,
+          (e) => e.toUpperCase(),
+        );
 
         expect(mapped, isNot(same(elements)));
         expect(mapped.toList(), equals([]));
@@ -306,12 +320,11 @@ void main() {
       });
 
       test('applies mapping function correctly', () {
-        final people = [
-          Person('Alice', 25),
-          Person('Bob', 30),
-        ];
+        final people = [Person('Alice', 25), Person('Bob', 30)];
         final mapped = internal__frozenMappedCopy<PersonData, Person>(
-            people, (p) => PersonData(p.name, p.age, p.age >= 30));
+          people,
+          (p) => PersonData(p.name, p.age, p.age >= 30),
+        );
 
         expect(mapped.toList().length, equals(2));
         expect(mapped, isA<Iterable<PersonData>>());
@@ -328,7 +341,9 @@ void main() {
         ];
 
         final mapped = internal__frozenMappedCopy<PersonData, Person>(
-            people, (p) => PersonData(p.name, p.age, p.age >= 30));
+          people,
+          (p) => PersonData(p.name, p.age, p.age >= 30),
+        );
 
         expect(mapped.length, equals(3));
         final list = mapped.toList();
@@ -341,15 +356,16 @@ void main() {
       });
 
       test('preserves immutability after mapping', () {
-        final people = [
-          Person('Alice', 25),
-          Person('Bob', 30),
-        ];
+        final people = [Person('Alice', 25), Person('Bob', 30)];
         final mapped = internal__frozenMappedCopy<PersonData, Person>(
-            people, (p) => PersonData(p.name, p.age, p.age >= 30));
+          people,
+          (p) => PersonData(p.name, p.age, p.age >= 30),
+        );
 
-        expect(() => (mapped as List).add(PersonData('New', 40, true)),
-            throwsUnsupportedError);
+        expect(
+          () => (mapped as List).add(PersonData('New', 40, true)),
+          throwsUnsupportedError,
+        );
         expect(() => (mapped as List).removeAt(0), throwsUnsupportedError);
         expect(() => (mapped as List).clear(), throwsUnsupportedError);
       });
@@ -358,10 +374,16 @@ void main() {
     group('internal__keyedCopy', () {
       test('reuses existing KeyedIterable with same getKeySpec and getKey', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final original =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
-        final copy =
-            internal__keyedCopy(original, 'length', (String e) => e.length);
+        final original = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
+        final copy = internal__keyedCopy(
+          original,
+          'length',
+          (String e) => e.length,
+        );
 
         // Should reuse the same instance when getKeySpec and getKey function reference match
         // Note: This may not work due to function equality comparison limitations
@@ -371,8 +393,11 @@ void main() {
 
       test('behavior with KeyedIterable.empty singleton', () {
         final KeyedIterable<String, int> empty = KeyedIterable.empty;
-        final copy =
-            internal__keyedCopy(empty, 'length', (String e) => e.length);
+        final copy = internal__keyedCopy(
+          empty,
+          'length',
+          (String e) => e.length,
+        );
 
         // With optimization: empty KeyedIterable should be reused, not copied
         expect(identical(empty, copy), isTrue);
@@ -383,10 +408,16 @@ void main() {
 
       test('creates new KeyedIterable with different getKeySpec', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final original =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final original = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
         final copy = internal__keyedCopy(
-            original, 'differentSpec', (String e) => e.length);
+          original,
+          'differentSpec',
+          (String e) => e.length,
+        );
 
         // Should create new instance due to different getKeySpec
         expect(identical(original, copy), isFalse);
@@ -396,10 +427,16 @@ void main() {
 
       test('creates new KeyedIterable with different getKey function', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final original =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final original = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
         final copy = internal__keyedCopy(
-            original, 'firstCodeUnit', (String e) => e.codeUnitAt(0));
+          original,
+          'firstCodeUnit',
+          (String e) => e.codeUnitAt(0),
+        );
 
         // Should create new instance due to different getKey function
         expect(identical(original, copy), isFalse);
@@ -409,8 +446,11 @@ void main() {
 
       test('creates new KeyedIterable from regular iterable', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         expect(keyed, isNot(same(elements)));
         expect(keyed.toList(), equals(elements));
@@ -420,8 +460,11 @@ void main() {
 
       test('creates new KeyedIterable from empty regular list', () {
         final elements = <String>[];
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         expect(keyed, isNot(same(elements)));
         expect(keyed.toList(), equals([]));
@@ -431,8 +474,11 @@ void main() {
 
       test('returns KeyedIterable.empty instance for empty list', () {
         final elements = <String>[];
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         // Should return the exact same KeyedIterable.empty singleton
         expect(identical(keyed, KeyedIterable.empty), isTrue);
@@ -440,35 +486,49 @@ void main() {
         expect(keyed.findByKey(5), isNull);
       });
 
-      test('returns KeyedIterable.empty instance for various empty iterables',
-          () {
-        // Test with empty Set
-        final emptySet = <String>{};
-        final keyedFromSet =
-            internal__keyedCopy(emptySet, 'length', (String e) => e.length);
-        expect(identical(keyedFromSet, KeyedIterable.empty), isTrue);
+      test(
+        'returns KeyedIterable.empty instance for various empty iterables',
+        () {
+          // Test with empty Set
+          final emptySet = <String>{};
+          final keyedFromSet = internal__keyedCopy(
+            emptySet,
+            'length',
+            (String e) => e.length,
+          );
+          expect(identical(keyedFromSet, KeyedIterable.empty), isTrue);
 
-        // Test with empty generated iterable
-        final emptyGenerated = Iterable<String>.generate(0, (i) => 'item$i');
-        final keyedFromGenerated = internal__keyedCopy(
-            emptyGenerated, 'length', (String e) => e.length);
-        expect(identical(keyedFromGenerated, KeyedIterable.empty), isTrue);
+          // Test with empty generated iterable
+          final emptyGenerated = Iterable<String>.generate(0, (i) => 'item$i');
+          final keyedFromGenerated = internal__keyedCopy(
+            emptyGenerated,
+            'length',
+            (String e) => e.length,
+          );
+          expect(identical(keyedFromGenerated, KeyedIterable.empty), isTrue);
 
-        // Test with empty filtered iterable
-        final emptyFiltered = ['a', 'b', 'c'].where((e) => e.length > 5);
-        final keyedFromFiltered = internal__keyedCopy(
-            emptyFiltered, 'length', (String e) => e.length);
-        expect(identical(keyedFromFiltered, KeyedIterable.empty), isTrue);
+          // Test with empty filtered iterable
+          final emptyFiltered = ['a', 'b', 'c'].where((e) => e.length > 5);
+          final keyedFromFiltered = internal__keyedCopy(
+            emptyFiltered,
+            'length',
+            (String e) => e.length,
+          );
+          expect(identical(keyedFromFiltered, KeyedIterable.empty), isTrue);
 
-        // All should return the same singleton instance
-        expect(identical(keyedFromSet, keyedFromGenerated), isTrue);
-        expect(identical(keyedFromGenerated, keyedFromFiltered), isTrue);
-      });
+          // All should return the same singleton instance
+          expect(identical(keyedFromSet, keyedFromGenerated), isTrue);
+          expect(identical(keyedFromGenerated, keyedFromFiltered), isTrue);
+        },
+      );
 
       test('preserves key lookup functionality', () {
         final elements = ['a', 'bb', 'ccc', 'dddd'];
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         expect(keyed.findByKey(1), equals('a'));
         expect(keyed.findByKey(2), equals('bb'));
@@ -479,8 +539,11 @@ void main() {
 
       test('handles duplicate keys correctly', () {
         final elements = ['cat', 'dog', 'rat', 'bat']; // All length 3
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         // Should return the last element with the key (due to map behavior)
         expect(keyed.findByKey(3), equals('bat'));
@@ -495,8 +558,11 @@ void main() {
         ];
 
         // Test with string keys
-        final byName =
-            internal__keyedCopy(people, 'name', (Person p) => p.name);
+        final byName = internal__keyedCopy(
+          people,
+          'name',
+          (Person p) => p.name,
+        );
         expect(byName.findByKey('Alice')?.age, equals(25));
         expect(byName.findByKey('Bob')?.age, equals(30));
         expect(byName.findByKey('David'), isNull);
@@ -510,8 +576,11 @@ void main() {
 
       test('preserves immutability', () {
         final elements = ['apple', 'banana', 'cherry'];
-        final keyed =
-            internal__keyedCopy(elements, 'length', (String e) => e.length);
+        final keyed = internal__keyedCopy(
+          elements,
+          'length',
+          (String e) => e.length,
+        );
 
         expect(() => (keyed as List).add('grape'), throwsUnsupportedError);
         expect(() => (keyed as List).removeAt(0), throwsUnsupportedError);
@@ -522,8 +591,11 @@ void main() {
         final elements = ['apple', 'banana', 'cherry'];
         String Function(String) keyFunction = (e) => e.length.toString();
 
-        final original =
-            internal__keyedCopy(elements, 'lengthStr', keyFunction);
+        final original = internal__keyedCopy(
+          elements,
+          'lengthStr',
+          keyFunction,
+        );
         final copy = internal__keyedCopy(original, 'lengthStr', keyFunction);
 
         // With same function reference and spec, should potentially reuse
@@ -560,7 +632,10 @@ void main() {
           PersonData('Bob', 30, true),
         ];
         final original = internal__keyedCopy(
-            personDataList, 'name', (PersonData pd) => pd.name);
+          personDataList,
+          'name',
+          (PersonData pd) => pd.name,
+        );
 
         final copy = internal__keyedMappedCopy<PersonData, String, PersonData>(
           original,
@@ -591,13 +666,13 @@ void main() {
       });
 
       test('creates new KeyedIterable with different mapping', () {
-        final people = [
-          Person('Alice', 25),
-          Person('Bob', 30),
-        ];
+        final people = [Person('Alice', 25), Person('Bob', 30)];
 
-        final original =
-            internal__keyedCopy(people, 'name', (Person p) => p.name);
+        final original = internal__keyedCopy(
+          people,
+          'name',
+          (Person p) => p.name,
+        );
         final mapped = internal__keyedMappedCopy<PersonData, String, Person>(
           original,
           'name',
@@ -641,46 +716,50 @@ void main() {
         expect(mapped.findByKey('test'), isNull);
       });
 
-      test('returns KeyedIterable.empty instance for various empty iterables',
-          () {
-        // Test with empty Set
-        final emptySet = <Person>{};
-        final mappedFromSet =
-            internal__keyedMappedCopy<PersonData, String, Person>(
-          emptySet,
-          'name',
-          (PersonData pd) => pd.name,
-          (Person p) => PersonData(p.name, p.age, p.age >= 18),
-        );
-        expect(identical(mappedFromSet, KeyedIterable.empty), isTrue);
+      test(
+        'returns KeyedIterable.empty instance for various empty iterables',
+        () {
+          // Test with empty Set
+          final emptySet = <Person>{};
+          final mappedFromSet =
+              internal__keyedMappedCopy<PersonData, String, Person>(
+            emptySet,
+            'name',
+            (PersonData pd) => pd.name,
+            (Person p) => PersonData(p.name, p.age, p.age >= 18),
+          );
+          expect(identical(mappedFromSet, KeyedIterable.empty), isTrue);
 
-        // Test with empty generated iterable
-        final emptyGenerated =
-            Iterable<Person>.generate(0, (i) => Person('Person$i', 20 + i));
-        final mappedFromGenerated =
-            internal__keyedMappedCopy<PersonData, String, Person>(
-          emptyGenerated,
-          'name',
-          (PersonData pd) => pd.name,
-          (Person p) => PersonData(p.name, p.age, p.age >= 18),
-        );
-        expect(identical(mappedFromGenerated, KeyedIterable.empty), isTrue);
+          // Test with empty generated iterable
+          final emptyGenerated = Iterable<Person>.generate(
+            0,
+            (i) => Person('Person$i', 20 + i),
+          );
+          final mappedFromGenerated =
+              internal__keyedMappedCopy<PersonData, String, Person>(
+            emptyGenerated,
+            'name',
+            (PersonData pd) => pd.name,
+            (Person p) => PersonData(p.name, p.age, p.age >= 18),
+          );
+          expect(identical(mappedFromGenerated, KeyedIterable.empty), isTrue);
 
-        // Test with empty filtered iterable
-        final emptyFiltered = [Person('Alice', 25)].where((p) => p.age > 100);
-        final mappedFromFiltered =
-            internal__keyedMappedCopy<PersonData, String, Person>(
-          emptyFiltered,
-          'name',
-          (PersonData pd) => pd.name,
-          (Person p) => PersonData(p.name, p.age, p.age >= 18),
-        );
-        expect(identical(mappedFromFiltered, KeyedIterable.empty), isTrue);
+          // Test with empty filtered iterable
+          final emptyFiltered = [Person('Alice', 25)].where((p) => p.age > 100);
+          final mappedFromFiltered =
+              internal__keyedMappedCopy<PersonData, String, Person>(
+            emptyFiltered,
+            'name',
+            (PersonData pd) => pd.name,
+            (Person p) => PersonData(p.name, p.age, p.age >= 18),
+          );
+          expect(identical(mappedFromFiltered, KeyedIterable.empty), isTrue);
 
-        // All should return the same singleton instance
-        expect(identical(mappedFromSet, mappedFromGenerated), isTrue);
-        expect(identical(mappedFromGenerated, mappedFromFiltered), isTrue);
-      });
+          // All should return the same singleton instance
+          expect(identical(mappedFromSet, mappedFromGenerated), isTrue);
+          expect(identical(mappedFromGenerated, mappedFromFiltered), isTrue);
+        },
+      );
 
       test('preserves immutability', () {
         final people = [Person('Alice', 25)];
@@ -691,8 +770,10 @@ void main() {
           (Person p) => PersonData(p.name, p.age, p.age >= 18),
         );
 
-        expect(() => (mapped as List).add(PersonData('Bob', 30, true)),
-            throwsUnsupportedError);
+        expect(
+          () => (mapped as List).add(PersonData('Bob', 30, true)),
+          throwsUnsupportedError,
+        );
         expect(() => (mapped as List).removeAt(0), throwsUnsupportedError);
         expect(() => (mapped as List).clear(), throwsUnsupportedError);
       });
@@ -752,20 +833,21 @@ void main() {
 
         // Test with int keys
         final byAge = KeyedIterable.copy(elements, (p) => p.age);
-        expect(byAge.findByKey(25)?.name,
-            equals('Charlie')); // Last match due to map overwriting
+        expect(
+          byAge.findByKey(25)?.name,
+          equals('Charlie'),
+        ); // Last match due to map overwriting
         expect(byAge.findByKey(30)?.name, equals('Bob'));
         expect(byAge.findByKey(35), isNull);
       });
 
       test('works with complex key types', () {
-        final elements = [
-          Person('Alice', 25),
-          Person('Bob', 30),
-        ];
+        final elements = [Person('Alice', 25), Person('Bob', 30)];
 
-        final byAgeGroup =
-            KeyedIterable.copy(elements, (p) => AgeGroup(p.age ~/ 10));
+        final byAgeGroup = KeyedIterable.copy(
+          elements,
+          (p) => AgeGroup(p.age ~/ 10),
+        );
         expect(byAgeGroup.findByKey(AgeGroup(2))?.name, equals('Alice'));
         expect(byAgeGroup.findByKey(AgeGroup(3))?.name, equals('Bob'));
         expect(byAgeGroup.findByKey(AgeGroup(4)), isNull);
@@ -882,8 +964,10 @@ void main() {
 
       test('different KeyedIterable instances with same content are equal', () {
         final keyed1 = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
-        final keyed2 =
-            KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
+        final keyed2 = KeyedIterable.copy([
+          'apple',
+          'banana',
+        ], (e) => e.codeUnitAt(0));
 
         expect(keyed1 == keyed2, isTrue);
         expect(keyed2 == keyed1, isTrue);
@@ -919,8 +1003,11 @@ void main() {
     group('Cross-implementation equality', () {
       test('_FrozenListImpl equals _KeyedIterableImpl with same content', () {
         final frozenList = internal__frozenCopy(['apple', 'banana', 'cherry']);
-        final keyedList =
-            KeyedIterable.copy(['apple', 'banana', 'cherry'], (e) => e.length);
+        final keyedList = KeyedIterable.copy([
+          'apple',
+          'banana',
+          'cherry',
+        ], (e) => e.length);
 
         expect(frozenList == keyedList, isTrue);
         expect(keyedList == frozenList, isTrue);
@@ -935,22 +1022,27 @@ void main() {
       });
 
       test(
-          'different _FrozenList implementations with different content are not equal',
-          () {
-        final frozenList = internal__frozenCopy(['apple', 'banana']);
-        final keyedList =
-            KeyedIterable.copy(['apple', 'cherry'], (e) => e.length);
+        'different _FrozenList implementations with different content are not equal',
+        () {
+          final frozenList = internal__frozenCopy(['apple', 'banana']);
+          final keyedList = KeyedIterable.copy([
+            'apple',
+            'cherry',
+          ], (e) => e.length);
 
-        expect(frozenList == keyedList, isFalse);
-        expect(keyedList == frozenList, isFalse);
-      });
+          expect(frozenList == keyedList, isFalse);
+          expect(keyedList == frozenList, isFalse);
+        },
+      );
 
       test('mixed types with same underlying list are equal', () {
         final sourceList = ['apple', 'banana', 'cherry'];
         final frozenList = internal__frozenCopy(sourceList);
         final keyedList = KeyedIterable.copy(sourceList, (e) => e.length);
-        final mappedList =
-            internal__frozenMappedCopy<String, String>(sourceList, (e) => e);
+        final mappedList = internal__frozenMappedCopy<String, String>(
+          sourceList,
+          (e) => e,
+        );
 
         expect(frozenList == keyedList, isTrue);
         expect(keyedList == frozenList, isTrue);
@@ -1005,8 +1097,10 @@ void main() {
 
       test('KeyedIterable hash codes are consistent', () {
         final keyed1 = KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
-        final keyed2 =
-            KeyedIterable.copy(['apple', 'banana'], (e) => e.codeUnitAt(0));
+        final keyed2 = KeyedIterable.copy([
+          'apple',
+          'banana',
+        ], (e) => e.codeUnitAt(0));
 
         expect(keyed1 == keyed2, isTrue);
         expect(keyed1.hashCode, equals(keyed2.hashCode));
@@ -1014,8 +1108,10 @@ void main() {
 
       test('cross-implementation hash code consistency', () {
         final frozenList = internal__frozenCopy(['apple', 'banana']);
-        final keyedList =
-            KeyedIterable.copy(['apple', 'banana'], (e) => e.length);
+        final keyedList = KeyedIterable.copy([
+          'apple',
+          'banana',
+        ], (e) => e.length);
 
         expect(frozenList == keyedList, isTrue);
         expect(frozenList.hashCode, equals(keyedList.hashCode));
@@ -1048,15 +1144,15 @@ void main() {
       test('nested lists equality', () {
         final nestedList1 = internal__frozenCopy([
           internal__frozenCopy(['a', 'b']),
-          internal__frozenCopy(['c', 'd'])
+          internal__frozenCopy(['c', 'd']),
         ]);
         final nestedList2 = internal__frozenCopy([
           internal__frozenCopy(['a', 'b']),
-          internal__frozenCopy(['c', 'd'])
+          internal__frozenCopy(['c', 'd']),
         ]);
         final nestedList3 = internal__frozenCopy([
           internal__frozenCopy(['a', 'b']),
-          internal__frozenCopy(['c', 'e'])
+          internal__frozenCopy(['c', 'e']),
         ]);
 
         expect(nestedList1 == nestedList2, isTrue);

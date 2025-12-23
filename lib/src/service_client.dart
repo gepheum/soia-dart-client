@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Exception thrown when an RPC call fails.
 ///
@@ -21,7 +21,7 @@ class RpcException implements Exception {
   String toString() => 'RpcException($statusCode): $message';
 }
 
-/// Sends RPCs to a soia service.
+/// Sends RPCs to a skir service.
 class ServiceClient {
   final Uri _serviceUri;
   final Map<String, String> _defaultHeaders;

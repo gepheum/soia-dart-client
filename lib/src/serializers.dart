@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Provides serializers for all primitive types and utilities for creating
 /// composite serializers such as optional and iterable serializers.
@@ -27,8 +27,9 @@ class Serializers {
   static final Serializer<ByteString> bytes = Serializer._(_BytesSerializer());
 
   /// Serializer for timestamp values.
-  static final Serializer<DateTime> timestamp =
-      Serializer._(_TimestampSerializer());
+  static final Serializer<DateTime> timestamp = Serializer._(
+    _TimestampSerializer(),
+  );
 
   /// Serializer for boolean values.
   static final bool = Serializer._(_BoolSerializer());
@@ -54,7 +55,12 @@ class Serializers {
     K Function(E) getKey, {
     String? internal__getKeySpec = null,
   }) {
-    return Serializer._(_IterableSerializer.keyedIterable(
-        item._impl, internal__getKeySpec, getKey));
+    return Serializer._(
+      _IterableSerializer.keyedIterable(
+        item._impl,
+        internal__getKeySpec,
+        getKey,
+      ),
+    );
   }
 }

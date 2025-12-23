@@ -1,3 +1,3 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 const internal__listEquality = ListEquality();

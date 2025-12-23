@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Parses a type descriptor from its JSON representation.
 ///
@@ -28,8 +28,10 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
         final fieldObject = it as Map<String, dynamic>;
         final name = fieldObject['name'] as String;
         final number = fieldObject['number'] as int;
-        final type =
-            _parseTypeDescriptorImpl(fieldObject['type']!, recordIdToBundle);
+        final type = _parseTypeDescriptorImpl(
+          fieldObject['type']!,
+          recordIdToBundle,
+        );
         return StructField(name, number, type);
       });
     } else if (recordDescriptor is EnumDescriptor) {
@@ -63,10 +65,11 @@ RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
   final kind = json['kind'] as String;
   final recordId = _RecordId.parse(json['id'] as String);
   final removedNumbers = UnmodifiableSetView(
-      (json['removed_numbers'] as List<dynamic>?)
-              ?.map((it) => it as int)
-              .toSet() ??
-          <int>{});
+    (json['removed_numbers'] as List<dynamic>?)
+            ?.map((it) => it as int)
+            .toSet() ??
+        <int>{},
+  );
 
   switch (kind) {
     case 'struct':
@@ -113,11 +116,14 @@ TypeDescriptor _parseTypeDescriptorImpl(
       }
     case 'optional':
       return OptionalDescriptor(
-          _parseTypeDescriptorImpl(value, recordIdToBundle));
+        _parseTypeDescriptorImpl(value, recordIdToBundle),
+      );
     case 'array':
       final valueObject = value as Map<String, dynamic>;
-      final itemType =
-          _parseTypeDescriptorImpl(valueObject['item']!, recordIdToBundle);
+      final itemType = _parseTypeDescriptorImpl(
+        valueObject['item']!,
+        recordIdToBundle,
+      );
       final keyChain = valueObject['key_extractor'] as String?;
       return ArrayDescriptor(itemType, keyChain);
     case 'record':

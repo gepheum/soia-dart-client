@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 typedef HttpHeaders = Map<String, String>;
 
@@ -51,7 +51,7 @@ enum ResponseType {
   serverError,
 }
 
-/// Implementation of a Soia RPC service that handles incoming requests.
+/// Implementation of a skir RPC service that handles incoming requests.
 ///
 /// A service manages method implementations and provides request routing,
 /// serialization, and error handling for RPC operations.
@@ -236,8 +236,10 @@ class Service<RequestMeta> {
 
     final dynamic response;
     try {
-      response =
-          await methodImpl.impl(request, _getRequestMeta(requestHeaders));
+      response = await methodImpl.impl(
+        request,
+        _getRequestMeta(requestHeaders),
+      );
     } catch (e) {
       return RawResponse(
         'server error: ${e.toString()}',

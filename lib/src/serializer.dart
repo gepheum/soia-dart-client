@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Converts objects of type [T] to and from JSON or binary format.
 class Serializer<T> {
@@ -17,13 +17,10 @@ class Serializer<T> {
   /// serialized as numbers.
   ///
   /// The 'readable' flavor is more verbose and readable, but it should not be
-  /// used if you need persistence, because soia allows fields to be renamed in
+  /// used if you need persistence, because skir allows fields to be renamed in
   /// record definitions. In other words, never store a readable JSON on disk or
   /// in a database.
-  dynamic toJson(
-    T input, {
-    bool readableFlavor = false,
-  }) {
+  dynamic toJson(T input, {bool readableFlavor = false}) {
     return _impl.toJson(input, readableFlavor);
   }
 
@@ -37,13 +34,10 @@ class Serializer<T> {
   /// serialized as numbers.
   ///
   /// The 'readable' flavor is more verbose and readable, but it should not be
-  /// used if you need persistence, because soia allows fields to be renamed in
+  /// used if you need persistence, because skir allows fields to be renamed in
   /// record definitions. In other words, never store a readable JSON on disk or
   /// in a database.
-  String toJsonCode(
-    T input, {
-    bool readableFlavor = false,
-  }) {
+  String toJsonCode(T input, {bool readableFlavor = false}) {
     final jsonElement = _impl.toJson(input, readableFlavor);
     if (readableFlavor) {
       return _readableJsonEncoder.convert(jsonElement);
@@ -58,10 +52,7 @@ class Serializer<T> {
   /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in JSON format (dense
   /// flavor), the unrecognized fields will be present in the serialized form.
-  T fromJson(
-    dynamic json, {
-    bool keepUnrecognizedFields = false,
-  }) {
+  T fromJson(dynamic json, {bool keepUnrecognizedFields = false}) {
     return _impl.fromJson(json, keepUnrecognizedFields);
   }
 
@@ -71,10 +62,7 @@ class Serializer<T> {
   /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in JSON format (dense
   /// flavor), the unrecognized fields will be present in the serialized form.
-  T fromJsonCode(
-    String jsonCode, {
-    bool keepUnrecognizedFields = false,
-  }) {
+  T fromJsonCode(String jsonCode, {bool keepUnrecognizedFields = false}) {
     final jsonElement = jsonDecode(jsonCode);
     return _impl.fromJson(jsonElement, keepUnrecognizedFields);
   }
@@ -82,7 +70,7 @@ class Serializer<T> {
   /// Converts an object to its binary representation.
   Uint8List toBytes(T input) {
     final buffer = Uint8Buffer();
-    buffer.addAll('soia'.codeUnits);
+    buffer.addAll('skir'.codeUnits);
     _impl.encode(input, buffer);
     return buffer.buffer.asUint8List(0, buffer.length);
   }
@@ -92,28 +80,29 @@ class Serializer<T> {
   /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in binary format, the
   /// unrecognized fields will be present in the serialized form.
-  T fromBytes(
-    Uint8List bytes, {
-    bool keepUnrecognizedFields = false,
-  }) {
+  T fromBytes(Uint8List bytes, {bool keepUnrecognizedFields = false}) {
     if (bytes.length >= 4 &&
         bytes[0] == 's'.codeUnitAt(0) &&
-        bytes[1] == 'o'.codeUnitAt(0) &&
+        bytes[1] == 'k'.codeUnitAt(0) &&
         bytes[2] == 'i'.codeUnitAt(0) &&
-        bytes[3] == 'a'.codeUnitAt(0)) {
+        bytes[3] == 'r'.codeUnitAt(0)) {
       final stream = _ByteStream(bytes, 4);
       final result = _impl.decode(stream, keepUnrecognizedFields);
       final extraBytes = bytes.length - stream.position;
       if (extraBytes != 0) {
-        throw FormatException('Extra bytes found after deserializing value: '
-            '${extraBytes} bytes remaining.');
+        throw FormatException(
+          'Extra bytes found after deserializing value: '
+          '${extraBytes} bytes remaining.',
+        );
       }
       return result;
     } else {
-      // Fallback to JSON if no "soia" header
+      // Fallback to JSON if no "skir" header
       final jsonCode = String.fromCharCodes(bytes);
-      return fromJsonCode(jsonCode,
-          keepUnrecognizedFields: keepUnrecognizedFields);
+      return fromJsonCode(
+        jsonCode,
+        keepUnrecognizedFields: keepUnrecognizedFields,
+      );
     }
   }
 

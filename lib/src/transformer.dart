@@ -1,19 +1,19 @@
-part of '../soia.dart';
+part of '../skir.dart';
 
-/// 🪞 A function object that takes in a Soia value of any type and returns a
+/// 🪞 A function object that takes in a skir value of any type and returns a
 /// new value of the same type.
 ///
 /// Usage: write your own implementations of this interface, and pass it to
 /// methods such as [ReflectiveStructDescriptor.mapFields] to recursively
-/// transform a Soia value.
+/// transform a skir value.
 ///
 /// See a complete example at
-/// https://github.com/gepheum/soia-dart-example/blob/main/lib/all_strings_to_upper_case.dart
+/// https://github.com/gepheum/skir-dart-example/blob/main/lib/all_strings_to_upper_case.dart
 abstract class ReflectiveTransformer {
   /// Returns values unchanged.
   static const ReflectiveTransformer identity = _IdentityTransformer();
 
-  /// Expects a Soia value of any type, returns a value of the same type.
+  /// Expects a skir value of any type, returns a value of the same type.
   T transform<T>(T input, ReflectiveTypeDescriptor<T> descriptor);
 
   const ReflectiveTransformer();

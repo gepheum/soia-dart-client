@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 
 void main() {
   group('ByteString', () {
@@ -100,10 +100,14 @@ void main() {
       });
 
       test('throws FormatException for invalid Base64', () {
-        expect(() => ByteString.fromBase64('Invalid@Base64!'),
-            throwsA(isA<FormatException>()));
-        expect(() => ByteString.fromBase64('SGVsbG'),
-            throwsA(isA<FormatException>()));
+        expect(
+          () => ByteString.fromBase64('Invalid@Base64!'),
+          throwsA(isA<FormatException>()),
+        );
+        expect(
+          () => ByteString.fromBase64('SGVsbG'),
+          throwsA(isA<FormatException>()),
+        );
       });
 
       test('handles Base64 with padding', () {
@@ -116,8 +120,10 @@ void main() {
 
       test('handles Base64 without padding (throws FormatException)', () {
         // Dart's base64Decode requires proper padding
-        expect(() => ByteString.fromBase64('SGVsbG8'),
-            throwsA(isA<FormatException>()));
+        expect(
+          () => ByteString.fromBase64('SGVsbG8'),
+          throwsA(isA<FormatException>()),
+        );
       });
     });
 
@@ -146,12 +152,18 @@ void main() {
       });
 
       test('throws FormatException for invalid hexadecimal', () {
-        expect(() => ByteString.fromBase16('invalid'),
-            throwsA(isA<FormatException>()));
-        expect(() => ByteString.fromBase16('123'),
-            throwsA(isA<FormatException>())); // Odd length
-        expect(() => ByteString.fromBase16('12GH'),
-            throwsA(isA<FormatException>())); // Invalid characters
+        expect(
+          () => ByteString.fromBase16('invalid'),
+          throwsA(isA<FormatException>()),
+        );
+        expect(
+          () => ByteString.fromBase16('123'),
+          throwsA(isA<FormatException>()),
+        ); // Odd length
+        expect(
+          () => ByteString.fromBase16('12GH'),
+          throwsA(isA<FormatException>()),
+        ); // Invalid characters
       });
 
       test('handles all valid hex characters', () {

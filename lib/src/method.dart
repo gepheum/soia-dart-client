@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// Represents a remote procedure call (RPC) method definition.
 ///
@@ -18,10 +18,14 @@ class Method<Request, Response> {
   /// Serializer for the response type.
   final Serializer<Response> responseSerializer;
 
+  /// Documentation for this method.
+  final String doc;
+
   Method(
     this.name,
     this.number,
     this.requestSerializer,
     this.responseSerializer,
+    this.doc,
   );
 }

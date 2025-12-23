@@ -1,4 +1,4 @@
-library soia;
+library skir;
 
 import 'dart:convert';
 import 'dart:math';

@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:soia/soia.dart';
+import 'package:skir/skir.dart';
 import 'dart:typed_data';
 
 // Helper function to convert bytes to hex string
@@ -148,7 +148,11 @@ void main() {
 
       statusEnumBuilder.addConstantField(1, 'active', 'active', StatusActive());
       statusEnumBuilder.addConstantField(
-          2, 'inactive', 'inactive', StatusInactive());
+        2,
+        'inactive',
+        'inactive',
+        StatusInactive(),
+      );
       statusEnumBuilder.addWrapperField<StatusPendingOption, String>(
         3,
         'pending',
@@ -169,20 +173,28 @@ void main() {
       final redJson = colorSerializer.toJson(colorRed, readableFlavor: false);
       expect(redJson, equals(1));
 
-      final greenJson =
-          colorSerializer.toJson(colorGreen, readableFlavor: false);
+      final greenJson = colorSerializer.toJson(
+        colorGreen,
+        readableFlavor: false,
+      );
       expect(greenJson, equals(2));
 
       final blueJson = colorSerializer.toJson(colorBlue, readableFlavor: false);
       expect(blueJson, equals(3));
 
       // Test deserialization from dense format
-      expect(colorSerializer.fromJson(1, keepUnrecognizedFields: false),
-          isA<ColorRed>());
-      expect(colorSerializer.fromJson(2, keepUnrecognizedFields: false),
-          isA<ColorGreen>());
-      expect(colorSerializer.fromJson(3, keepUnrecognizedFields: false),
-          isA<ColorBlue>());
+      expect(
+        colorSerializer.fromJson(1, keepUnrecognizedFields: false),
+        isA<ColorRed>(),
+      );
+      expect(
+        colorSerializer.fromJson(2, keepUnrecognizedFields: false),
+        isA<ColorGreen>(),
+      );
+      expect(
+        colorSerializer.fromJson(3, keepUnrecognizedFields: false),
+        isA<ColorBlue>(),
+      );
     });
 
     test('enum serializer - constant fields readable JSON', () {
@@ -190,28 +202,38 @@ void main() {
       final redJson = colorSerializer.toJson(colorRed, readableFlavor: true);
       expect(redJson, equals('red'));
 
-      final greenJson =
-          colorSerializer.toJson(colorGreen, readableFlavor: true);
+      final greenJson = colorSerializer.toJson(
+        colorGreen,
+        readableFlavor: true,
+      );
       expect(greenJson, equals('green'));
 
       final blueJson = colorSerializer.toJson(colorBlue, readableFlavor: true);
       expect(blueJson, equals('blue'));
 
       // Test deserialization from readable format
-      expect(colorSerializer.fromJson('red', keepUnrecognizedFields: false),
-          isA<ColorRed>());
-      expect(colorSerializer.fromJson('green', keepUnrecognizedFields: false),
-          isA<ColorGreen>());
-      expect(colorSerializer.fromJson('blue', keepUnrecognizedFields: false),
-          isA<ColorBlue>());
+      expect(
+        colorSerializer.fromJson('red', keepUnrecognizedFields: false),
+        isA<ColorRed>(),
+      );
+      expect(
+        colorSerializer.fromJson('green', keepUnrecognizedFields: false),
+        isA<ColorGreen>(),
+      );
+      expect(
+        colorSerializer.fromJson('blue', keepUnrecognizedFields: false),
+        isA<ColorBlue>(),
+      );
     });
 
     test('enum serializer - wrapper fields dense JSON', () {
       final customColor = ColorCustomOption(0xFF0000);
 
       // Test wrapper field serialization in dense format
-      final customJson =
-          colorSerializer.toJson(customColor, readableFlavor: false);
+      final customJson = colorSerializer.toJson(
+        customColor,
+        readableFlavor: false,
+      );
       expect(customJson, isA<List>());
 
       final jsonArray = customJson as List;
@@ -220,8 +242,10 @@ void main() {
       expect(jsonArray[1], equals(16711680)); // 0xFF0000 in decimal
 
       // Test deserialization from dense format
-      final restored =
-          colorSerializer.fromJson(jsonArray, keepUnrecognizedFields: false);
+      final restored = colorSerializer.fromJson(
+        jsonArray,
+        keepUnrecognizedFields: false,
+      );
       expect(restored, isA<ColorCustomOption>());
       expect((restored as ColorCustomOption).rgb, equals(0xFF0000));
     });
@@ -230,8 +254,10 @@ void main() {
       final customColor = ColorCustomOption(0x00FF00);
 
       // Test wrapper field serialization in readable format
-      final customJson =
-          colorSerializer.toJson(customColor, readableFlavor: true);
+      final customJson = colorSerializer.toJson(
+        customColor,
+        readableFlavor: true,
+      );
       expect(customJson, isA<Map>());
 
       final jsonObject = customJson as Map<String, dynamic>;
@@ -240,8 +266,10 @@ void main() {
       expect(jsonObject, containsPair('value', 65280)); // 0x00FF00 in decimal
 
       // Test deserialization from readable format
-      final restored =
-          colorSerializer.fromJson(jsonObject, keepUnrecognizedFields: false);
+      final restored = colorSerializer.fromJson(
+        jsonObject,
+        keepUnrecognizedFields: false,
+      );
       expect(restored, isA<ColorCustomOption>());
       expect((restored as ColorCustomOption).rgb, equals(0x00FF00));
     });
@@ -249,13 +277,13 @@ void main() {
     test('enum serializer - binary format constants', () {
       // Test binary encoding for constant fields
       final redBytes = colorSerializer.toBytes(colorRed);
-      expect(_bytesToHex(redBytes), startsWith('736f6961')); // "soia" prefix
+      expect(_bytesToHex(redBytes), startsWith('736b6972')); // "skir" prefix
 
       final greenBytes = colorSerializer.toBytes(colorGreen);
-      expect(_bytesToHex(greenBytes), startsWith('736f6961'));
+      expect(_bytesToHex(greenBytes), startsWith('736b6972'));
 
       final blueBytes = colorSerializer.toBytes(colorBlue);
-      expect(_bytesToHex(blueBytes), startsWith('736f6961'));
+      expect(_bytesToHex(blueBytes), startsWith('736b6972'));
 
       // Test binary roundtrips
       expect(colorSerializer.fromBytes(redBytes), isA<ColorRed>());
@@ -268,7 +296,7 @@ void main() {
 
       // Test binary encoding for wrapper fields
       final customBytes = colorSerializer.toBytes(customColor);
-      expect(_bytesToHex(customBytes), startsWith('736f6961'));
+      expect(_bytesToHex(customBytes), startsWith('736b6972'));
 
       // Test binary roundtrip
       final restored = colorSerializer.fromBytes(customBytes);
@@ -278,33 +306,43 @@ void main() {
 
     test('enum serializer - unknown values without keeping unrecognized', () {
       // Test unknown constant number
-      final unknownConstant =
-          colorSerializer.fromJson(99, keepUnrecognizedFields: false);
+      final unknownConstant = colorSerializer.fromJson(
+        99,
+        keepUnrecognizedFields: false,
+      );
       expect(unknownConstant, isA<ColorUnknown>());
 
       // Test unknown field name
-      final unknownName =
-          colorSerializer.fromJson('purple', keepUnrecognizedFields: false);
+      final unknownName = colorSerializer.fromJson(
+        'purple',
+        keepUnrecognizedFields: false,
+      );
       expect(unknownName, isA<ColorUnknown>());
 
       // Test unknown wrapper field
-      final unknownValue =
-          colorSerializer.fromJson([99, 123], keepUnrecognizedFields: false);
+      final unknownValue = colorSerializer.fromJson([
+        99,
+        123,
+      ], keepUnrecognizedFields: false);
       expect(unknownValue, isA<ColorUnknown>());
     });
 
     test('enum serializer - unknown values with keeping unrecognized', () {
       // Test unknown constant number with keepUnrecognizedFields = true
-      final unknownConstant =
-          colorSerializer.fromJson(99, keepUnrecognizedFields: true);
+      final unknownConstant = colorSerializer.fromJson(
+        99,
+        keepUnrecognizedFields: true,
+      );
       expect(unknownConstant, isA<ColorUnknown>());
       final unknownEnum = (unknownConstant as ColorUnknown).unrecognized;
       expect(unknownEnum, isNotNull);
 
       // Test unknown wrapper field with keepUnrecognizedFields = true
       final unknownValueJson = [99, 123];
-      final unknownValue = colorSerializer.fromJson(unknownValueJson,
-          keepUnrecognizedFields: true);
+      final unknownValue = colorSerializer.fromJson(
+        unknownValueJson,
+        keepUnrecognizedFields: true,
+      );
       expect(unknownValue, isA<ColorUnknown>());
       final unknownValueEnum = (unknownValue as ColorUnknown).unrecognized;
       expect(unknownValueEnum, isNotNull);
@@ -312,8 +350,10 @@ void main() {
 
     test('enum serializer - removed fields', () {
       // Test accessing a removed field (should return unknown)
-      final removedField =
-          statusSerializer.fromJson(4, keepUnrecognizedFields: false);
+      final removedField = statusSerializer.fromJson(
+        4,
+        keepUnrecognizedFields: false,
+      );
       expect(removedField, isA<StatusUnknown>());
     });
 
@@ -321,29 +361,39 @@ void main() {
       final pendingStatus = StatusPendingOption('waiting for approval');
 
       // Test JSON roundtrips
-      final denseJson =
-          statusSerializer.toJsonCode(pendingStatus, readableFlavor: false);
-      final readableJson =
-          statusSerializer.toJsonCode(pendingStatus, readableFlavor: true);
+      final denseJson = statusSerializer.toJsonCode(
+        pendingStatus,
+        readableFlavor: false,
+      );
+      final readableJson = statusSerializer.toJsonCode(
+        pendingStatus,
+        readableFlavor: true,
+      );
 
       final restoredFromDense = statusSerializer.fromJsonCode(denseJson);
       final restoredFromReadable = statusSerializer.fromJsonCode(readableJson);
 
       expect(restoredFromDense, isA<StatusPendingOption>());
-      expect((restoredFromDense as StatusPendingOption).reason,
-          equals('waiting for approval'));
+      expect(
+        (restoredFromDense as StatusPendingOption).reason,
+        equals('waiting for approval'),
+      );
 
       expect(restoredFromReadable, isA<StatusPendingOption>());
-      expect((restoredFromReadable as StatusPendingOption).reason,
-          equals('waiting for approval'));
+      expect(
+        (restoredFromReadable as StatusPendingOption).reason,
+        equals('waiting for approval'),
+      );
 
       // Test binary roundtrip
       final bytes = statusSerializer.toBytes(pendingStatus);
       final restoredFromBinary = statusSerializer.fromBytes(bytes);
 
       expect(restoredFromBinary, isA<StatusPendingOption>());
-      expect((restoredFromBinary as StatusPendingOption).reason,
-          equals('waiting for approval'));
+      expect(
+        (restoredFromBinary as StatusPendingOption).reason,
+        equals('waiting for approval'),
+      );
     });
 
     test('enum serializer - all constant types roundtrip', () {
@@ -351,14 +401,19 @@ void main() {
 
       for (final status in constantValues) {
         // Test both dense and readable JSON roundtrips
-        final denseJson =
-            statusSerializer.toJsonCode(status, readableFlavor: false);
-        final readableJson =
-            statusSerializer.toJsonCode(status, readableFlavor: true);
+        final denseJson = statusSerializer.toJsonCode(
+          status,
+          readableFlavor: false,
+        );
+        final readableJson = statusSerializer.toJsonCode(
+          status,
+          readableFlavor: true,
+        );
 
         final restoredFromDense = statusSerializer.fromJsonCode(denseJson);
-        final restoredFromReadable =
-            statusSerializer.fromJsonCode(readableJson);
+        final restoredFromReadable = statusSerializer.fromJsonCode(
+          readableJson,
+        );
 
         expect(restoredFromDense.runtimeType, equals(status.runtimeType));
         expect(restoredFromReadable.runtimeType, equals(status.runtimeType));
@@ -391,10 +446,7 @@ void main() {
       );
 
       // Double finalization should throw
-      expect(
-        () => testEnumBuilder.finalize(),
-        throwsStateError,
-      );
+      expect(() => testEnumBuilder.finalize(), throwsStateError);
     });
 
     test('enum serializer - edge cases', () {
@@ -407,10 +459,14 @@ void main() {
 
       for (final color in edgeCases) {
         // Test JSON roundtrips
-        final denseJson =
-            colorSerializer.toJsonCode(color, readableFlavor: false);
-        final readableJson =
-            colorSerializer.toJsonCode(color, readableFlavor: true);
+        final denseJson = colorSerializer.toJsonCode(
+          color,
+          readableFlavor: false,
+        );
+        final readableJson = colorSerializer.toJsonCode(
+          color,
+          readableFlavor: true,
+        );
 
         final restoredFromDense = colorSerializer.fromJsonCode(denseJson);
         final restoredFromReadable = colorSerializer.fromJsonCode(readableJson);
@@ -420,7 +476,9 @@ void main() {
 
         expect(restoredFromReadable, isA<ColorCustomOption>());
         expect(
-            (restoredFromReadable as ColorCustomOption).rgb, equals(color.rgb));
+          (restoredFromReadable as ColorCustomOption).rgb,
+          equals(color.rgb),
+        );
 
         // Test binary roundtrip
         final bytes = colorSerializer.toBytes(color);
@@ -428,7 +486,9 @@ void main() {
 
         expect(restoredFromBinary, isA<ColorCustomOption>());
         expect(
-            (restoredFromBinary as ColorCustomOption).rgb, equals(color.rgb));
+          (restoredFromBinary as ColorCustomOption).rgb,
+          equals(color.rgb),
+        );
       }
     });
 
@@ -439,17 +499,25 @@ void main() {
       final customValue = ColorCustomOption(0xABCDEF);
 
       // Constants should be different between dense/readable
-      final redDenseJson =
-          colorSerializer.toJsonCode(redConstant, readableFlavor: false);
-      final redReadableJson =
-          colorSerializer.toJsonCode(redConstant, readableFlavor: true);
+      final redDenseJson = colorSerializer.toJsonCode(
+        redConstant,
+        readableFlavor: false,
+      );
+      final redReadableJson = colorSerializer.toJsonCode(
+        redConstant,
+        readableFlavor: true,
+      );
       expect(redDenseJson, isNot(equals(redReadableJson)));
 
       // Wrapper fields should be different between dense/readable
-      final customDenseJson =
-          colorSerializer.toJsonCode(customValue, readableFlavor: false);
-      final customReadableJson =
-          colorSerializer.toJsonCode(customValue, readableFlavor: true);
+      final customDenseJson = colorSerializer.toJsonCode(
+        customValue,
+        readableFlavor: false,
+      );
+      final customReadableJson = colorSerializer.toJsonCode(
+        customValue,
+        readableFlavor: true,
+      );
       expect(customDenseJson, isNot(equals(customReadableJson)));
 
       // Dense should be array/number, readable should be string/object
@@ -492,15 +560,20 @@ void main() {
 
       for (final testCase in testCases) {
         // Test JSON roundtrips - use readable format which works correctly
-        final readableJson =
-            statusSerializer.toJsonCode(testCase, readableFlavor: true);
-        final restoredFromReadable =
-            statusSerializer.fromJsonCode(readableJson);
+        final readableJson = statusSerializer.toJsonCode(
+          testCase,
+          readableFlavor: true,
+        );
+        final restoredFromReadable = statusSerializer.fromJsonCode(
+          readableJson,
+        );
         expect(restoredFromReadable.runtimeType, equals(testCase.runtimeType));
 
         if (testCase is StatusPendingOption) {
-          expect((restoredFromReadable as StatusPendingOption).reason,
-              equals(testCase.reason));
+          expect(
+            (restoredFromReadable as StatusPendingOption).reason,
+            equals(testCase.reason),
+          );
         }
 
         // Test binary roundtrip
@@ -509,8 +582,10 @@ void main() {
 
         expect(restoredFromBinary.runtimeType, equals(testCase.runtimeType));
         if (testCase is StatusPendingOption) {
-          expect((restoredFromBinary as StatusPendingOption).reason,
-              equals(testCase.reason));
+          expect(
+            (restoredFromBinary as StatusPendingOption).reason,
+            equals(testCase.reason),
+          );
         }
       }
     });
@@ -597,16 +672,10 @@ void main() {
       );
 
       // Should not be able to add removed numbers after finalization
-      expect(
-        () => builder.addRemovedNumber(6),
-        throwsStateError,
-      );
+      expect(() => builder.addRemovedNumber(6), throwsStateError);
 
       // Should not be able to finalize again
-      expect(
-        () => builder.finalize(),
-        throwsStateError,
-      );
+      expect(() => builder.finalize(), throwsStateError);
     });
 
     test('enum serializer - type descriptor', () {
@@ -646,8 +715,10 @@ void main() {
       final testSerializer = testBuilder.serializer;
 
       // Test serialization of default (unknown) vs non-default values
-      final unknownJson =
-          testSerializer.toJsonCode(colorUnknown, readableFlavor: true);
+      final unknownJson = testSerializer.toJsonCode(
+        colorUnknown,
+        readableFlavor: true,
+      );
       final redJson = testSerializer.toJsonCode(colorRed, readableFlavor: true);
 
       // They should produce different JSON

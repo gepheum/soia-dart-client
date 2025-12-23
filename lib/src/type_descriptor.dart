@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 /// 🪞 Base interface for all type descriptors
 abstract class _TypeDescriptorBase {
@@ -7,10 +7,10 @@ abstract class _TypeDescriptorBase {
   String get asJsonCode;
 }
 
-/// 🪞 Describes a Soia type.
+/// 🪞 Describes a skir type.
 ///
-/// Type descriptors provide metadata about Soia types, enabling schema
-/// introspection. They don't let you inspect, modify or create Soia values at
+/// Type descriptors provide metadata about skir types, enabling schema
+/// introspection. They don't let you inspect, modify or create skir values at
 /// runtime; for this, you have to use [ReflectiveTypeDescriptor].
 sealed class TypeDescriptor implements _TypeDescriptorBase {
   /// Returns the JSON representation of this type descriptor.
@@ -38,7 +38,7 @@ sealed class TypeDescriptor implements _TypeDescriptorBase {
 ///
 /// Reflective type descriptors offer enhanced introspection capabilities
 /// compared to their non-reflective counterparts, enabling runtime manipulation
-/// and analysis of Soia values.
+/// and analysis of skir values.
 sealed class ReflectiveTypeDescriptor<T> implements _TypeDescriptorBase {
   /// Returns a non-reflective type descriptor equivalent to this reflective
   /// descriptor.
@@ -52,17 +52,17 @@ sealed class ReflectiveTypeDescriptor<T> implements _TypeDescriptorBase {
 
   T get defaultValue;
 
-  /// Accepts a [visitor] to perform operations based on the specific Soia type:
+  /// Accepts a [visitor] to perform operations based on the specific skir type:
   /// struct, enum, primitive, array, optional.
   ///
   /// See a complete example at
-  /// https://github.com/gepheum/soia-dart-example/blob/main/lib/all_strings_to_upper_case.dart
+  /// https://github.com/gepheum/skir-dart-example/blob/main/lib/all_strings_to_upper_case.dart
   void accept(ReflectiveTypeVisitor<T> visitor) {
     _acceptImpl(this, visitor);
   }
 }
 
-/// 🪞 Enumeration of all primitive types supported by Soia.
+/// 🪞 Enumeration of all primitive types supported by skir.
 enum PrimitiveType {
   bool,
   int32,
@@ -75,7 +75,7 @@ enum PrimitiveType {
   bytes,
 }
 
-/// 🪞 Describes a primitive Soia type.
+/// 🪞 Describes a primitive skir type.
 sealed class PrimitiveDescriptor<T> extends TypeDescriptor
     implements ReflectiveTypeDescriptor<T> {
   /// The specific primitive type being described.
@@ -222,7 +222,7 @@ class ArrayDescriptor extends TypeDescriptor
   @override
   final TypeDescriptor itemType;
 
-  /// Optional key chain specified in the `.soia` file after the pipe character.
+  /// Optional key chain specified in the `.skir` file after the pipe character.
   @override
   final String? keyExtractor;
 
@@ -243,8 +243,9 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
   ///  Returns a new collection of the same type containing the transformed
   /// elements.
   Collection map(Collection collection, ReflectiveTransformer transformer) {
-    final newCollection =
-        collection.map((e) => transformer.transform(e, itemType));
+    final newCollection = collection.map(
+      (e) => transformer.transform(e, itemType),
+    );
     return toCollection(newCollection);
   }
 
@@ -253,7 +254,7 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
 
 /// 🪞 Describes a field in a struct or an enum.
 abstract class Field {
-  /// Field name as specified in the `.soia` file, for example 'user_id' or
+  /// Field name as specified in the `.skir` file, for example 'user_id' or
   /// 'MONDAY'.
   String get name;
 
@@ -265,7 +266,7 @@ abstract class Field {
 
 abstract class _RecordDescriptorBase<F extends Field>
     implements _TypeDescriptorBase {
-  /// Name of the struct as specified in the `.soia` file.
+  /// Name of the struct as specified in the `.skir` file.
   String get name;
 
   /// A string containing all the names in the hierarchic sequence above and
@@ -314,7 +315,7 @@ sealed class RecordDescriptor<F extends Field> extends TypeDescriptor
   }
 }
 
-/// 🪞 Describes a Soia record: struct or enum.
+/// 🪞 Describes a skir record: struct or enum.
 sealed class ReflectiveRecordDescriptor<T, F extends Field>
     extends ReflectiveTypeDescriptor<T> implements _RecordDescriptorBase<F> {}
 
@@ -358,18 +359,13 @@ abstract class ReflectiveStructField<Frozen, Mutable, Value>
     Mutable target, {
     ReflectiveTransformer transformer = ReflectiveTransformer.identity,
   }) {
-    set(
-        target,
-        transformer.transform(
-          get(source),
-          type,
-        ));
+    set(target, transformer.transform(get(source), type));
   }
 
   ReflectiveStructField._();
 }
 
-/// 🪞 Describes a Soia struct.
+/// 🪞 Describes a skir struct.
 class StructDescriptor extends RecordDescriptor<StructField> {
   final _RecordId _recordId;
 
@@ -381,11 +377,7 @@ class StructDescriptor extends RecordDescriptor<StructField> {
   @override
   Iterable<StructField> get fields => _fields;
 
-  StructDescriptor._(
-    this._recordId,
-    this.removedNumbers,
-    this._fields,
-  );
+  StructDescriptor._(this._recordId, this.removedNumbers, this._fields);
 
   @override
   String get name => _recordId.name;
@@ -397,7 +389,7 @@ class StructDescriptor extends RecordDescriptor<StructField> {
   String get modulePath => _recordId.modulePath;
 }
 
-/// 🪞 Describes a Soia struct.
+/// 🪞 Describes a skir struct.
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     extends ReflectiveRecordDescriptor<Frozen,
         ReflectiveStructField<Frozen, Mutable, dynamic>> {
@@ -498,7 +490,7 @@ abstract class ReflectiveEnumWrapperField<E, Value>
 abstract class _EnumDescriptorBase<F extends Field>
     implements _RecordDescriptorBase<F> {}
 
-/// 🪞 Describes a Soia enum.
+/// 🪞 Describes a skir enum.
 class EnumDescriptor extends RecordDescriptor<EnumField>
     implements _EnumDescriptorBase<EnumField> {
   final _RecordId _recordId;
@@ -511,11 +503,7 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
   @override
   Iterable<EnumField> get fields => _fields;
 
-  EnumDescriptor._(
-    this._recordId,
-    this.removedNumbers,
-    this._fields,
-  );
+  EnumDescriptor._(this._recordId, this.removedNumbers, this._fields);
 
   @override
   String get name => _recordId.name;
@@ -527,7 +515,7 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
   String get modulePath => _recordId.modulePath;
 }
 
-/// 🪞 Describes a Soia enum.
+/// 🪞 Describes a skir enum.
 abstract class ReflectiveEnumDescriptor<E>
     extends ReflectiveRecordDescriptor<E, ReflectiveEnumField<E>> {
   /// Looks up the field corresponding to the given instance of Enum.
@@ -635,16 +623,11 @@ Map<String, dynamic> _getTypeSignature(TypeDescriptor typeDescriptor) {
         'value': _getTypeSignature(otherType),
       },
     ArrayDescriptor(:final itemType, keyExtractor: final keyExtractor) => () {
-        final value = <String, dynamic>{
-          'item': _getTypeSignature(itemType),
-        };
+        final value = <String, dynamic>{'item': _getTypeSignature(itemType)};
         if ((keyExtractor ?? "").isNotEmpty) {
           value['key_extractor'] = keyExtractor;
         }
-        return {
-          'kind': 'array',
-          'value': value,
-        };
+        return {'kind': 'array', 'value': value};
       }(), // The `()` immediately calls the anonymous function
     RecordDescriptor(:final modulePath, :final qualifiedName) => {
         'kind': 'record',
@@ -730,10 +713,7 @@ void _addRecordDefinitions(
             'type': _getTypeSignature(f.type),
           };
         } else if (f is EnumConstantField) {
-          return {
-            'name': f.name,
-            'number': f.number,
-          };
+          return {'name': f.name, 'number': f.number};
         }
         throw ArgumentError('Unknown enum field type: $f');
       }).toList(),

@@ -1,4 +1,4 @@
-part of "../soia.dart";
+part of "../skir.dart";
 
 abstract class _PrimitiveSerializer<T> extends _SerializerImpl<T> {
   String get typeName;
@@ -505,9 +505,10 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
     return readableFlavor
         ? {
             'unix_millis': unixMillis,
-            'formatted':
-                DateTime.fromMillisecondsSinceEpoch(unixMillis, isUtc: true)
-                    .toIso8601String(),
+            'formatted': DateTime.fromMillisecondsSinceEpoch(
+              unixMillis,
+              isUtc: true,
+            ).toIso8601String(),
           }
         : unixMillis;
   }
