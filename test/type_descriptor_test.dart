@@ -192,7 +192,7 @@ void main() {
     test('creates constant field with name and number', () {
       const name = 'ACTIVE';
       const number = 1;
-      final field = EnumConstantField(name, number);
+      final field = EnumConstantVariant(name, number);
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
@@ -204,7 +204,7 @@ void main() {
       const name = 'custom_value';
       const number = 100;
       final type = Int32Descriptor.instance;
-      final field = EnumWrapperField(name, number, type);
+      final field = EnumWrapperVariant(name, number, type);
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
@@ -379,8 +379,8 @@ void main() {
     test('field types work correctly', () {
       final stringType = StringDescriptor.instance;
       final structField = StructField('name', 1, stringType);
-      final enumWrapperField = EnumWrapperField('value', 2, stringType);
-      final enumConstantField = EnumConstantField('CONSTANT', 3);
+      final enumWrapperField = EnumWrapperVariant('value', 2, stringType);
+      final enumConstantField = EnumConstantVariant('CONSTANT', 3);
 
       expect(structField.type, equals(stringType));
       expect(enumWrapperField.type, equals(stringType));

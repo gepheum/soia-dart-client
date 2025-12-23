@@ -99,7 +99,7 @@ class ServiceClient {
         final jsonCode = httpResponse.body;
         return method.responseSerializer.fromJsonCode(
           jsonCode,
-          keepUnrecognizedFields: true,
+          keepUnrecognizedValues: true,
         );
       } else {
         var message = '';

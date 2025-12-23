@@ -59,7 +59,7 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  Collection decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  Collection decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final wire = stream.readByte();
     if (wire == 0 || wire == 246) {
       return emptyCollection;
@@ -75,10 +75,10 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
     } else {
       throw FormatException('Expected: list; wire: $wire');
     }
-    final first = item.decode(stream, keepUnrecognizedFields);
+    final first = item.decode(stream, keepUnrecognizedValues);
     final result = List.filled(length, first, growable: false);
     for (int i = 1; i < length; i++) {
-      result[i] = item.decode(stream, keepUnrecognizedFields);
+      result[i] = item.decode(stream, keepUnrecognizedValues);
     }
     return listToCollection(result);
   }
@@ -108,13 +108,13 @@ class _IterableSerializer<E, Collection extends Iterable<E>>
   }
 
   @override
-  Collection fromJson(dynamic json, bool keepUnrecognizedFields) {
+  Collection fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json == 0) {
       return emptyCollection;
     }
     final list = json as List;
     return iterableToCollection(
-      list.map((e) => item.fromJson(e, keepUnrecognizedFields)),
+      list.map((e) => item.fromJson(e, keepUnrecognizedValues)),
     );
   }
 

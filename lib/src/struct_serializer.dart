@@ -99,11 +99,11 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   void valueFromJson(
     Mutable mutable,
     dynamic json,
-    bool keepUnrecognizedFields,
+    bool keepUnrecognizedValues,
   ) {
     final value = serializer.fromJson(
       json,
-      keepUnrecognizedFields: keepUnrecognizedFields,
+      keepUnrecognizedValues: keepUnrecognizedValues,
     );
     setter(mutable, value);
   }
@@ -115,9 +115,9 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   void decodeValue(
     Mutable mutable,
     _ByteStream stream,
-    bool keepUnrecognizedFields,
+    bool keepUnrecognizedValues,
   ) {
-    final value = serializer._impl.decode(stream, keepUnrecognizedFields);
+    final value = serializer._impl.decode(stream, keepUnrecognizedValues);
     setter(mutable, value);
   }
 
@@ -291,11 +291,11 @@ class _StructSerializerImpl<Frozen, Mutable>
   }
 
   @override
-  Frozen fromJson(dynamic json, bool keepUnrecognizedFields) {
+  Frozen fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is int && json == 0) {
       return defaultInstance;
     } else if (json is List) {
-      return _fromDenseJson(json, keepUnrecognizedFields);
+      return _fromDenseJson(json, keepUnrecognizedValues);
     } else if (json is Map<String, dynamic>) {
       return _fromReadableJson(json);
     } else {
@@ -303,12 +303,12 @@ class _StructSerializerImpl<Frozen, Mutable>
     }
   }
 
-  Frozen _fromDenseJson(List<dynamic> jsonArray, bool keepUnrecognizedFields) {
+  Frozen _fromDenseJson(List<dynamic> jsonArray, bool keepUnrecognizedValues) {
     final mutable = newMutableFn(null);
     final int numSlotsToFill;
     if (jsonArray.length > _slotCountInclRemoved) {
       // We have some unrecognized fields
-      if (keepUnrecognizedFields) {
+      if (keepUnrecognizedValues) {
         final unrecognizedFields = internal__UnrecognizedFields._fromJson(
           jsonArray.length,
           jsonArray
@@ -329,7 +329,7 @@ class _StructSerializerImpl<Frozen, Mutable>
       field.valueFromJson(
         mutable,
         jsonArray[field.number],
-        keepUnrecognizedFields,
+        keepUnrecognizedValues,
       );
     }
     return toFrozenFn(mutable);
@@ -385,7 +385,7 @@ class _StructSerializerImpl<Frozen, Mutable>
   }
 
   @override
-  Frozen decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  Frozen decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final wire = stream.readByte();
     if (wire == 0 || wire == 246) {
       return defaultInstance;
@@ -398,7 +398,7 @@ class _StructSerializerImpl<Frozen, Mutable>
     for (int i = 0; i < encodedSlotCount && i < _slotCountInclRemoved; i++) {
       final field = _slotToField[i];
       if (field != null) {
-        field.decodeValue(mutable, stream, keepUnrecognizedFields);
+        field.decodeValue(mutable, stream, keepUnrecognizedValues);
       } else {
         // The field was removed
         stream.decodeUnused();
@@ -410,7 +410,7 @@ class _StructSerializerImpl<Frozen, Mutable>
         stream.decodeUnused();
       }
       // We have some unrecognized fields
-      if (keepUnrecognizedFields) {
+      if (keepUnrecognizedValues) {
         // Capture the bytes for the unknown fields
         final unrecognizedBytes = stream.bytes.sublist(
           startPosition,

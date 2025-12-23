@@ -17,14 +17,16 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
     final recordDescriptor = _parseRecordDescriptorPartial(recordObject);
     final recordId =
         '${recordDescriptor.modulePath}:${recordDescriptor.qualifiedName}';
-    final fields = (recordObject['fields'] as List<dynamic>?) ?? [];
+    final fields = (recordObject['fields'] as List<dynamic>?) ??
+        (recordObject['variants'] as List<dynamic>?) ??
+        [];
     recordIdToBundle[recordId] = _RecordBundle(recordDescriptor, fields);
   }
 
   for (final bundle in recordIdToBundle.values) {
     final recordDescriptor = bundle.recordDescriptor;
     if (recordDescriptor is StructDescriptor) {
-      recordDescriptor._fields = bundle.fields.map((it) {
+      recordDescriptor._fields = bundle.fieldsOrVariants.map((it) {
         final fieldObject = it as Map<String, dynamic>;
         final name = fieldObject['name'] as String;
         final number = fieldObject['number'] as int;
@@ -35,16 +37,16 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
         return StructField(name, number, type);
       });
     } else if (recordDescriptor is EnumDescriptor) {
-      recordDescriptor._fields = bundle.fields.map((it) {
-        final fieldObject = it as Map<String, dynamic>;
-        final name = fieldObject['name'] as String;
-        final number = fieldObject['number'] as int;
-        final typeJson = fieldObject['type'];
+      recordDescriptor._variants = bundle.fieldsOrVariants.map((it) {
+        final variantObject = it as Map<String, dynamic>;
+        final name = variantObject['name'] as String;
+        final number = variantObject['number'] as int;
+        final typeJson = variantObject['type'];
         if (typeJson != null) {
           final type = _parseTypeDescriptorImpl(typeJson, recordIdToBundle);
-          return EnumWrapperField(name, number, type);
+          return EnumWrapperVariant(name, number, type);
         } else {
-          return EnumConstantField(name, number);
+          return EnumConstantVariant(name, number);
         }
       });
     }
@@ -56,9 +58,9 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
 
 class _RecordBundle {
   final RecordDescriptor recordDescriptor;
-  final List<dynamic> fields;
+  final List<dynamic> fieldsOrVariants;
 
-  _RecordBundle(this.recordDescriptor, this.fields);
+  _RecordBundle(this.recordDescriptor, this.fieldsOrVariants);
 }
 
 RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
@@ -75,7 +77,7 @@ RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
     case 'struct':
       return StructDescriptor._(recordId, removedNumbers, <StructField>[]);
     case 'enum':
-      return EnumDescriptor._(recordId, removedNumbers, <EnumField>[]);
+      return EnumDescriptor._(recordId, removedNumbers, <EnumVariant>[]);
     default:
       throw ArgumentError('unknown kind: $kind');
   }

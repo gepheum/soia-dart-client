@@ -167,7 +167,7 @@ void main() {
       // Test with empty array which should work
       final restoredFromArray = personSerializer.fromJson(
         [],
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(restoredFromArray, equals(defaultPerson));
     });
@@ -195,7 +195,7 @@ void main() {
       // Test roundtrip
       final restored = personSerializer.fromJson(
         denseJson,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(restored.name, equals(person.name));
       expect(restored.age, equals(person.age));
@@ -233,7 +233,7 @@ void main() {
       // Test roundtrip
       final restored = personSerializer.fromJson(
         readableJson,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(restored.name, equals(person.name));
       expect(restored.age, equals(person.age));

@@ -14,7 +14,7 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
   }
 
   @override
-  bool decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  bool decode(_ByteStream stream, bool keepUnrecognizedValues) {
     return stream.decodeNumber().toInt() != 0;
   }
 
@@ -29,7 +29,7 @@ class _BoolSerializer extends _PrimitiveSerializer<bool> {
   }
 
   @override
-  bool fromJson(dynamic json, bool keepUnrecognizedFields) {
+  bool fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is bool) return json;
     if (json is String) {
       return json != '0' && json != 'false';
@@ -54,7 +54,7 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  int decode(_ByteStream stream, bool keepUnrecognizedValues) {
     return stream.decodeNumber().toInt();
   }
 
@@ -62,7 +62,7 @@ class _Int32Serializer extends _PrimitiveSerializer<int> {
   dynamic toJson(int input, bool readableFlavor) => input.toSigned(32);
 
   @override
-  int fromJson(dynamic json, bool keepUnrecognizedFields) {
+  int fromJson(dynamic json, bool keepUnrecognizedValues) {
     final int number = switch (json) {
       int() => json,
       String() => int.parse(json),
@@ -101,7 +101,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  int decode(_ByteStream stream, bool keepUnrecognizedValues) {
     return stream.decodeNumber().toInt();
   }
 
@@ -113,7 +113,7 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   }
 
   @override
-  int fromJson(dynamic json, bool keepUnrecognizedFields) {
+  int fromJson(dynamic json, bool keepUnrecognizedValues) {
     return switch (json) {
       int() => json,
       String() => int.parse(json),
@@ -173,7 +173,7 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
   }
 
   @override
-  BigInt decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  BigInt decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final intValue = stream.decodeNumber().toInt();
     if (intValue < 0) {
       return BigInt.from(intValue) + twoE64;
@@ -201,7 +201,7 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
   }
 
   @override
-  BigInt fromJson(dynamic json, bool keepUnrecognizedFields) {
+  BigInt fromJson(dynamic json, bool keepUnrecognizedValues) {
     return switch (json) {
       int() => json < 0 ? (BigInt.from(json) + twoE64) : BigInt.from(json),
       String() => BigInt.parse(json),
@@ -241,7 +241,7 @@ class _Float32Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  double decode(_ByteStream stream, bool keepUnrecognizedValues) {
     return stream.decodeNumber().toDouble();
   }
 
@@ -251,7 +251,7 @@ class _Float32Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double fromJson(dynamic json, bool keepUnrecognizedFields) {
+  double fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is double) return json;
     if (json is String) return double.parse(json);
     return (json as num).toDouble();
@@ -293,7 +293,7 @@ class _Float64Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  double decode(_ByteStream stream, bool keepUnrecognizedValues) {
     return stream.decodeNumber().toDouble();
   }
 
@@ -303,7 +303,7 @@ class _Float64Serializer extends _PrimitiveSerializer<double> {
   }
 
   @override
-  double fromJson(dynamic json, bool keepUnrecognizedFields) {
+  double fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is double) return json;
     if (json is String) return double.parse(json);
     return (json as num).toDouble();
@@ -347,7 +347,7 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
   }
 
   @override
-  String decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  String decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final wire = stream.readByte();
     if (wire == 0 || wire == 242) {
       return '';
@@ -364,7 +364,7 @@ class _StringSerializer extends _PrimitiveSerializer<String> {
   dynamic toJson(String input, bool readableFlavor) => input;
 
   @override
-  String fromJson(dynamic json, bool keepUnrecognizedFields) {
+  String fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is String) return json;
     if (json is num && json == 0) return '';
     return json.toString();
@@ -436,7 +436,7 @@ class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
   }
 
   @override
-  ByteString decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  ByteString decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final wire = stream.readByte();
     if (wire == 0 || wire == 244) {
       return ByteString.empty;
@@ -457,7 +457,7 @@ class _BytesSerializer extends _PrimitiveSerializer<ByteString> {
   }
 
   @override
-  ByteString fromJson(dynamic json, bool keepUnrecognizedFields) {
+  ByteString fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is String) {
       if (json.startsWith('hex:')) {
         return ByteString.fromBase16(json.substring(4));
@@ -494,7 +494,7 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   }
 
   @override
-  DateTime decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  DateTime decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final unixMillis = _clampUnixMillis(stream.decodeNumber().toInt());
     return DateTime.fromMillisecondsSinceEpoch(unixMillis, isUtc: true);
   }
@@ -514,7 +514,7 @@ class _TimestampSerializer extends _PrimitiveSerializer<DateTime> {
   }
 
   @override
-  DateTime fromJson(dynamic json, bool keepUnrecognizedFields) {
+  DateTime fromJson(dynamic json, bool keepUnrecognizedValues) {
     late int unixMillis;
     if (json is Map) {
       unixMillis = (json['unix_millis'] as num).toInt();

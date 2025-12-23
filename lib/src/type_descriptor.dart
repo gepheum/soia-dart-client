@@ -252,20 +252,18 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
   ReflectiveArrayDescriptor._();
 }
 
-/// 🪞 Describes a field in a struct or an enum.
-abstract class Field {
-  /// Field name as specified in the `.skir` file, for example 'user_id' or
-  /// 'MONDAY'.
+/// 🪞 Describes a field in a struct or a variant in an enum.
+abstract class FieldOrVariant {
+  /// Name as specified in the `.skir` file, for example 'user_id' or 'MONDAY'.
   String get name;
 
-  /// Unique field number used for serialization.
+  /// Field or variant number used for serialization.
   int get number;
 
-  Field._();
+  FieldOrVariant._();
 }
 
-abstract class _RecordDescriptorBase<F extends Field>
-    implements _TypeDescriptorBase {
+abstract class _RecordDescriptorBase implements _TypeDescriptorBase {
   /// Name of the struct as specified in the `.skir` file.
   String get name;
 
@@ -281,8 +279,11 @@ abstract class _RecordDescriptorBase<F extends Field>
 
   /// The field numbers marked as removed.
   UnmodifiableSetView<int> get removedNumbers;
+}
 
-  /// List of all fields in this record.
+abstract class _StructDescriptorBase<F extends FieldOrVariant>
+    extends _RecordDescriptorBase {
+  /// List of all fields in this struct.
   Iterable<F> get fields;
 
   /// Looks up a field by name.
@@ -292,35 +293,32 @@ abstract class _RecordDescriptorBase<F extends Field>
   F? getFieldByNumber(int number);
 }
 
-String _getRecordId<F extends Field>(_RecordDescriptorBase<F> record) {
+abstract class _EnumDescriptorBase<V extends FieldOrVariant>
+    extends _RecordDescriptorBase {
+  /// List of all variants in this enum.
+  Iterable<V> get variants;
+
+  /// Looks up a variant by name.
+  V? getVariantByName(String name);
+
+  /// Looks up a variant by number.
+  V? getVariantByNumber(int number);
+}
+
+String _getRecordId(_RecordDescriptorBase record) {
   return '${record.modulePath}:${record.qualifiedName}';
 }
 
 /// 🪞 Describes a record type (struct or enum).
-sealed class RecordDescriptor<F extends Field> extends TypeDescriptor
-    implements _RecordDescriptorBase<F> {
-  Map<String, F>? _nameToField;
-  Map<int, F>? _numberToField;
-
-  @override
-  F? getFieldByName(String name) {
-    _nameToField ??= {for (var f in fields) f.name: f};
-    return _nameToField![name];
-  }
-
-  @override
-  F? getFieldByNumber(int number) {
-    _numberToField ??= {for (var f in fields) f.number: f};
-    return _numberToField![number];
-  }
-}
+sealed class RecordDescriptor extends TypeDescriptor
+    implements _RecordDescriptorBase {}
 
 /// 🪞 Describes a skir record: struct or enum.
-sealed class ReflectiveRecordDescriptor<T, F extends Field>
-    extends ReflectiveTypeDescriptor<T> implements _RecordDescriptorBase<F> {}
+sealed class ReflectiveRecordDescriptor<T> extends ReflectiveTypeDescriptor<T>
+    implements _RecordDescriptorBase {}
 
 abstract class _StructFieldBase<T extends _TypeDescriptorBase>
-    implements Field {
+    implements FieldOrVariant {
   /// Describes the field type.
   T get type;
 }
@@ -366,7 +364,8 @@ abstract class ReflectiveStructField<Frozen, Mutable, Value>
 }
 
 /// 🪞 Describes a skir struct.
-class StructDescriptor extends RecordDescriptor<StructField> {
+class StructDescriptor extends RecordDescriptor
+    implements _StructDescriptorBase<StructField> {
   final _RecordId _recordId;
 
   @override
@@ -387,12 +386,28 @@ class StructDescriptor extends RecordDescriptor<StructField> {
 
   @override
   String get modulePath => _recordId.modulePath;
+
+  @override
+  StructField? getFieldByName(String name) {
+    _nameToField ??= {for (var f in fields) f.name: f};
+    return _nameToField![name];
+  }
+
+  @override
+  StructField? getFieldByNumber(int number) {
+    _numberToField ??= {for (var f in fields) f.number: f};
+    return _numberToField![number];
+  }
+
+  Map<String, StructField>? _nameToField;
+  Map<int, StructField>? _numberToField;
 }
 
 /// 🪞 Describes a skir struct.
 abstract class ReflectiveStructDescriptor<Frozen, Mutable>
-    extends ReflectiveRecordDescriptor<Frozen,
-        ReflectiveStructField<Frozen, Mutable, dynamic>> {
+    extends ReflectiveRecordDescriptor<Frozen>
+    implements
+        _StructDescriptorBase<ReflectiveStructField<Frozen, Mutable, dynamic>> {
   /// Returns a new instance of the generated mutable class for a struct.
   /// Performs a shallow copy of `initializer` if `initializer` is specified.
   Mutable newMutable([Frozen? initializer]);
@@ -410,17 +425,33 @@ abstract class ReflectiveStructDescriptor<Frozen, Mutable>
     return toFrozen(mutable);
   }
 
+  @override
+  ReflectiveStructField<Frozen, Mutable, dynamic>? getFieldByName(String name) {
+    _nameToField ??= {for (var f in fields) f.name: f};
+    return _nameToField![name];
+  }
+
+  @override
+  ReflectiveStructField<Frozen, Mutable, dynamic>? getFieldByNumber(
+      int number) {
+    _numberToField ??= {for (var f in fields) f.number: f};
+    return _numberToField![number];
+  }
+
+  Map<String, ReflectiveStructField<Frozen, Mutable, dynamic>>? _nameToField;
+  Map<int, ReflectiveStructField<Frozen, Mutable, dynamic>>? _numberToField;
+
   ReflectiveStructDescriptor._();
 }
 
-/// 🪞 Describes a field in an enum.
-sealed class EnumField implements Field {}
+/// 🪞 Describes a variant in an enum.
+sealed class EnumVariant implements FieldOrVariant {}
 
-/// 🪞 Describes a field in an enum.
-sealed class ReflectiveEnumField<E> implements Field {}
+/// 🪞 Describes a variant in an enum.
+sealed class ReflectiveEnumVariant<E> implements FieldOrVariant {}
 
-/// 🪞 Describes an enum constant field.
-class EnumConstantField implements EnumField {
+/// 🪞 Describes an enum constant variant.
+class EnumConstantVariant implements EnumVariant {
   /// The field name.
   @override
   final String name;
@@ -429,32 +460,32 @@ class EnumConstantField implements EnumField {
   @override
   final int number;
 
-  EnumConstantField(this.name, this.number);
+  EnumConstantVariant(this.name, this.number);
 }
 
-/// 🪞 Describes an enum constant field.
-abstract class ReflectiveEnumConstantField<E>
-    implements ReflectiveEnumField<E> {
-  /// The constant value represented by this field.
+/// 🪞 Describes an enum constant variant.
+abstract class ReflectiveEnumConstantVariant<E>
+    implements ReflectiveEnumVariant<E> {
+  /// The constant value represented by this variant.
   E get constant;
 
-  ReflectiveEnumConstantField._();
+  ReflectiveEnumConstantVariant._();
 }
 
-abstract class _EnumWrapperFieldBase<T extends _TypeDescriptorBase>
-    implements Field {
-  /// The type of the value associated with this enum field.
+abstract class _EnumWrapperVariantBase<T extends _TypeDescriptorBase>
+    implements FieldOrVariant {
+  /// The type of the value associated with this enum variant.
   T get type;
 }
 
-/// 🪞 Describes an enum wrapper field.
-class EnumWrapperField
-    implements EnumField, _EnumWrapperFieldBase<TypeDescriptor> {
-  /// The field name.
+/// 🪞 Describes an enum wrapper variant.
+class EnumWrapperVariant
+    implements EnumVariant, _EnumWrapperVariantBase<TypeDescriptor> {
+  /// The variant name.
   @override
   final String name;
 
-  /// The field number.
+  /// The variant number.
   @override
   final int number;
 
@@ -462,19 +493,20 @@ class EnumWrapperField
   @override
   final TypeDescriptor type;
 
-  EnumWrapperField(this.name, this.number, this.type);
+  EnumWrapperVariant(this.name, this.number, this.type);
 }
 
 /// 🪞 Describes an enum wrapper field.
-abstract class ReflectiveEnumWrapperField<E, Value>
+abstract class ReflectiveEnumWrapperVariant<E, Value>
     implements
-        ReflectiveEnumField<E>,
-        _EnumWrapperFieldBase<ReflectiveTypeDescriptor<Value>> {
-  /// Returns whether the variant of the given enum instance matches this field.
+        ReflectiveEnumVariant<E>,
+        _EnumWrapperVariantBase<ReflectiveTypeDescriptor<Value>> {
+  /// Returns whether the variant of the given enum instance matches this
+  /// variant.
   bool test(E e);
 
   /// Extracts the value held by the given enum instance assuming its variant
-  /// matches this field. Throws an exception if `test(e)` is false.
+  /// matches this variant. Throws an exception if `test(e)` is false.
   Value get(E e);
 
   /// Returns a new enum instance holding the given value.
@@ -484,26 +516,23 @@ abstract class ReflectiveEnumWrapperField<E, Value>
   /// wrapping around it. Throws an exception if `test(e)` is false.
   E mapValue(E e, ReflectiveTransformer transformer);
 
-  ReflectiveEnumWrapperField._();
+  ReflectiveEnumWrapperVariant._();
 }
 
-abstract class _EnumDescriptorBase<F extends Field>
-    implements _RecordDescriptorBase<F> {}
-
 /// 🪞 Describes a skir enum.
-class EnumDescriptor extends RecordDescriptor<EnumField>
-    implements _EnumDescriptorBase<EnumField> {
+class EnumDescriptor extends RecordDescriptor
+    implements _EnumDescriptorBase<EnumVariant> {
   final _RecordId _recordId;
 
   @override
   final UnmodifiableSetView<int> removedNumbers;
 
-  Iterable<EnumField> _fields;
+  Iterable<EnumVariant> _variants;
 
   @override
-  Iterable<EnumField> get fields => _fields;
+  Iterable<EnumVariant> get variants => _variants;
 
-  EnumDescriptor._(this._recordId, this.removedNumbers, this._fields);
+  EnumDescriptor._(this._recordId, this.removedNumbers, this._variants);
 
   @override
   String get name => _recordId.name;
@@ -513,25 +542,55 @@ class EnumDescriptor extends RecordDescriptor<EnumField>
 
   @override
   String get modulePath => _recordId.modulePath;
+
+  @override
+  EnumVariant? getVariantByName(String name) {
+    _nameToVariant ??= {for (var v in variants) v.name: v};
+    return _nameToVariant![name];
+  }
+
+  @override
+  EnumVariant? getVariantByNumber(int number) {
+    _numberToVariant ??= {for (var v in variants) v.number: v};
+    return _numberToVariant![number];
+  }
+
+  Map<String, EnumVariant>? _nameToVariant;
+  Map<int, EnumVariant>? _numberToVariant;
 }
 
 /// 🪞 Describes a skir enum.
-abstract class ReflectiveEnumDescriptor<E>
-    extends ReflectiveRecordDescriptor<E, ReflectiveEnumField<E>> {
-  /// Looks up the field corresponding to the given instance of Enum.
-  ReflectiveEnumField<E> getField(E e);
+abstract class ReflectiveEnumDescriptor<E> extends ReflectiveRecordDescriptor<E>
+    implements _EnumDescriptorBase<ReflectiveEnumVariant<E>> {
+  /// Looks up the variant corresponding to the given instance of Enum.
+  ReflectiveEnumVariant<E> getVariant(E e);
 
   /// If [e] holds a value (wrapper variant), extracts the value, transforms it
   /// and returns a new enum instance wrapping around it.
   /// Otherwise, returns [e] unchanged.
   E mapValue(E e, ReflectiveTransformer transformer) {
-    final field = getField(e);
-    if (field is ReflectiveEnumWrapperField<E, dynamic>) {
-      return field.mapValue(e, transformer);
+    final variant = getVariant(e);
+    if (variant is ReflectiveEnumWrapperVariant<E, dynamic>) {
+      return variant.mapValue(e, transformer);
     } else {
       return e;
     }
   }
+
+  @override
+  ReflectiveEnumVariant<E>? getVariantByName(String name) {
+    _nameToVariant ??= {for (var v in variants) v.name: v};
+    return _nameToVariant![name];
+  }
+
+  @override
+  ReflectiveEnumVariant<E>? getVariantByNumber(int number) {
+    _numberToVariant ??= {for (var v in variants) v.number: v};
+    return _numberToVariant![number];
+  }
+
+  Map<String, ReflectiveEnumVariant<E>>? _nameToVariant;
+  Map<int, ReflectiveEnumVariant<E>>? _numberToVariant;
 
   ReflectiveEnumDescriptor._();
 }
@@ -580,15 +639,15 @@ TypeDescriptor _notReflectiveImpl(
           [],
         );
         inProgress![reflective] = result;
-        result._fields = reflective.fields.map((f) {
-          if (f is ReflectiveEnumWrapperField) {
-            return EnumWrapperField(
-              f.name,
-              f.number,
-              _notReflectiveImpl(f.type, inProgress),
+        result._variants = reflective.variants.map((v) {
+          if (v is ReflectiveEnumWrapperVariant) {
+            return EnumWrapperVariant(
+              v.name,
+              v.number,
+              _notReflectiveImpl(v.type, inProgress),
             );
           } else {
-            return EnumConstantField(f.name, f.number);
+            return EnumConstantVariant(v.name, v.number);
           }
         }).toList();
         return result;
@@ -705,14 +764,14 @@ void _addRecordDefinitions(
     final recordDefinition = {
       'kind': 'enum',
       'id': recordId,
-      'fields': typeDescriptor.fields.map((f) {
-        if (f is EnumWrapperField) {
+      'variants': typeDescriptor.variants.map((f) {
+        if (f is EnumWrapperVariant) {
           return {
             'name': f.name,
             'number': f.number,
             'type': _getTypeSignature(f.type),
           };
-        } else if (f is EnumConstantField) {
+        } else if (f is EnumConstantVariant) {
           return {'name': f.name, 'number': f.number};
         }
         throw ArgumentError('Unknown enum field type: $f');
@@ -725,9 +784,9 @@ void _addRecordDefinitions(
     }
     recordIdToDefinition[recordId] = recordDefinition;
 
-    for (final field in typeDescriptor.fields) {
-      if (field is EnumWrapperField) {
-        _addRecordDefinitions(field.type, recordIdToDefinition);
+    for (final variant in typeDescriptor.variants) {
+      if (variant is EnumWrapperVariant) {
+        _addRecordDefinitions(variant.type, recordIdToDefinition);
       }
     }
   }

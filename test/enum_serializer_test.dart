@@ -120,10 +120,10 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      colorEnumBuilder.addConstantField(1, 'red', 'red', colorRed);
-      colorEnumBuilder.addConstantField(2, 'green', 'green', colorGreen);
-      colorEnumBuilder.addConstantField(3, 'blue', 'blue', colorBlue);
-      colorEnumBuilder.addWrapperField<ColorCustomOption, int>(
+      colorEnumBuilder.addConstantVariant(1, 'red', 'red', colorRed);
+      colorEnumBuilder.addConstantVariant(2, 'green', 'green', colorGreen);
+      colorEnumBuilder.addConstantVariant(3, 'blue', 'blue', colorBlue);
+      colorEnumBuilder.addWrapperVariant<ColorCustomOption, int>(
         4,
         'custom',
         'wrapCustom',
@@ -146,14 +146,15 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      statusEnumBuilder.addConstantField(1, 'active', 'active', StatusActive());
-      statusEnumBuilder.addConstantField(
+      statusEnumBuilder.addConstantVariant(
+          1, 'active', 'active', StatusActive());
+      statusEnumBuilder.addConstantVariant(
         2,
         'inactive',
         'inactive',
         StatusInactive(),
       );
-      statusEnumBuilder.addWrapperField<StatusPendingOption, String>(
+      statusEnumBuilder.addWrapperVariant<StatusPendingOption, String>(
         3,
         'pending',
         'pending',
@@ -184,15 +185,15 @@ void main() {
 
       // Test deserialization from dense format
       expect(
-        colorSerializer.fromJson(1, keepUnrecognizedFields: false),
+        colorSerializer.fromJson(1, keepUnrecognizedValues: false),
         isA<ColorRed>(),
       );
       expect(
-        colorSerializer.fromJson(2, keepUnrecognizedFields: false),
+        colorSerializer.fromJson(2, keepUnrecognizedValues: false),
         isA<ColorGreen>(),
       );
       expect(
-        colorSerializer.fromJson(3, keepUnrecognizedFields: false),
+        colorSerializer.fromJson(3, keepUnrecognizedValues: false),
         isA<ColorBlue>(),
       );
     });
@@ -213,15 +214,15 @@ void main() {
 
       // Test deserialization from readable format
       expect(
-        colorSerializer.fromJson('red', keepUnrecognizedFields: false),
+        colorSerializer.fromJson('red', keepUnrecognizedValues: false),
         isA<ColorRed>(),
       );
       expect(
-        colorSerializer.fromJson('green', keepUnrecognizedFields: false),
+        colorSerializer.fromJson('green', keepUnrecognizedValues: false),
         isA<ColorGreen>(),
       );
       expect(
-        colorSerializer.fromJson('blue', keepUnrecognizedFields: false),
+        colorSerializer.fromJson('blue', keepUnrecognizedValues: false),
         isA<ColorBlue>(),
       );
     });
@@ -244,7 +245,7 @@ void main() {
       // Test deserialization from dense format
       final restored = colorSerializer.fromJson(
         jsonArray,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(restored, isA<ColorCustomOption>());
       expect((restored as ColorCustomOption).rgb, equals(0xFF0000));
@@ -268,7 +269,7 @@ void main() {
       // Test deserialization from readable format
       final restored = colorSerializer.fromJson(
         jsonObject,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(restored, isA<ColorCustomOption>());
       expect((restored as ColorCustomOption).rgb, equals(0x00FF00));
@@ -308,14 +309,14 @@ void main() {
       // Test unknown constant number
       final unknownConstant = colorSerializer.fromJson(
         99,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(unknownConstant, isA<ColorUnknown>());
 
       // Test unknown field name
       final unknownName = colorSerializer.fromJson(
         'purple',
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(unknownName, isA<ColorUnknown>());
 
@@ -323,25 +324,25 @@ void main() {
       final unknownValue = colorSerializer.fromJson([
         99,
         123,
-      ], keepUnrecognizedFields: false);
+      ], keepUnrecognizedValues: false);
       expect(unknownValue, isA<ColorUnknown>());
     });
 
     test('enum serializer - unknown values with keeping unrecognized', () {
-      // Test unknown constant number with keepUnrecognizedFields = true
+      // Test unknown constant number with keepUnrecognizedValues = true
       final unknownConstant = colorSerializer.fromJson(
         99,
-        keepUnrecognizedFields: true,
+        keepUnrecognizedValues: true,
       );
       expect(unknownConstant, isA<ColorUnknown>());
       final unknownEnum = (unknownConstant as ColorUnknown).unrecognized;
       expect(unknownEnum, isNotNull);
 
-      // Test unknown wrapper field with keepUnrecognizedFields = true
+      // Test unknown wrapper field with keepUnrecognizedValues = true
       final unknownValueJson = [99, 123];
       final unknownValue = colorSerializer.fromJson(
         unknownValueJson,
-        keepUnrecognizedFields: true,
+        keepUnrecognizedValues: true,
       );
       expect(unknownValue, isA<ColorUnknown>());
       final unknownValueEnum = (unknownValue as ColorUnknown).unrecognized;
@@ -352,7 +353,7 @@ void main() {
       // Test accessing a removed field (should return unknown)
       final removedField = statusSerializer.fromJson(
         4,
-        keepUnrecognizedFields: false,
+        keepUnrecognizedValues: false,
       );
       expect(removedField, isA<StatusUnknown>());
     });
@@ -436,12 +437,13 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testEnumBuilder.addConstantField(1, 'test', 'test', colorRed);
+      testEnumBuilder.addConstantVariant(1, 'test', 'test', colorRed);
       testEnumBuilder.finalize();
 
       // Adding fields after finalization should throw
       expect(
-        () => testEnumBuilder.addConstantField(2, 'test2', 'test2', colorGreen),
+        () =>
+            testEnumBuilder.addConstantVariant(2, 'test2', 'test2', colorGreen),
         throwsStateError,
       );
 
@@ -601,7 +603,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      builder.addConstantField(1, 'red', 'red', colorRed);
+      builder.addConstantVariant(1, 'red', 'red', colorRed);
       builder.finalize();
 
       final serializer = builder.serializer;
@@ -624,10 +626,10 @@ void main() {
       );
 
       // Should be able to add constants before finalization
-      builder.addConstantField(1, 'red', 'red', colorRed);
+      builder.addConstantVariant(1, 'red', 'red', colorRed);
 
       // Should be able to add wrapper fields before finalization
-      builder.addWrapperField<ColorCustomOption, int>(
+      builder.addWrapperVariant<ColorCustomOption, int>(
         ColorKind.custom.ordinal,
         'custom',
         'custom',
@@ -653,13 +655,13 @@ void main() {
 
       // Should not be able to add constants after finalization
       expect(
-        () => builder.addConstantField(2, 'green', 'green', colorGreen),
+        () => builder.addConstantVariant(2, 'green', 'green', colorGreen),
         throwsStateError,
       );
 
       // Should not be able to add wrapper fields after finalization
       expect(
-        () => builder.addWrapperField<ColorCustomOption, int>(
+        () => builder.addWrapperVariant<ColorCustomOption, int>(
           4,
           'custom2',
           'custom2',
@@ -709,7 +711,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testBuilder.addConstantField(1, 'red', 'red', colorRed);
+      testBuilder.addConstantVariant(1, 'red', 'red', colorRed);
       testBuilder.finalize();
 
       final testSerializer = testBuilder.serializer;

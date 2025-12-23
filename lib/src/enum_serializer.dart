@@ -31,7 +31,7 @@ class internal__EnumSerializerBuilder<Enum> {
     final impl = _EnumSerializerImpl._(
       recordId,
       dartClassName,
-      _EnumUnknownField<Enum>(
+      _EnumUnknownVariant<Enum>(
         unknownInstance,
         wrapUnrecognized,
         (Enum e) => e is Unknown ? getUnrecognized(e) : null,
@@ -54,16 +54,16 @@ class internal__EnumSerializerBuilder<Enum> {
     }
   }
 
-  void addConstantField(
+  void addConstantVariant(
     int number,
     String name,
     String dartName,
     Enum instance,
   ) {
-    _impl.addConstantField(number, name, dartName, instance);
+    _impl.addConstantVariant(number, name, dartName, instance);
   }
 
-  void addWrapperField<Wrapper extends Enum, Value>(
+  void addWrapperVariant<Wrapper extends Enum, Value>(
     int number,
     String name,
     String dartName,
@@ -72,7 +72,7 @@ class internal__EnumSerializerBuilder<Enum> {
     Value Function(Wrapper) getValue, {
     required int ordinal,
   }) {
-    _impl.addWrapperField<Wrapper, Value>(
+    _impl.addWrapperVariant<Wrapper, Value>(
       number,
       name,
       dartName,
@@ -97,7 +97,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     implements _SerializerImpl<E> {
   final _RecordId recordId;
   final String dartClassName;
-  final _EnumUnknownField<E> unknown;
+  final _EnumUnknownVariant<E> unknown;
   final int Function(E) getOrdinal;
 
   _EnumSerializerImpl._(
@@ -117,17 +117,18 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   @override
   String get modulePath => recordId.modulePath;
 
-  void addConstantField(int number, String name, String dartName, E instance) {
+  void addConstantVariant(
+      int number, String name, String dartName, E instance) {
     checkNotFinalized();
     final ordinal = getOrdinal(instance);
     final asString = '${dartClassName}.${dartName}';
-    addFieldImpl(
+    addVariantImpl(
       ordinal: ordinal,
-      field: _EnumConstantField<E>(number, name, instance, asString),
+      variant: _EnumConstantVariant<E>(number, name, instance, asString),
     );
   }
 
-  void addWrapperField<W extends E, V>(
+  void addWrapperVariant<W extends E, V>(
     int number,
     String name,
     String dartName,
@@ -138,9 +139,9 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   }) {
     checkNotFinalized();
     final wrapFunctionName = '${dartClassName}.${dartName}';
-    addFieldImpl(
+    addVariantImpl(
       ordinal: ordinal,
-      field: _WrapperField<E, W, V>(
+      variant: _WrapperVariant<E, W, V>(
         number,
         name,
         valueSerializer,
@@ -154,17 +155,17 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   void addRemovedNumber(int number) {
     checkNotFinalized();
     mutableRemovedNumbers.add(number);
-    numberToField[number] = _EnumRemovedNumber<E>(number);
+    numberToVariant[number] = _EnumRemovedNumber<E>(number);
   }
 
   void finalize() {
     checkNotFinalized();
-    addFieldImpl(ordinal: 0, field: unknown);
-    // Create fieldArray from ordinalToField
+    addVariantImpl(ordinal: 0, variant: unknown);
+    // Create variantArray from ordinalToVariant
     for (int ordinal = 0;; ++ordinal) {
-      final field = ordinalToField[ordinal];
-      if (field != null) {
-        fieldArray.add(field);
+      final variant = ordinalToVariant[ordinal];
+      if (variant != null) {
+        variantArray.add(variant);
       } else {
         break;
       }
@@ -178,20 +179,21 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     }
   }
 
-  void addFieldImpl({required int ordinal, required _EnumField<E> field}) {
-    mutableFields.add(field);
-    numberToField[field.number] = field;
-    ordinalToField[ordinal] = field;
-    nameToField[field.name] = field;
+  void addVariantImpl(
+      {required int ordinal, required _EnumVariant<E> variant}) {
+    mutableVariants.add(variant);
+    numberToVariant[variant.number] = variant;
+    ordinalToVariant[ordinal] = variant;
+    nameToVariant[variant.name] = variant;
   }
 
-  final List<_EnumField<E>> mutableFields = [];
+  final List<_EnumVariant<E>> mutableVariants = [];
   final Set<int> mutableRemovedNumbers = <int>{};
-  final Map<int, _EnumFieldOrRemovedNumber<E>> numberToField = {};
-  final Map<int, _EnumField<E>> ordinalToField = {};
-  final Map<String, _EnumField<E>> nameToField = {};
+  final Map<int, _EnumVariantOrRemovedNumber<E>> numberToVariant = {};
+  final Map<int, _EnumVariant<E>> ordinalToVariant = {};
+  final Map<String, _EnumVariant<E>> nameToVariant = {};
   // The index is the ordinal
-  var fieldArray = <_EnumField<E>?>[];
+  var variantArray = <_EnumVariant<E>?>[];
   bool finalized = false;
 
   @override
@@ -199,26 +201,26 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
-    final field = fieldArray[getOrdinal(input)]!;
-    return field.toJson(input, readableFlavor);
+    final variant = variantArray[getOrdinal(input)]!;
+    return variant.toJson(input, readableFlavor);
   }
 
   @override
-  E fromJson(dynamic json, bool keepUnrecognizedFields) {
+  E fromJson(dynamic json, bool keepUnrecognizedValues) {
     if (json is int || (json is String && int.tryParse(json) != null)) {
       final number = json is int ? json : int.parse(json);
-      final field = numberToField[number];
-      switch (field) {
-        case _EnumUnknownField():
+      final variant = numberToVariant[number];
+      switch (variant) {
+        case _EnumUnknownVariant():
           return unknown.constant;
-        case _EnumConstantField():
-          return field.constant;
+        case _EnumConstantVariant():
+          return variant.constant;
         case _EnumRemovedNumber():
           return unknown.constant;
-        case _WrapperField():
-          throw ArgumentError('$number refers to a wrapper field');
+        case _WrapperVariant():
+          throw ArgumentError('$number refers to a wrapper variant');
         default:
-          if (keepUnrecognizedFields) {
+          if (keepUnrecognizedValues) {
             return unknown.wrapUnrecognized(
               internal__UnrecognizedEnum._fromJson(json),
             );
@@ -227,9 +229,9 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
           }
       }
     } else if (json is String) {
-      final field = nameToField[json];
-      if (field is _EnumConstantField<E>) {
-        return field.constant;
+      final variant = nameToVariant[json];
+      if (variant is _EnumConstantVariant<E>) {
+        return variant.constant;
       } else {
         return unknown.constant;
       }
@@ -238,14 +240,14 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       final number =
           first is int ? first : (first is String ? int.tryParse(first) : null);
       if (number != null) {
-        final field = numberToField[number];
-        if (field is _WrapperField<E, dynamic, dynamic>) {
+        final variant = numberToVariant[number];
+        if (variant is _WrapperVariant<E, dynamic, dynamic>) {
           final second = json[1];
-          return field.wrapFromJson(second, keepUnrecognizedFields);
-        } else if (field is _EnumRemovedNumber<E>) {
+          return variant.wrapFromJson(second, keepUnrecognizedValues);
+        } else if (variant is _EnumRemovedNumber<E>) {
           return unknown.constant;
         } else {
-          if (keepUnrecognizedFields) {
+          if (keepUnrecognizedValues) {
             return unknown.wrapUnrecognized(
               internal__UnrecognizedEnum._fromJson(json),
             );
@@ -258,9 +260,9 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       final name = json['kind'] as String?;
       final value = json['value'];
       if (name != null && value != null) {
-        final field = nameToField[name];
-        if (field is _WrapperField<E, dynamic, dynamic>) {
-          return field.wrapFromJson(value, keepUnrecognizedFields);
+        final variant = nameToVariant[name];
+        if (variant is _WrapperVariant<E, dynamic, dynamic>) {
+          return variant.wrapFromJson(value, keepUnrecognizedValues);
         }
       }
     }
@@ -269,12 +271,12 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   void encode(E input, Uint8Buffer buffer) {
-    final field = fieldArray[getOrdinal(input)]!;
-    field.encode(input, buffer);
+    final variant = variantArray[getOrdinal(input)]!;
+    variant.encode(input, buffer);
   }
 
   @override
-  E decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  E decode(_ByteStream stream, bool keepUnrecognizedValues) {
     final wire = stream.readByte();
     late E result;
 
@@ -289,18 +291,18 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         startPosition = --stream.position;
         number = stream.decodeNumber().toInt();
       }
-      final field = numberToField[number];
+      final variant = numberToVariant[number];
 
-      switch (field) {
-        case _EnumConstantField():
-          result = field.constant;
+      switch (variant) {
+        case _EnumConstantVariant():
+          result = variant.constant;
         case _EnumRemovedNumber():
           result = unknown.constant;
-        case _WrapperField():
-          throw ArgumentError('$number refers to a wrapper field');
+        case _WrapperVariant():
+          throw ArgumentError('$number refers to a wrapper variant');
         default:
           {
-            if (keepUnrecognizedFields) {
+            if (keepUnrecognizedValues) {
               // Capture the bytes for the unknown enum
               final unrecognizedBytes = stream.bytes.sublist(
                 startPosition,
@@ -317,17 +319,17 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     } else {
       final startPosition = stream.position - 1;
       final number = wire == 248 ? stream.decodeNumber().toInt() : wire - 250;
-      final field = numberToField[number];
+      final variant = numberToVariant[number];
 
-      if (field is _WrapperField<E, dynamic, dynamic>) {
-        result = field.wrapDecoded(stream, keepUnrecognizedFields);
-      } else if (field is _EnumRemovedNumber<E>) {
+      if (variant is _WrapperVariant<E, dynamic, dynamic>) {
+        result = variant.wrapDecoded(stream, keepUnrecognizedValues);
+      } else if (variant is _EnumRemovedNumber<E>) {
         stream.decodeUnused();
         result = unknown.constant;
       } else {
         stream.decodeUnused();
-        if (keepUnrecognizedFields) {
-          // For unknown wrapper fields, we'll just return the unknown constant
+        if (keepUnrecognizedValues) {
+          // For unknown wrapper variants, we'll just return the unknown constant
           // since reconstructing the full bytes is complex
           final unrecognizedBytes = stream.bytes.sublist(
             startPosition,
@@ -347,14 +349,14 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
 
   @override
   void appendString(E input, StringBuffer out, String eolIndent) {
-    final field = fieldArray[getOrdinal(input)]!;
-    field.appendString(input, out, eolIndent);
+    final variant = variantArray[getOrdinal(input)]!;
+    variant.appendString(input, out, eolIndent);
   }
 
   @override
-  Iterable<ReflectiveEnumField<E>> get fields => mutableFields
+  Iterable<ReflectiveEnumVariant<E>> get variants => mutableVariants
       .where((f) => f.number != 0)
-      .map((f) => f.asField)
+      .map((f) => f.asVariant)
       .toList(growable: false);
 
   @override
@@ -362,23 +364,23 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
       UnmodifiableSetView(mutableRemovedNumbers);
 
   @override
-  ReflectiveEnumField<E>? getFieldByName(String name) =>
-      nameToField[name]?.asField;
+  ReflectiveEnumVariant<E>? getVariantByName(String name) =>
+      nameToVariant[name]?.asVariant;
 
   @override
-  ReflectiveEnumField<E>? getFieldByNumber(int number) {
-    final field = numberToField[number];
-    return switch (field) {
-      _EnumField<E> f => f.asField,
+  ReflectiveEnumVariant<E>? getVariantByNumber(int number) {
+    final variant = numberToVariant[number];
+    return switch (variant) {
+      _EnumVariant<E> f => f.asVariant,
       _EnumRemovedNumber<E>() => null,
       null => null,
     };
   }
 
   @override
-  ReflectiveEnumField<E> getField(E e) {
-    final field = fieldArray[getOrdinal(e)]!;
-    return field.asField;
+  ReflectiveEnumVariant<E> getVariant(E e) {
+    final variant = variantArray[getOrdinal(e)]!;
+    return variant.asVariant;
   }
 
   @override
@@ -388,34 +390,34 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   ReflectiveTypeDescriptor<E> get typeDescriptor => this;
 }
 
-// Abstract base class for enum field implementations
-sealed class _EnumFieldOrRemovedNumber<E> {
+// Abstract base class for enum variant implementations
+sealed class _EnumVariantOrRemovedNumber<E> {
   int get number;
 }
 
-sealed class _EnumField<E> extends _EnumFieldOrRemovedNumber<E>
-    implements Field {
+sealed class _EnumVariant<E> extends _EnumVariantOrRemovedNumber<E>
+    implements FieldOrVariant {
   @override
   final String name;
 
-  _EnumField(this.name);
+  _EnumVariant(this.name);
 
-  ReflectiveEnumField<E> get asField;
+  ReflectiveEnumVariant<E> get asVariant;
 
   dynamic toJson(E input, bool readableFlavor);
   void encode(E input, Uint8Buffer buffer);
   void appendString(E input, StringBuffer out, String eolIndent);
 }
 
-class _EnumUnknownField<E> extends _EnumField<E>
-    implements ReflectiveEnumConstantField<E> {
+class _EnumUnknownVariant<E> extends _EnumVariant<E>
+    implements ReflectiveEnumConstantVariant<E> {
   @override
   final E constant;
   final E Function(internal__UnrecognizedEnum) wrapUnrecognized;
   final internal__UnrecognizedEnum? Function(E) getUnrecognized;
   final String asString;
 
-  _EnumUnknownField(
+  _EnumUnknownVariant(
     this.constant,
     this.wrapUnrecognized,
     this.getUnrecognized,
@@ -425,7 +427,7 @@ class _EnumUnknownField<E> extends _EnumField<E>
   @override
   int get number => 0;
 
-  ReflectiveEnumField<E> get asField => this;
+  ReflectiveEnumVariant<E> get asVariant => this;
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
@@ -453,18 +455,18 @@ class _EnumUnknownField<E> extends _EnumField<E>
   }
 }
 
-class _EnumConstantField<E> extends _EnumField<E>
-    implements ReflectiveEnumConstantField<E> {
+class _EnumConstantVariant<E> extends _EnumVariant<E>
+    implements ReflectiveEnumConstantVariant<E> {
   @override
   final int number;
   @override
   final E constant;
   final String asString;
 
-  _EnumConstantField(this.number, String name, this.constant, this.asString)
+  _EnumConstantVariant(this.number, String name, this.constant, this.asString)
       : super(name);
 
-  ReflectiveEnumField<E> get asField => this;
+  ReflectiveEnumVariant<E> get asVariant => this;
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
@@ -483,10 +485,10 @@ class _EnumConstantField<E> extends _EnumField<E>
 }
 
 // E: enum type
-// W: wrapped enum type (for wrapper fields)
+// W: wrapped enum type (for wrapper variants)
 // V: value type
-class _WrapperField<E, W extends E, V> extends _EnumField<E>
-    implements ReflectiveEnumWrapperField<E, V> {
+class _WrapperVariant<E, W extends E, V> extends _EnumVariant<E>
+    implements ReflectiveEnumWrapperVariant<E, V> {
   @override
   final int number;
   final Serializer<V> valueSerializer;
@@ -494,7 +496,7 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
   final V Function(W) getValue;
   final String wrapFunctionName;
 
-  _WrapperField(
+  _WrapperVariant(
     this.number,
     String name,
     this.valueSerializer,
@@ -503,7 +505,7 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
     this.wrapFunctionName,
   ) : super(name);
 
-  ReflectiveEnumField<E> get asField => this;
+  ReflectiveEnumVariant<E> get asVariant => this;
 
   @override
   dynamic toJson(E input, bool readableFlavor) {
@@ -563,21 +565,21 @@ class _WrapperField<E, W extends E, V> extends _EnumField<E>
     }
   }
 
-  W wrapFromJson(dynamic json, bool keepUnrecognizedFields) {
+  W wrapFromJson(dynamic json, bool keepUnrecognizedValues) {
     final value = valueSerializer.fromJson(
       json,
-      keepUnrecognizedFields: keepUnrecognizedFields,
+      keepUnrecognizedValues: keepUnrecognizedValues,
     );
     return wrap(value);
   }
 
-  W wrapDecoded(_ByteStream stream, bool keepUnrecognizedFields) {
-    final value = valueSerializer._impl.decode(stream, keepUnrecognizedFields);
+  W wrapDecoded(_ByteStream stream, bool keepUnrecognizedValues) {
+    final value = valueSerializer._impl.decode(stream, keepUnrecognizedValues);
     return wrap(value);
   }
 }
 
-class _EnumRemovedNumber<E> extends _EnumFieldOrRemovedNumber<E> {
+class _EnumRemovedNumber<E> extends _EnumVariantOrRemovedNumber<E> {
   @override
   final int number;
 

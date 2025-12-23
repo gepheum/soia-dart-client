@@ -49,22 +49,22 @@ class Serializer<T> {
   /// Deserializes an object from its JSON representation.
   /// Works with both dense and readable JSON flavors.
   ///
-  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in JSON format (dense
   /// flavor), the unrecognized fields will be present in the serialized form.
-  T fromJson(dynamic json, {bool keepUnrecognizedFields = false}) {
-    return _impl.fromJson(json, keepUnrecognizedFields);
+  T fromJson(dynamic json, {bool keepUnrecognizedValues = false}) {
+    return _impl.fromJson(json, keepUnrecognizedValues);
   }
 
   /// Deserializes an object from its stringified JSON representation.
   /// Works with both dense and readable JSON flavors.
   ///
-  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in JSON format (dense
   /// flavor), the unrecognized fields will be present in the serialized form.
-  T fromJsonCode(String jsonCode, {bool keepUnrecognizedFields = false}) {
+  T fromJsonCode(String jsonCode, {bool keepUnrecognizedValues = false}) {
     final jsonElement = jsonDecode(jsonCode);
-    return _impl.fromJson(jsonElement, keepUnrecognizedFields);
+    return _impl.fromJson(jsonElement, keepUnrecognizedValues);
   }
 
   /// Converts an object to its binary representation.
@@ -77,17 +77,17 @@ class Serializer<T> {
 
   /// Deserializes an object from its binary representation.
   ///
-  /// If [keepUnrecognizedFields] is true, unrecognized fields are saved in the
+  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
   /// returned value. If the value is later re-serialized in binary format, the
   /// unrecognized fields will be present in the serialized form.
-  T fromBytes(Uint8List bytes, {bool keepUnrecognizedFields = false}) {
+  T fromBytes(Uint8List bytes, {bool keepUnrecognizedValues = false}) {
     if (bytes.length >= 4 &&
         bytes[0] == 's'.codeUnitAt(0) &&
         bytes[1] == 'k'.codeUnitAt(0) &&
         bytes[2] == 'i'.codeUnitAt(0) &&
         bytes[3] == 'r'.codeUnitAt(0)) {
       final stream = _ByteStream(bytes, 4);
-      final result = _impl.decode(stream, keepUnrecognizedFields);
+      final result = _impl.decode(stream, keepUnrecognizedValues);
       final extraBytes = bytes.length - stream.position;
       if (extraBytes != 0) {
         throw FormatException(
@@ -101,7 +101,7 @@ class Serializer<T> {
       final jsonCode = String.fromCharCodes(bytes);
       return fromJsonCode(
         jsonCode,
-        keepUnrecognizedFields: keepUnrecognizedFields,
+        keepUnrecognizedValues: keepUnrecognizedValues,
       );
     }
   }
@@ -130,13 +130,13 @@ abstract class _SerializerImpl<T> {
   dynamic toJson(T input, bool readableFlavor);
 
   /// Deserializes an object from its JSON representation
-  T fromJson(dynamic json, bool keepUnrecognizedFields);
+  T fromJson(dynamic json, bool keepUnrecognizedValues);
 
   /// Encodes an object to binary format
   void encode(T input, Uint8Buffer buffer);
 
   /// Decodes an object from binary format
-  T decode(_ByteStream stream, bool keepUnrecognizedFields);
+  T decode(_ByteStream stream, bool keepUnrecognizedValues);
 
   /// Appends a string representation of the object to the output buffer
   void appendString(T input, StringBuffer out, String eolIndent);

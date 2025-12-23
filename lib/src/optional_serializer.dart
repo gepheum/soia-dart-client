@@ -19,12 +19,12 @@ class _OptionalSerializer<NotNull> extends ReflectiveOptionalDescriptor<NotNull>
   }
 
   @override
-  NotNull? decode(_ByteStream stream, bool keepUnrecognizedFields) {
+  NotNull? decode(_ByteStream stream, bool keepUnrecognizedValues) {
     if (stream.peekByte() == 255) {
       stream.position++;
       return null;
     } else {
-      return other.decode(stream, keepUnrecognizedFields);
+      return other.decode(stream, keepUnrecognizedValues);
     }
   }
 
@@ -43,8 +43,8 @@ class _OptionalSerializer<NotNull> extends ReflectiveOptionalDescriptor<NotNull>
   }
 
   @override
-  NotNull? fromJson(dynamic json, bool keepUnrecognizedFields) {
-    return json == null ? null : other.fromJson(json, keepUnrecognizedFields);
+  NotNull? fromJson(dynamic json, bool keepUnrecognizedValues) {
+    return json == null ? null : other.fromJson(json, keepUnrecognizedValues);
   }
 
   @override

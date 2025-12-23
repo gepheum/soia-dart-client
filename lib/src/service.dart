@@ -67,12 +67,12 @@ class Service<RequestMeta> {
   /// request's body. The query string is the part of the URL after '?', and it
   /// can be decoded with Uri.decodeComponent.
   ///
-  /// Pass in [keepUnrecognizedFields] if the request cannot come from a
+  /// Pass in [keepUnrecognizedValues] if the request cannot come from a
   /// malicious user.
   Future<RawResponse> handleRequest(
     String requestBody,
     HttpHeaders requestHeaders, {
-    bool keepUnrecognizedFields = false,
+    bool keepUnrecognizedValues = false,
   }) async {
     if (requestBody.isEmpty || requestBody == 'list') {
       final methodsData = _methodImpls.values.map((methodImpl) {
@@ -219,12 +219,12 @@ class Service<RequestMeta> {
       if (requestDataIsJson) {
         request = methodImpl.method.requestSerializer.fromJson(
           requestData,
-          keepUnrecognizedFields: keepUnrecognizedFields,
+          keepUnrecognizedValues: keepUnrecognizedValues,
         );
       } else {
         request = methodImpl.method.requestSerializer.fromJsonCode(
           requestData as String,
-          keepUnrecognizedFields: keepUnrecognizedFields,
+          keepUnrecognizedValues: keepUnrecognizedValues,
         );
       }
     } catch (e) {
