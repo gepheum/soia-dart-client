@@ -24,7 +24,7 @@ sealed class Color {
 }
 
 class ColorUnknown extends Color {
-  final internal__UnrecognizedEnum? unrecognized;
+  final internal__UnrecognizedVariant? unrecognized;
   const ColorUnknown(this.unrecognized);
   get kind => ColorKind.unknown;
 }
@@ -69,7 +69,7 @@ sealed class Status {
 }
 
 class StatusUnknown extends Status {
-  final internal__UnrecognizedEnum? unrecognized;
+  final internal__UnrecognizedVariant? unrecognized;
   const StatusUnknown(this.unrecognized);
   get kind => StatusKind.unknown;
 }

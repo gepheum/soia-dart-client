@@ -22,8 +22,8 @@ class internal__EnumSerializerBuilder<Enum> {
     required Unknown unknownInstance,
     required Enum enumInstance, // For type inference, not used at runtime
     required int Function(Enum) getOrdinal,
-    required Enum Function(internal__UnrecognizedEnum) wrapUnrecognized,
-    required internal__UnrecognizedEnum? Function(Unknown) getUnrecognized,
+    required Enum Function(internal__UnrecognizedVariant) wrapUnrecognized,
+    required internal__UnrecognizedVariant? Function(Unknown) getUnrecognized,
   }) {
     final String dartClassName = _RecordId.parse(
       recordId,
@@ -222,7 +222,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         default:
           if (keepUnrecognizedValues) {
             return unknown.wrapUnrecognized(
-              internal__UnrecognizedEnum._fromJson(json),
+              internal__UnrecognizedVariant._fromJson(json),
             );
           } else {
             return unknown.constant;
@@ -249,7 +249,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         } else {
           if (keepUnrecognizedValues) {
             return unknown.wrapUnrecognized(
-              internal__UnrecognizedEnum._fromJson(json),
+              internal__UnrecognizedVariant._fromJson(json),
             );
           } else {
             return unknown.constant;
@@ -309,7 +309,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
                 stream.position,
               );
               result = unknown.wrapUnrecognized(
-                internal__UnrecognizedEnum._fromBytes(unrecognizedBytes),
+                internal__UnrecognizedVariant._fromBytes(unrecognizedBytes),
               );
             } else {
               result = unknown.constant;
@@ -336,7 +336,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
             stream.position,
           );
           result = unknown.wrapUnrecognized(
-            internal__UnrecognizedEnum._fromBytes(unrecognizedBytes),
+            internal__UnrecognizedVariant._fromBytes(unrecognizedBytes),
           );
         } else {
           result = unknown.constant;
@@ -413,8 +413,8 @@ class _EnumUnknownVariant<E> extends _EnumVariant<E>
     implements ReflectiveEnumConstantVariant<E> {
   @override
   final E constant;
-  final E Function(internal__UnrecognizedEnum) wrapUnrecognized;
-  final internal__UnrecognizedEnum? Function(E) getUnrecognized;
+  final E Function(internal__UnrecognizedVariant) wrapUnrecognized;
+  final internal__UnrecognizedVariant? Function(E) getUnrecognized;
   final String asString;
 
   _EnumUnknownVariant(

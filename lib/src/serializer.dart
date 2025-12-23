@@ -49,9 +49,10 @@ class Serializer<T> {
   /// Deserializes an object from its JSON representation.
   /// Works with both dense and readable JSON flavors.
   ///
-  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
-  /// returned value. If the value is later re-serialized in JSON format (dense
-  /// flavor), the unrecognized fields will be present in the serialized form.
+  /// If [keepUnrecognizedValues] is true, unrecognized fields and variants are
+  /// saved in the returned value. If the value is later re-serialized in JSON
+  /// format (dense flavor), the unrecognized fields will be present in the
+  /// serialized form.
   T fromJson(dynamic json, {bool keepUnrecognizedValues = false}) {
     return _impl.fromJson(json, keepUnrecognizedValues);
   }
@@ -59,9 +60,10 @@ class Serializer<T> {
   /// Deserializes an object from its stringified JSON representation.
   /// Works with both dense and readable JSON flavors.
   ///
-  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
-  /// returned value. If the value is later re-serialized in JSON format (dense
-  /// flavor), the unrecognized fields will be present in the serialized form.
+  /// If [keepUnrecognizedValues] is true, unrecognized fields and variants are
+  /// saved in the returned value. If the value is later re-serialized in JSON
+  /// format (dense flavor), the unrecognized fields will be present in the
+  /// serialized form.
   T fromJsonCode(String jsonCode, {bool keepUnrecognizedValues = false}) {
     final jsonElement = jsonDecode(jsonCode);
     return _impl.fromJson(jsonElement, keepUnrecognizedValues);
@@ -77,9 +79,9 @@ class Serializer<T> {
 
   /// Deserializes an object from its binary representation.
   ///
-  /// If [keepUnrecognizedValues] is true, unrecognized fields are saved in the
-  /// returned value. If the value is later re-serialized in binary format, the
-  /// unrecognized fields will be present in the serialized form.
+  /// If [keepUnrecognizedValues] is true, unrecognized fields and variants are
+  /// saved in the returned value. If the value is later re-serialized in binary
+  /// format, the unrecognized fields will be present in the serialized form.
   T fromBytes(Uint8List bytes, {bool keepUnrecognizedValues = false}) {
     if (bytes.length >= 4 &&
         bytes[0] == 's'.codeUnitAt(0) &&

@@ -14,11 +14,11 @@ class internal__UnrecognizedFields {
       : _jsonElements = null;
 }
 
-class internal__UnrecognizedEnum {
+class internal__UnrecognizedVariant {
   final dynamic _jsonElement;
   final Uint8List? _bytes;
 
-  internal__UnrecognizedEnum._fromJson(this._jsonElement) : _bytes = null;
+  internal__UnrecognizedVariant._fromJson(this._jsonElement) : _bytes = null;
 
-  internal__UnrecognizedEnum._fromBytes(this._bytes) : _jsonElement = null;
+  internal__UnrecognizedVariant._fromBytes(this._bytes) : _jsonElement = null;
 }
