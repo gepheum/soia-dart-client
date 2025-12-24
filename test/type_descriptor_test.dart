@@ -180,11 +180,12 @@ void main() {
       const name = 'username';
       const number = 1;
       final type = StringDescriptor.instance;
-      final field = StructField(name, number, type);
+      final field = StructField(name, number, type, "the doc");
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
       expect(field.type, equals(type));
+      expect(field.doc, equals("the doc"));
     });
   });
 
@@ -192,10 +193,11 @@ void main() {
     test('creates constant field with name and number', () {
       const name = 'ACTIVE';
       const number = 1;
-      final field = EnumConstantVariant(name, number);
+      final field = EnumConstantVariant(name, number, "the doc");
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
+      expect(field.doc, equals("the doc"));
     });
   });
 
@@ -204,11 +206,12 @@ void main() {
       const name = 'custom_value';
       const number = 100;
       final type = Int32Descriptor.instance;
-      final field = EnumWrapperVariant(name, number, type);
+      final field = EnumWrapperVariant(name, number, type, "the doc");
 
       expect(field.name, equals(name));
       expect(field.number, equals(number));
       expect(field.type, equals(type));
+      expect(field.doc, equals("the doc"));
     });
   });
 
@@ -378,14 +381,18 @@ void main() {
 
     test('field types work correctly', () {
       final stringType = StringDescriptor.instance;
-      final structField = StructField('name', 1, stringType);
-      final enumWrapperField = EnumWrapperVariant('value', 2, stringType);
-      final enumConstantField = EnumConstantVariant('CONSTANT', 3);
+      final structField = StructField('name', 1, stringType, "the doc");
+      final enumWrapperField =
+          EnumWrapperVariant('value', 2, stringType, "the doc");
+      final enumConstantField = EnumConstantVariant('CONSTANT', 3, "the doc");
 
       expect(structField.type, equals(stringType));
       expect(enumWrapperField.type, equals(stringType));
       expect(enumConstantField.name, equals('CONSTANT'));
       expect(enumConstantField.number, equals(3));
+      expect(structField.doc, equals("the doc"));
+      expect(enumWrapperField.doc, equals("the doc"));
+      expect(enumConstantField.doc, equals("the doc"));
     });
 
     test('asJson works for complex nested types without infinite loops', () {

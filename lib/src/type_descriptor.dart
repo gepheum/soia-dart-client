@@ -222,7 +222,7 @@ class ArrayDescriptor extends TypeDescriptor
   @override
   final TypeDescriptor itemType;
 
-  /// Optional key chain specified in the `.skir` file after the pipe character.
+  /// Optional key chain specified in the '.skir' file after the pipe character.
   @override
   final String? keyExtractor;
 
@@ -240,7 +240,7 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
   Collection toCollection(Iterable<E> iterable);
 
   /// Transforms each element in the collection using [transformer].
-  ///  Returns a new collection of the same type containing the transformed
+  /// Returns a new collection of the same type containing the transformed
   /// elements.
   Collection map(Collection collection, ReflectiveTransformer transformer) {
     final newCollection = collection.map(
@@ -254,28 +254,35 @@ abstract class ReflectiveArrayDescriptor<E, Collection extends Iterable<E>>
 
 /// 🪞 Describes a field in a struct or a variant in an enum.
 abstract class FieldOrVariant {
-  /// Name as specified in the `.skir` file, for example 'user_id' or 'MONDAY'.
+  /// Name as specified in the '.skir' file, for example 'user_id' or 'MONDAY'.
   String get name;
 
   /// Field or variant number used for serialization.
   int get number;
 
+  /// Documentation for this field/variant, extracted from doc comments in the
+  /// '.skir' file.
+  String get doc;
+
   FieldOrVariant._();
 }
 
 abstract class _RecordDescriptorBase implements _TypeDescriptorBase {
-  /// Name of the struct as specified in the `.skir` file.
+  /// Name of the record as specified in the '.skir' file.
   String get name;
 
-  /// A string containing all the names in the hierarchic sequence above and
-  /// including the struct. For example: "Foo.Bar" if "Bar" is nested within a
+  /// A string containing all the names in the hierarchical sequence above and
+  /// including the record. For example: "Foo.Bar" if "Bar" is nested within a
   /// type called "Foo", or simply "Bar" if "Bar" is defined at the top-level of
   /// the module.
   String get qualifiedName;
 
-  /// Path to the module where the struct is defined, relative to the root of the
+  /// Path to the module where the record is defined, relative to the root of the
   /// project.
   String get modulePath;
+
+  /// Documentation for this record, extracted from doc comments in the '.skir'.
+  String get doc;
 
   /// The field numbers marked as removed.
   UnmodifiableSetView<int> get removedNumbers;
@@ -337,7 +344,12 @@ class StructField implements _StructFieldBase<TypeDescriptor> {
   @override
   final TypeDescriptor type;
 
-  StructField(this.name, this.number, this.type);
+  /// Documentation for this field, extracted from doc comments in the '.skir'
+  /// file.
+  @override
+  final String doc;
+
+  StructField(this.name, this.number, this.type, this.doc);
 }
 
 /// 🪞 Describes a field in a struct.
@@ -371,12 +383,16 @@ class StructDescriptor extends RecordDescriptor
   @override
   final UnmodifiableSetView<int> removedNumbers;
 
+  @override
+  final String doc;
+
   Iterable<StructField> _fields;
 
   @override
   Iterable<StructField> get fields => _fields;
 
-  StructDescriptor._(this._recordId, this.removedNumbers, this._fields);
+  StructDescriptor._(
+      this._recordId, this.doc, this.removedNumbers, this._fields);
 
   @override
   String get name => _recordId.name;
@@ -452,15 +468,20 @@ sealed class ReflectiveEnumVariant<E> implements FieldOrVariant {}
 
 /// 🪞 Describes an enum constant variant.
 class EnumConstantVariant implements EnumVariant {
-  /// The field name.
+  /// The variant name.
   @override
   final String name;
 
-  /// The field number.
+  /// The variant number.
   @override
   final int number;
 
-  EnumConstantVariant(this.name, this.number);
+  /// Documentation for this constant, extracted from doc comments in the
+  /// '.skir' file.
+  @override
+  final String doc;
+
+  EnumConstantVariant(this.name, this.number, this.doc);
 }
 
 /// 🪞 Describes an enum constant variant.
@@ -493,23 +514,30 @@ class EnumWrapperVariant
   @override
   final TypeDescriptor type;
 
-  EnumWrapperVariant(this.name, this.number, this.type);
+  /// Documentation for this wrapper variant, extracted from doc comments in the
+  /// '.skir' file.
+  @override
+  final String doc;
+
+  EnumWrapperVariant(this.name, this.number, this.type, this.doc);
 }
 
-/// 🪞 Describes an enum wrapper field.
+/// 🪞 Describes an enum wrapper variant. Every instance of this variant wraps
+/// around a value of type [Value].
 abstract class ReflectiveEnumWrapperVariant<E, Value>
     implements
         ReflectiveEnumVariant<E>,
         _EnumWrapperVariantBase<ReflectiveTypeDescriptor<Value>> {
-  /// Returns whether the variant of the given enum instance matches this
-  /// variant.
+  /// Returns whether the given enum instance is of this wrapper variant.
   bool test(E e);
 
-  /// Extracts the value held by the given enum instance assuming its variant
+  /// Extracts the value wrapped  by the given enum instance assuming its variant
   /// matches this variant. Throws an exception if `test(e)` is false.
   Value get(E e);
 
-  /// Returns a new enum instance holding the given value.
+  /// Extracts the value wrapped by the given enum instance.
+  /// Throws an exception if the enum instance is not of this wrapper variant
+  /// (i.e., if `test(e)` returns false).
   E wrap(Value value);
 
   /// Applies [transformer] to the wrapped value and returns a new enum instance
@@ -525,6 +553,9 @@ class EnumDescriptor extends RecordDescriptor
   final _RecordId _recordId;
 
   @override
+  final String doc;
+
+  @override
   final UnmodifiableSetView<int> removedNumbers;
 
   Iterable<EnumVariant> _variants;
@@ -532,7 +563,8 @@ class EnumDescriptor extends RecordDescriptor
   @override
   Iterable<EnumVariant> get variants => _variants;
 
-  EnumDescriptor._(this._recordId, this.removedNumbers, this._variants);
+  EnumDescriptor._(
+      this._recordId, this.doc, this.removedNumbers, this._variants);
 
   @override
   String get name => _recordId.name;
@@ -565,8 +597,8 @@ abstract class ReflectiveEnumDescriptor<E> extends ReflectiveRecordDescriptor<E>
   /// Looks up the variant corresponding to the given instance of Enum.
   ReflectiveEnumVariant<E> getVariant(E e);
 
-  /// If [e] holds a value (wrapper variant), extracts the value, transforms it
-  /// and returns a new enum instance wrapping around it.
+  /// If [e] wraps around a value (wrapper variant), extracts the value,
+  /// transforms it and returns a new enum instance wrapping around it.
   /// Otherwise, returns [e] unchanged.
   E mapValue(E e, ReflectiveTransformer transformer) {
     final variant = getVariant(e);
@@ -619,6 +651,7 @@ TypeDescriptor _notReflectiveImpl(
     ReflectiveStructDescriptor() => () {
         final result = StructDescriptor._(
           _RecordId.parse(_getRecordId(reflective)),
+          reflective.doc,
           reflective.removedNumbers,
           [],
         );
@@ -628,6 +661,7 @@ TypeDescriptor _notReflectiveImpl(
             f.name,
             f.number,
             _notReflectiveImpl(f.type, inProgress),
+            f.doc,
           );
         }).toList();
         return result;
@@ -635,6 +669,7 @@ TypeDescriptor _notReflectiveImpl(
     ReflectiveEnumDescriptor() => () {
         final result = EnumDescriptor._(
           _RecordId.parse(_getRecordId(reflective)),
+          reflective.doc,
           reflective.removedNumbers,
           [],
         );
@@ -645,9 +680,10 @@ TypeDescriptor _notReflectiveImpl(
               v.name,
               v.number,
               _notReflectiveImpl(v.type, inProgress),
+              v.doc,
             );
           } else {
-            return EnumConstantVariant(v.name, v.number);
+            return EnumConstantVariant(v.name, v.number, v.doc);
           }
         }).toList();
         return result;
@@ -734,22 +770,25 @@ void _addRecordDefinitions(
       return;
     }
 
-    final recordDefinition = {
-      'kind': 'struct',
-      'id': recordId,
-      'fields': typeDescriptor.fields.map((f) {
-        return {
-          'name': f.name,
-          'number': f.number,
-          'type': _getTypeSignature(f.type),
-        };
-      }).toList(),
-    };
-    if (typeDescriptor.removedNumbers.isNotEmpty) {
-      final removedNumbers = typeDescriptor.removedNumbers.toList();
-      removedNumbers.sort();
-      recordDefinition['removed_numbers'] = removedNumbers;
-    }
+    final removedNumbers = typeDescriptor.removedNumbers.toList();
+    removedNumbers.sort();
+    final recordDefinition = _MapBuilder()
+        .put('kind', 'struct')
+        .put('id', recordId)
+        .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
+        .put(
+            'fields',
+            typeDescriptor.fields
+                .map((f) => _MapBuilder()
+                    .put('name', f.name)
+                    .put('number', f.number)
+                    .put('type', _getTypeSignature(f.type))
+                    .putIf("doc", f.doc, (doc) => doc.isNotEmpty)
+                    .build())
+                .toList())
+        .putIf("removed_numbers", removedNumbers,
+            (removedNumbers) => removedNumbers.isNotEmpty)
+        .build();
     recordIdToDefinition[recordId] = recordDefinition;
 
     for (final field in typeDescriptor.fields) {
@@ -761,27 +800,30 @@ void _addRecordDefinitions(
       return;
     }
 
-    final recordDefinition = {
-      'kind': 'enum',
-      'id': recordId,
-      'variants': typeDescriptor.variants.map((f) {
-        if (f is EnumWrapperVariant) {
-          return {
-            'name': f.name,
-            'number': f.number,
-            'type': _getTypeSignature(f.type),
-          };
-        } else if (f is EnumConstantVariant) {
-          return {'name': f.name, 'number': f.number};
-        }
-        throw ArgumentError('Unknown enum field type: $f');
-      }).toList(),
-    };
-    if (typeDescriptor.removedNumbers.isNotEmpty) {
-      final removedNumbers = typeDescriptor.removedNumbers.toList();
-      removedNumbers.sort();
-      recordDefinition['removed_numbers'] = removedNumbers;
-    }
+    final removedNumbers = typeDescriptor.removedNumbers.toList();
+    removedNumbers.sort();
+    final recordDefinition = _MapBuilder()
+        .put('kind', 'enum')
+        .put('id', recordId)
+        .put(
+            'variants',
+            typeDescriptor.variants
+                .map((v) => _MapBuilder()
+                    .put('name', v.name)
+                    .put('number', v.number)
+                    .putIf(
+                        "type",
+                        v is EnumWrapperVariant
+                            ? _getTypeSignature(v.type)
+                            : null,
+                        (type) => type != null)
+                    .putIf("doc", v.doc, (doc) => doc.isNotEmpty)
+                    .build())
+                .toList())
+        .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
+        .putIf("removed_numbers", removedNumbers,
+            (removedNumbers) => removedNumbers.isNotEmpty)
+        .build();
     recordIdToDefinition[recordId] = recordDefinition;
 
     for (final variant in typeDescriptor.variants) {
@@ -790,4 +832,22 @@ void _addRecordDefinitions(
       }
     }
   }
+}
+
+class _MapBuilder {
+  final Map<String, dynamic> _map = {};
+
+  _MapBuilder put(String key, dynamic value) {
+    _map[key] = value;
+    return this;
+  }
+
+  _MapBuilder putIf<T>(String key, T value, bool Function(T) predicate) {
+    if (predicate(value)) {
+      _map[key] = value;
+    }
+    return this;
+  }
+
+  Map<String, dynamic> build() => _map;
 }

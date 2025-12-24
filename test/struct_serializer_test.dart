@@ -79,6 +79,7 @@ void main() {
       personBuilder =
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
+        doc: "A person",
         defaultInstance: defaultPerson,
         newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
@@ -108,6 +109,7 @@ void main() {
         'name',
         0,
         Serializers.string,
+        "Person's name",
         (person) => person.name,
         (mutable, value) => mutable.name = value,
       );
@@ -116,6 +118,7 @@ void main() {
         'age',
         1,
         Serializers.int32,
+        "",
         (person) => person.age,
         (mutable, value) => mutable.age = value,
       );
@@ -124,6 +127,7 @@ void main() {
         'email',
         2,
         Serializers.optional(Serializers.string),
+        "",
         (person) => person.email,
         (mutable, value) => mutable.email = value,
       );
@@ -132,6 +136,7 @@ void main() {
         'isActive',
         3,
         Serializers.bool,
+        "",
         (person) => person.isActive,
         (mutable, value) => mutable.isActive = value,
       );
@@ -140,6 +145,7 @@ void main() {
         'tags',
         4,
         Serializers.iterable(Serializers.string),
+        "",
         (person) => person.tags,
         (mutable, value) => mutable.tags = List.from(value),
       );
@@ -303,6 +309,7 @@ void main() {
       final testBuilder =
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'foo:Person',
+        doc: "A person",
         defaultInstance: defaultPerson,
         newMutable: (frozen) => PersonMutable(),
         toFrozen: (mutable) => PersonFrozen(),
@@ -315,6 +322,7 @@ void main() {
         'name',
         0,
         Serializers.string,
+        "Person's name",
         (person) => person.name,
         (mutable, value) => mutable.name = value,
       );
@@ -328,6 +336,7 @@ void main() {
           'age',
           1,
           Serializers.int32,
+          "",
           (person) => person.age,
           (mutable, value) => mutable.age = value,
         ),
@@ -346,6 +355,7 @@ void main() {
       final builder =
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
+        doc: "A person",
         defaultInstance: defaultPerson,
         newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
@@ -372,6 +382,7 @@ void main() {
         'name',
         0,
         Serializers.string,
+        "Person's name",
         (person) => person.name,
         (mutable, value) => mutable.name = value,
       );
@@ -391,6 +402,7 @@ void main() {
       final builder =
           internal__StructSerializerBuilder<PersonFrozen, PersonMutable>(
         recordId: 'test:Person',
+        doc: "A person",
         defaultInstance: defaultPerson,
         newMutable: (frozen) => PersonMutable(
           name: frozen?.name ?? '',
@@ -418,6 +430,7 @@ void main() {
         'name',
         0,
         Serializers.string,
+        "Person's name",
         (person) => person.name,
         (mutable, value) => mutable.name = value,
       );
@@ -446,6 +459,7 @@ void main() {
           'age',
           1,
           Serializers.int32,
+          "Person's age",
           (person) => person.age,
           (mutable, value) => mutable.age = value,
         ),
@@ -471,6 +485,8 @@ void main() {
       expect(actualJson, contains('"name": "email"'));
       expect(actualJson, contains('"name": "is_active"'));
       expect(actualJson, contains('"name": "tags"'));
+      expect(actualJson, contains('"doc": "A person"'));
+      expect(actualJson, contains('"doc": "Person\'s name"'));
 
       // Test that parsing the type descriptor works
       final parsed = TypeDescriptor.parseFromJson(typeDescriptor.asJson);

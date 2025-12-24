@@ -34,7 +34,8 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
           fieldObject['type']!,
           recordIdToBundle,
         );
-        return StructField(name, number, type);
+        final doc = fieldObject['doc'] as String? ?? '';
+        return StructField(name, number, type, doc);
       });
     } else if (recordDescriptor is EnumDescriptor) {
       recordDescriptor._variants = bundle.fieldsOrVariants.map((it) {
@@ -42,11 +43,12 @@ TypeDescriptor _parseTypeDescriptor(dynamic json) {
         final name = variantObject['name'] as String;
         final number = variantObject['number'] as int;
         final typeJson = variantObject['type'];
+        final doc = variantObject['doc'] as String? ?? '';
         if (typeJson != null) {
           final type = _parseTypeDescriptorImpl(typeJson, recordIdToBundle);
-          return EnumWrapperVariant(name, number, type);
+          return EnumWrapperVariant(name, number, type, doc);
         } else {
-          return EnumConstantVariant(name, number);
+          return EnumConstantVariant(name, number, doc);
         }
       });
     }
@@ -66,6 +68,7 @@ class _RecordBundle {
 RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
   final kind = json['kind'] as String;
   final recordId = _RecordId.parse(json['id'] as String);
+  final doc = json['doc'] as String? ?? '';
   final removedNumbers = UnmodifiableSetView(
     (json['removed_numbers'] as List<dynamic>?)
             ?.map((it) => it as int)
@@ -75,9 +78,9 @@ RecordDescriptor _parseRecordDescriptorPartial(Map<String, dynamic> json) {
 
   switch (kind) {
     case 'struct':
-      return StructDescriptor._(recordId, removedNumbers, <StructField>[]);
+      return StructDescriptor._(recordId, doc, removedNumbers, <StructField>[]);
     case 'enum':
-      return EnumDescriptor._(recordId, removedNumbers, <EnumVariant>[]);
+      return EnumDescriptor._(recordId, doc, removedNumbers, <EnumVariant>[]);
     default:
       throw ArgumentError('unknown kind: $kind');
   }

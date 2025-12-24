@@ -19,6 +19,7 @@ class internal__EnumSerializerBuilder<Enum> {
   static internal__EnumSerializerBuilder<Enum>
       create<Enum, Unknown extends Enum>({
     required String recordId,
+    required String doc,
     required Unknown unknownInstance,
     required Enum enumInstance, // For type inference, not used at runtime
     required int Function(Enum) getOrdinal,
@@ -30,6 +31,7 @@ class internal__EnumSerializerBuilder<Enum> {
     ).qualifiedName.replaceAll(".", "_");
     final impl = _EnumSerializerImpl._(
       recordId,
+      doc,
       dartClassName,
       _EnumUnknownVariant<Enum>(
         unknownInstance,
@@ -58,9 +60,10 @@ class internal__EnumSerializerBuilder<Enum> {
     int number,
     String name,
     String dartName,
+    String doc,
     Enum instance,
   ) {
-    _impl.addConstantVariant(number, name, dartName, instance);
+    _impl.addConstantVariant(number, name, dartName, doc, instance);
   }
 
   void addWrapperVariant<Wrapper extends Enum, Value>(
@@ -68,6 +71,7 @@ class internal__EnumSerializerBuilder<Enum> {
     String name,
     String dartName,
     Serializer<Value> valueSerializer,
+    String doc,
     Wrapper Function(Value) wrap,
     Value Function(Wrapper) getValue, {
     required int ordinal,
@@ -77,6 +81,7 @@ class internal__EnumSerializerBuilder<Enum> {
       name,
       dartName,
       valueSerializer,
+      doc,
       wrap,
       getValue,
       ordinal: ordinal,
@@ -96,12 +101,15 @@ class internal__EnumSerializerBuilder<Enum> {
 class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     implements _SerializerImpl<E> {
   final _RecordId recordId;
+  @override
+  final String doc;
   final String dartClassName;
   final _EnumUnknownVariant<E> unknown;
   final int Function(E) getOrdinal;
 
   _EnumSerializerImpl._(
     String recordId,
+    this.doc,
     this.dartClassName,
     this.unknown,
     this.getOrdinal,
@@ -118,13 +126,13 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
   String get modulePath => recordId.modulePath;
 
   void addConstantVariant(
-      int number, String name, String dartName, E instance) {
+      int number, String name, String dartName, String doc, E instance) {
     checkNotFinalized();
     final ordinal = getOrdinal(instance);
     final asString = '${dartClassName}.${dartName}';
     addVariantImpl(
       ordinal: ordinal,
-      variant: _EnumConstantVariant<E>(number, name, instance, asString),
+      variant: _EnumConstantVariant<E>(number, name, doc, instance, asString),
     );
   }
 
@@ -133,6 +141,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
     String name,
     String dartName,
     Serializer<V> valueSerializer,
+    String doc,
     W Function(V) wrap,
     V Function(W) getValue, {
     required int ordinal,
@@ -145,6 +154,7 @@ class _EnumSerializerImpl<E> extends ReflectiveEnumDescriptor<E>
         number,
         name,
         valueSerializer,
+        doc,
         wrap,
         getValue,
         wrapFunctionName,
@@ -417,6 +427,9 @@ class _EnumUnknownVariant<E> extends _EnumVariant<E>
   final internal__UnrecognizedVariant? Function(E) getUnrecognized;
   final String asString;
 
+  @override
+  final String doc = "";
+
   _EnumUnknownVariant(
     this.constant,
     this.wrapUnrecognized,
@@ -460,11 +473,18 @@ class _EnumConstantVariant<E> extends _EnumVariant<E>
   @override
   final int number;
   @override
+  final String doc;
+  @override
   final E constant;
   final String asString;
 
-  _EnumConstantVariant(this.number, String name, this.constant, this.asString)
-      : super(name);
+  _EnumConstantVariant(
+    this.number,
+    String name,
+    this.doc,
+    this.constant,
+    this.asString,
+  ) : super(name);
 
   ReflectiveEnumVariant<E> get asVariant => this;
 
@@ -492,6 +512,8 @@ class _WrapperVariant<E, W extends E, V> extends _EnumVariant<E>
   @override
   final int number;
   final Serializer<V> valueSerializer;
+  @override
+  final String doc;
   final W Function(V) wrapFn;
   final V Function(W) getValue;
   final String wrapFunctionName;
@@ -500,6 +522,7 @@ class _WrapperVariant<E, W extends E, V> extends _EnumVariant<E>
     this.number,
     String name,
     this.valueSerializer,
+    this.doc,
     this.wrapFn,
     this.getValue,
     this.wrapFunctionName,

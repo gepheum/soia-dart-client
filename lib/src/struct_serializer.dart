@@ -17,6 +17,7 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
 
   factory internal__StructSerializerBuilder({
     required String recordId,
+    required String doc,
     required Frozen defaultInstance,
     required Mutable Function(Frozen?) newMutable,
     required Frozen Function(Mutable) toFrozen,
@@ -27,6 +28,7 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
   }) {
     final impl = _StructSerializerImpl(
       recordId: recordId,
+      doc: doc,
       defaultInstance: defaultInstance,
       newMutableFn: newMutable,
       toFrozenFn: toFrozen,
@@ -52,10 +54,11 @@ class internal__StructSerializerBuilder<Frozen, Mutable> {
     String dartName,
     int number,
     Serializer<Value> serializer,
+    String doc,
     Value Function(Frozen) getter,
     void Function(Mutable, Value) setter,
   ) {
-    _impl.addField(name, dartName, number, serializer, getter, setter);
+    _impl.addField(name, dartName, number, serializer, doc, getter, setter);
   }
 
   void addRemovedNumber(int number) {
@@ -76,6 +79,8 @@ class _StructFieldImpl<Frozen, Mutable, Value>
   @override
   final int number;
   final Serializer<Value> serializer;
+  @override
+  final String doc;
   final Value Function(Frozen) getter;
   final void Function(Mutable, Value) setter;
 
@@ -84,6 +89,7 @@ class _StructFieldImpl<Frozen, Mutable, Value>
     this.dartName,
     this.number,
     this.serializer,
+    this.doc,
     this.getter,
     this.setter,
   ) : super._();
@@ -140,6 +146,8 @@ class _StructSerializerImpl<Frozen, Mutable>
     extends ReflectiveStructDescriptor<Frozen, Mutable>
     implements _SerializerImpl<Frozen> {
   final _RecordId _recordId;
+  @override
+  final String doc;
   final Frozen defaultInstance;
   final Mutable Function(Frozen?) newMutableFn;
   final Frozen Function(Mutable) toFrozenFn;
@@ -162,6 +170,7 @@ class _StructSerializerImpl<Frozen, Mutable>
 
   _StructSerializerImpl({
     required String recordId,
+    required this.doc,
     required this.defaultInstance,
     required this.newMutableFn,
     required this.toFrozenFn,
@@ -184,18 +193,13 @@ class _StructSerializerImpl<Frozen, Mutable>
     String dartName,
     int number,
     Serializer<Value> serializer,
+    String doc,
     Value Function(Frozen) getter,
     void Function(Mutable, Value) setter,
   ) {
     _checkNotFinalized();
     final field = _StructFieldImpl<Frozen, Mutable, Value>(
-      name,
-      dartName,
-      number,
-      serializer,
-      getter,
-      setter,
-    );
+        name, dartName, number, serializer, doc, getter, setter);
     _mutableFields.add(field);
     _nameToField[field.name] = field;
   }

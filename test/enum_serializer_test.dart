@@ -113,6 +113,7 @@ void main() {
       // Simple enum with only constants
       colorEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color',
+        doc: "A color",
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
         getOrdinal: (it) => it.kind.ordinal,
@@ -120,14 +121,16 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      colorEnumBuilder.addConstantVariant(1, 'red', 'red', colorRed);
-      colorEnumBuilder.addConstantVariant(2, 'green', 'green', colorGreen);
-      colorEnumBuilder.addConstantVariant(3, 'blue', 'blue', colorBlue);
+      colorEnumBuilder.addConstantVariant(
+          1, 'red', 'red', "red color", colorRed);
+      colorEnumBuilder.addConstantVariant(2, 'green', 'green', "", colorGreen);
+      colorEnumBuilder.addConstantVariant(3, 'blue', 'blue', "", colorBlue);
       colorEnumBuilder.addWrapperVariant<ColorCustomOption, int>(
         4,
         'custom',
         'wrapCustom',
         Serializers.int32,
+        "custom color",
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
         ordinal: ColorKind.custom.ordinal,
@@ -139,6 +142,7 @@ void main() {
       // Complex enum with both constants and wrapper fields
       statusEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color.Status',
+        doc: "A status",
         unknownInstance: statusUnknown,
         enumInstance: statusUnknown as Status,
         getOrdinal: (it) => it.kind.ordinal,
@@ -147,11 +151,12 @@ void main() {
       );
 
       statusEnumBuilder.addConstantVariant(
-          1, 'active', 'active', StatusActive());
+          1, 'active', 'active', "", StatusActive());
       statusEnumBuilder.addConstantVariant(
         2,
         'inactive',
         'inactive',
+        "inactive status",
         StatusInactive(),
       );
       statusEnumBuilder.addWrapperVariant<StatusPendingOption, String>(
@@ -159,6 +164,7 @@ void main() {
         'pending',
         'pending',
         Serializers.string,
+        "pending status",
         (reason) => StatusPendingOption(reason),
         (pending) => pending.reason,
         ordinal: StatusKind.pending.ordinal,
@@ -430,6 +436,7 @@ void main() {
       // Test that finalize() can only be called once
       final testEnumBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'foo.bar:Color',
+        doc: "A color",
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
         getOrdinal: (it) => it.kind.ordinal,
@@ -437,13 +444,14 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testEnumBuilder.addConstantVariant(1, 'test', 'test', colorRed);
+      testEnumBuilder.addConstantVariant(
+          1, 'test', 'test', "red color", colorRed);
       testEnumBuilder.finalize();
 
       // Adding fields after finalization should throw
       expect(
-        () =>
-            testEnumBuilder.addConstantVariant(2, 'test2', 'test2', colorGreen),
+        () => testEnumBuilder.addConstantVariant(
+            2, 'test2', 'test2', "green color", colorGreen),
         throwsStateError,
       );
 
@@ -596,6 +604,7 @@ void main() {
       // Test that the serializer field is accessible and works correctly
       final builder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
+        doc: "A color",
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
         getOrdinal: (it) => it.kind.ordinal,
@@ -603,7 +612,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      builder.addConstantVariant(1, 'red', 'red', colorRed);
+      builder.addConstantVariant(1, 'red', 'red', "red color", colorRed);
       builder.finalize();
 
       final serializer = builder.serializer;
@@ -618,6 +627,7 @@ void main() {
     test('builder state management', () {
       final builder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
+        doc: "A color",
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
         wrapUnrecognized: (unrecognized) => ColorUnknown(unrecognized),
@@ -626,7 +636,7 @@ void main() {
       );
 
       // Should be able to add constants before finalization
-      builder.addConstantVariant(1, 'red', 'red', colorRed);
+      builder.addConstantVariant(1, 'red', 'red', "red color", colorRed);
 
       // Should be able to add wrapper fields before finalization
       builder.addWrapperVariant<ColorCustomOption, int>(
@@ -634,6 +644,7 @@ void main() {
         'custom',
         'custom',
         Serializers.int32,
+        "custom color",
         (rgb) => ColorCustomOption(rgb),
         (custom) => custom.rgb,
         ordinal: 4,
@@ -655,7 +666,7 @@ void main() {
 
       // Should not be able to add constants after finalization
       expect(
-        () => builder.addConstantVariant(2, 'green', 'green', colorGreen),
+        () => builder.addConstantVariant(2, 'green', 'green', "", colorGreen),
         throwsStateError,
       );
 
@@ -666,6 +677,7 @@ void main() {
           'custom2',
           'custom2',
           Serializers.int32,
+          "custom color",
           (rgb) => ColorCustomOption(rgb),
           (custom) => custom.rgb,
           ordinal: ColorKind.custom.ordinal,
@@ -694,6 +706,9 @@ void main() {
       expect(actualJson, contains('"number": 2'));
       expect(actualJson, contains('"number": 3'));
       expect(actualJson, contains('removed_numbers'));
+      expect(actualJson, contains('"doc": "A status"'));
+      expect(actualJson, contains('"doc": "pending status"'));
+      expect(actualJson, contains('"doc": "inactive status"'));
 
       // Test that parsing the type descriptor works
       final parsed = TypeDescriptor.parseFromJson(typeDescriptor.asJson);
@@ -704,6 +719,7 @@ void main() {
       // Create a simple builder to test default detection
       final testBuilder = internal__EnumSerializerBuilder.create(
         recordId: 'test:Color',
+        doc: "A color",
         unknownInstance: colorUnknown,
         enumInstance: colorUnknown as Color,
         getOrdinal: (it) => it.kind.ordinal,
@@ -711,7 +727,7 @@ void main() {
         getUnrecognized: (unknown) => unknown.unrecognized,
       );
 
-      testBuilder.addConstantVariant(1, 'red', 'red', colorRed);
+      testBuilder.addConstantVariant(1, 'red', 'red', '', colorRed);
       testBuilder.finalize();
 
       final testSerializer = testBuilder.serializer;
