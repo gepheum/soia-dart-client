@@ -775,7 +775,6 @@ void _addRecordDefinitions(
     final recordDefinition = _MapBuilder()
         .put('kind', 'struct')
         .put('id', recordId)
-        .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
         .put(
             'fields',
             typeDescriptor.fields
@@ -786,6 +785,7 @@ void _addRecordDefinitions(
                     .putIf("doc", f.doc, (doc) => doc.isNotEmpty)
                     .build())
                 .toList())
+        .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
         .putIf("removed_numbers", removedNumbers,
             (removedNumbers) => removedNumbers.isNotEmpty)
         .build();
