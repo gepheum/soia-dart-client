@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:test/test.dart';
-import 'package:skir/skir.dart';
+import 'package:skir_client/skir.dart';
 
 void main() {
   group('ByteString', () {

@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:skir/skir.dart';
+import 'package:skir_client/skir.dart';
 import 'dart:typed_data';
 
 // Helper function to convert bytes to hex string
