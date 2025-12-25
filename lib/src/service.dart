@@ -75,15 +75,17 @@ class Service<RequestMeta> {
     bool keepUnrecognizedValues = false,
   }) async {
     if (requestBody.isEmpty || requestBody == 'list') {
-      final methodsData = _methodImpls.values.map((methodImpl) {
-        return {
-          'method': methodImpl.method.name,
-          'number': methodImpl.method.number,
-          'request': methodImpl.method.requestSerializer.typeDescriptor.asJson,
-          'response':
-              methodImpl.method.responseSerializer.typeDescriptor.asJson,
-        };
-      }).toList();
+      final methodsData = _methodImpls.values
+          .map((methodImpl) => _JsonObjectBuilder()
+              .put("method", methodImpl.method.name)
+              .put("number", methodImpl.method.number)
+              .put("request",
+                  methodImpl.method.requestSerializer.typeDescriptor.asJson)
+              .put("response",
+                  methodImpl.method.responseSerializer.typeDescriptor.asJson)
+              .putIf("doc", methodImpl.method.doc, (doc) => doc.isNotEmpty)
+              .build())
+          .toList();
 
       final json = {'methods': methodsData};
       const encoder = JsonEncoder.withIndent('  ');

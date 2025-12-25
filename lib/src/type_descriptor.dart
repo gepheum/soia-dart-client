@@ -772,14 +772,14 @@ void _addRecordDefinitions(
 
     final removedNumbers = typeDescriptor.removedNumbers.toList();
     removedNumbers.sort();
-    final recordDefinition = _MapBuilder()
+    final recordDefinition = _JsonObjectBuilder()
         .put('kind', 'struct')
         .put('id', recordId)
         .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
         .put(
             'fields',
             typeDescriptor.fields
-                .map((f) => _MapBuilder()
+                .map((f) => _JsonObjectBuilder()
                     .put('name', f.name)
                     .put('number', f.number)
                     .put('type', _getTypeSignature(f.type))
@@ -802,14 +802,14 @@ void _addRecordDefinitions(
 
     final removedNumbers = typeDescriptor.removedNumbers.toList();
     removedNumbers.sort();
-    final recordDefinition = _MapBuilder()
+    final recordDefinition = _JsonObjectBuilder()
         .put('kind', 'enum')
         .put('id', recordId)
         .putIf("doc", typeDescriptor.doc, (doc) => doc.isNotEmpty)
         .put(
             'variants',
             typeDescriptor.variants
-                .map((v) => _MapBuilder()
+                .map((v) => _JsonObjectBuilder()
                     .put('name', v.name)
                     .put('number', v.number)
                     .putIf(
@@ -832,22 +832,4 @@ void _addRecordDefinitions(
       }
     }
   }
-}
-
-class _MapBuilder {
-  final Map<String, dynamic> _map = {};
-
-  _MapBuilder put(String key, dynamic value) {
-    _map[key] = value;
-    return this;
-  }
-
-  _MapBuilder putIf<T>(String key, T value, bool Function(T) predicate) {
-    if (predicate(value)) {
-      _map[key] = value;
-    }
-    return this;
-  }
-
-  Map<String, dynamic> build() => _map;
 }

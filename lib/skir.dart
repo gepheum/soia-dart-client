@@ -13,6 +13,7 @@ part 'src/byte_string.dart';
 part 'src/enum_serializer.dart';
 part 'src/frozen_list.dart';
 part 'src/iterable_serializer.dart';
+part 'src/json_object_builder.dart';
 part 'src/list_equality.dart';
 part 'src/method.dart';
 part 'src/mutable_list.dart';
