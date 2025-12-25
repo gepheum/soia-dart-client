@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Parses a type descriptor from its JSON representation.
 ///

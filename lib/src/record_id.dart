@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Parsed record identifier
 class _RecordId {

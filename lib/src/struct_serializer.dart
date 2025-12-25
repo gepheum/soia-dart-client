@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Specialization of a [Serializer] for generated struct types.
 class StructSerializer<Frozen, Mutable> extends Serializer<Frozen> {

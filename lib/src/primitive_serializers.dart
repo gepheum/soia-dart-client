@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 abstract class _PrimitiveSerializer<T> extends _SerializerImpl<T> {
   String get typeName;

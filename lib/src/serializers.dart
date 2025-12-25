@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Provides serializers for all primitive types and utilities for creating
 /// composite serializers such as optional and iterable serializers.

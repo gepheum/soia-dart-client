@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 sealed class _FrozenList<E> implements List<E> {}
 

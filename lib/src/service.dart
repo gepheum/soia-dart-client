@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 typedef HttpHeaders = Map<String, String>;
 

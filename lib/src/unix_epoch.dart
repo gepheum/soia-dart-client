@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// The Unix epoch timestamp (January 1, 1970, 00:00:00 UTC).
 ///

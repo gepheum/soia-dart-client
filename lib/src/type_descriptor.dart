@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// 🪞 Base interface for all type descriptors
 abstract class _TypeDescriptorBase {

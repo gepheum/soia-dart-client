@@ -1,6 +1,6 @@
 name: skir_client
 description: A Dart client library for skir serialization
-version: 0.0.8
+version: 0.0.9
 homepage: https://github.com/gepheum/skir-dart-client
 repository: https://github.com/gepheum/skir-dart-client
 

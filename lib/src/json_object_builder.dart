@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 class _JsonObjectBuilder {
   final Map<String, dynamic> _map = {};

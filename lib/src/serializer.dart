@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Converts objects of type [T] to and from JSON or binary format.
 class Serializer<T> {

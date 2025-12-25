@@ -1,4 +1,4 @@
-library skir;
+library skir_client;
 
 import 'dart:convert';
 import 'dart:math';

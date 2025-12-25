@@ -1,4 +1,4 @@
-part of '../skir.dart';
+part of '../skir_client.dart';
 
 /// 🪞 A function object that takes in a skir value of any type and returns a
 /// new value of the same type.

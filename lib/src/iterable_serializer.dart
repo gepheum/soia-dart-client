@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 class _IterableSerializer<E, Collection extends Iterable<E>>
     extends ReflectiveArrayDescriptor<E, Collection>

@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 class internal__UnrecognizedFields {
   final int _totalSlotCount;

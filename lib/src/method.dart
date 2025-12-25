@@ -1,4 +1,4 @@
-part of "../skir.dart";
+part of "../skir_client.dart";
 
 /// Represents a remote procedure call (RPC) method definition.
 ///
