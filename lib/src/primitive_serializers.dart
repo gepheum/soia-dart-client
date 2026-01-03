@@ -133,10 +133,10 @@ class _Int64Serializer extends _PrimitiveSerializer<int> {
   ReflectiveTypeDescriptor<int> get typeDescriptor => Int64Descriptor.instance;
 }
 
-class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
+class _Hash64Serializer extends _PrimitiveSerializer<BigInt> {
   static const int maxSafeJavaScriptInt = 9007199254740991; // 2^53 - 1
-  static final BigInt maxUint64 = BigInt.parse("18446744073709551615");
-  static final BigInt twoE64 = maxUint64 + BigInt.one;
+  static final BigInt maxHash64 = BigInt.parse("18446744073709551615");
+  static final BigInt twoE64 = maxHash64 + BigInt.one;
 
   @override
   bool isDefault(BigInt value) => value == BigInt.zero;
@@ -162,12 +162,12 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
     } else if (input < BigInt.zero) {
       buffer.add(0);
     } else {
-      // max int64 < input <= max uint64
+      // max int64 < input <= max hash64
       buffer.add(234);
-      if (input <= maxUint64) {
+      if (input <= maxHash64) {
         _BinaryWriter.writeLongLe((input - twoE64).toInt(), buffer);
       } else {
-        buffer.add(maxUint64.toInt());
+        buffer.add(maxHash64.toInt());
       }
     }
   }
@@ -193,10 +193,10 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
     // Else
     if (input < BigInt.zero) {
       return "0";
-    } else if (input <= maxUint64) {
+    } else if (input <= maxHash64) {
       return input.toString();
     } else {
-      return maxUint64.toString();
+      return maxHash64.toString();
     }
   }
 
@@ -219,11 +219,11 @@ class _Uint64Serializer extends _PrimitiveSerializer<BigInt> {
   }
 
   @override
-  String get typeName => 'uint64';
+  String get typeName => 'hash64';
 
   @override
   ReflectiveTypeDescriptor<BigInt> get typeDescriptor =>
-      Uint64Descriptor.instance;
+      Hash64Descriptor.instance;
 }
 
 class _Float32Serializer extends _PrimitiveSerializer<double> {

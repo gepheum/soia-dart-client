@@ -67,7 +67,7 @@ enum PrimitiveType {
   bool,
   int32,
   int64,
-  uint64,
+  hash64,
   float32,
   float64,
   timestamp,
@@ -117,13 +117,13 @@ class Int64Descriptor extends PrimitiveDescriptor<int> {
   Int64Descriptor._() : super._(PrimitiveType.int64);
 }
 
-/// 🪞 Describes the `uint64` primitive type.
-class Uint64Descriptor extends PrimitiveDescriptor<BigInt> {
-  static final instance = Uint64Descriptor._();
+/// 🪞 Describes the `hash64` primitive type.
+class Hash64Descriptor extends PrimitiveDescriptor<BigInt> {
+  static final instance = Hash64Descriptor._();
 
   BigInt get defaultValue => BigInt.zero;
 
-  Uint64Descriptor._() : super._(PrimitiveType.uint64);
+  Hash64Descriptor._() : super._(PrimitiveType.hash64);
 }
 
 /// 🪞 Describes the `float32` primitive type.
@@ -739,8 +739,8 @@ String _primitiveTypeToString(PrimitiveType type) {
       return 'int32';
     case PrimitiveType.int64:
       return 'int64';
-    case PrimitiveType.uint64:
-      return 'uint64';
+    case PrimitiveType.hash64:
+      return 'hash64';
     case PrimitiveType.float32:
       return 'float32';
     case PrimitiveType.float64:

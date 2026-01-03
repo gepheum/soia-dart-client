@@ -56,7 +56,7 @@ abstract class ReflectiveTypeVisitor<T> {
   /// Visits a 64-bit unsigned integer primitive type.
   ///
   /// [equivalence] allows safe conversion between [T] and [BigInt].
-  void visitUint64(TypeEquivalence<T, BigInt> equivalence);
+  void visitHash64(TypeEquivalence<T, BigInt> equivalence);
 
   /// Visits a 32-bit floating point primitive type.
   ///
@@ -123,7 +123,7 @@ class NoopReflectiveTypeVisitor<T> implements ReflectiveTypeVisitor<T> {
   void visitInt64(TypeEquivalence<T, int> equivalence) {}
 
   @override
-  void visitUint64(TypeEquivalence<T, BigInt> equivalence) {}
+  void visitHash64(TypeEquivalence<T, BigInt> equivalence) {}
 
   @override
   void visitFloat32(TypeEquivalence<T, double> equivalence) {}
@@ -163,8 +163,8 @@ void _acceptImpl<T>(
       visitor.visitInt32(TypeEquivalence<T, int>._());
     case Int64Descriptor():
       visitor.visitInt64(TypeEquivalence<T, int>._());
-    case Uint64Descriptor():
-      visitor.visitUint64(TypeEquivalence<T, BigInt>._());
+    case Hash64Descriptor():
+      visitor.visitHash64(TypeEquivalence<T, BigInt>._());
     case Float32Descriptor():
       visitor.visitFloat32(TypeEquivalence<T, double>._());
     case Float64Descriptor():

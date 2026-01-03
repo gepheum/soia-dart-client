@@ -8,7 +8,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  skir: ^0.3.0  # Use the latest version
+  skir: ^0.1.0  # Use the latest version
 ```
 
 Then run:

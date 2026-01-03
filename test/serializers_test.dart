@@ -101,7 +101,7 @@ void main() {
         equals(true),
       );
       expect(
-        Serializers.bool.fromBytes(Serializers.uint64.toBytes(BigInt.zero)),
+        Serializers.bool.fromBytes(Serializers.hash64.toBytes(BigInt.zero)),
         equals(false),
       );
       expect(
@@ -491,30 +491,30 @@ void main() {
     test('basic functionality - JSON serialization', () {
       // Test various uint64 values
       expect(
-        Serializers.uint64.toJson(BigInt.zero, readableFlavor: true),
+        Serializers.hash64.toJson(BigInt.zero, readableFlavor: true),
         equals(0),
       );
       expect(
-        Serializers.uint64.toJson(BigInt.zero, readableFlavor: false),
+        Serializers.hash64.toJson(BigInt.zero, readableFlavor: false),
         equals(0),
       );
       expect(
-        Serializers.uint64.toJson(BigInt.from(42), readableFlavor: true),
+        Serializers.hash64.toJson(BigInt.from(42), readableFlavor: true),
         equals(42),
       );
       expect(
-        Serializers.uint64.toJson(BigInt.from(42), readableFlavor: false),
+        Serializers.hash64.toJson(BigInt.from(42), readableFlavor: false),
         equals(42),
       );
       expect(
-        Serializers.uint64.toJson(
+        Serializers.hash64.toJson(
           BigInt.from(9007199254740991),
           readableFlavor: false,
         ),
         equals(9007199254740991),
       );
       expect(
-        Serializers.uint64.toJson(
+        Serializers.hash64.toJson(
           BigInt.parse("9007199254740992"),
           readableFlavor: false,
         ),
@@ -523,11 +523,11 @@ void main() {
 
       // Test JSON string serialization
       expect(
-        Serializers.uint64.toJsonCode(BigInt.zero, readableFlavor: true),
+        Serializers.hash64.toJsonCode(BigInt.zero, readableFlavor: true),
         equals('0'),
       );
       expect(
-        Serializers.uint64.toJsonCode(BigInt.from(42), readableFlavor: true),
+        Serializers.hash64.toJsonCode(BigInt.from(42), readableFlavor: true),
         equals('42'),
       );
     });
@@ -536,23 +536,23 @@ void main() {
       final maxSafeInt = BigInt.from(9007199254740991); // 2^53 - 1
 
       // Test boundary values - should be numbers
-      expect(Serializers.uint64.toJson(maxSafeInt), equals(9007199254740991));
-      expect(Serializers.uint64.toJson(BigInt.zero), equals(0));
+      expect(Serializers.hash64.toJson(maxSafeInt), equals(9007199254740991));
+      expect(Serializers.hash64.toJson(BigInt.zero), equals(0));
 
       // Test values beyond safe range - should be strings
       final unsafeValue = BigInt.from(9007199254740992); // 2^53
 
-      expect(Serializers.uint64.toJson(unsafeValue), isA<String>());
-      expect(Serializers.uint64.toJsonCode(unsafeValue), startsWith('"'));
+      expect(Serializers.hash64.toJson(unsafeValue), isA<String>());
+      expect(Serializers.hash64.toJsonCode(unsafeValue), startsWith('"'));
     });
 
     test('JSON deserialization - positive values only', () {
       // Test positive integer JSON values
-      expect(Serializers.uint64.fromJson(0), equals(BigInt.zero));
-      expect(Serializers.uint64.fromJson(42), equals(BigInt.from(42)));
-      expect(Serializers.uint64.fromJson(1000), equals(BigInt.from(1000)));
-      expect(Serializers.uint64.fromJsonCode('0'), equals(BigInt.zero));
-      expect(Serializers.uint64.fromJsonCode('42'), equals(BigInt.from(42)));
+      expect(Serializers.hash64.fromJson(0), equals(BigInt.zero));
+      expect(Serializers.hash64.fromJson(42), equals(BigInt.from(42)));
+      expect(Serializers.hash64.fromJson(1000), equals(BigInt.from(1000)));
+      expect(Serializers.hash64.fromJsonCode('0'), equals(BigInt.zero));
+      expect(Serializers.hash64.fromJsonCode('42'), equals(BigInt.from(42)));
     });
 
     test('unsigned 64-bit boundaries and conversion', () {
@@ -561,8 +561,8 @@ void main() {
       // This test verifies the actual Dart behavior, which may differ from Kotlin
 
       // Test that the Dart implementation applies toUnsigned(64) but it may not behave as expected
-      final negOneResult = Serializers.uint64.fromJson(-1);
-      final negHundredResult = Serializers.uint64.fromJson(-100);
+      final negOneResult = Serializers.hash64.fromJson(-1);
+      final negHundredResult = Serializers.hash64.fromJson(-100);
 
       // In Dart, toUnsigned(64) on negative numbers may not wrap to large positive values
       // We test that the function completes without error and returns a value
@@ -574,7 +574,7 @@ void main() {
         '9223372036854775807',
       ); // max int64 Dart can represent
       expect(
-        Serializers.uint64.fromJson(maxDartInt.toInt()),
+        Serializers.hash64.fromJson(maxDartInt.toInt()),
         equals(maxDartInt),
       );
     });
@@ -592,8 +592,8 @@ void main() {
       ];
 
       for (final value in testValues) {
-        final bytes = Serializers.uint64.toBytes(value);
-        final restored = Serializers.uint64.fromBytes(bytes);
+        final bytes = Serializers.hash64.toBytes(value);
+        final restored = Serializers.hash64.fromBytes(bytes);
         expect(
           restored,
           equals(value),
@@ -603,11 +603,11 @@ void main() {
     });
 
     test('type descriptor', () {
-      final typeDescriptor = Serializers.uint64.typeDescriptor;
+      final typeDescriptor = Serializers.hash64.typeDescriptor;
       expect(typeDescriptor, isA<PrimitiveDescriptor>());
 
       final primitiveDescriptor = typeDescriptor as PrimitiveDescriptor;
-      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.uint64));
+      expect(primitiveDescriptor.primitiveType, equals(PrimitiveType.hash64));
     });
   });
 
@@ -1822,7 +1822,7 @@ void main() {
         (Serializers.optional(Serializers.int32), 42, 0),
         (Serializers.optional(Serializers.int64), 42, 0),
         (
-          Serializers.optional(Serializers.uint64),
+          Serializers.optional(Serializers.hash64),
           BigInt.from(42),
           BigInt.zero,
         ),

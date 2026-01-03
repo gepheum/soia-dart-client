@@ -9,7 +9,7 @@ void main() {
       expect(PrimitiveType.values, contains(PrimitiveType.bool));
       expect(PrimitiveType.values, contains(PrimitiveType.int32));
       expect(PrimitiveType.values, contains(PrimitiveType.int64));
-      expect(PrimitiveType.values, contains(PrimitiveType.uint64));
+      expect(PrimitiveType.values, contains(PrimitiveType.hash64));
       expect(PrimitiveType.values, contains(PrimitiveType.float32));
       expect(PrimitiveType.values, contains(PrimitiveType.float64));
       expect(PrimitiveType.values, contains(PrimitiveType.timestamp));
@@ -311,7 +311,7 @@ void main() {
         'bool': PrimitiveType.bool,
         'int32': PrimitiveType.int32,
         'int64': PrimitiveType.int64,
-        'uint64': PrimitiveType.uint64,
+        'hash64': PrimitiveType.hash64,
         'float32': PrimitiveType.float32,
         'float64': PrimitiveType.float64,
         'timestamp': PrimitiveType.timestamp,
@@ -470,7 +470,7 @@ void main() {
       for (final descriptor in [
         Int32Descriptor.instance,
         Int64Descriptor.instance,
-        Uint64Descriptor.instance,
+        Hash64Descriptor.instance,
         BoolDescriptor.instance,
         Float32Descriptor.instance,
         Float64Descriptor.instance,

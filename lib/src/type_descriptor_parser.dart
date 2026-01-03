@@ -104,8 +104,8 @@ TypeDescriptor _parseTypeDescriptorImpl(
           return Int32Descriptor._();
         case 'int64':
           return Int64Descriptor._();
-        case 'uint64':
-          return Uint64Descriptor._();
+        case 'hash64':
+          return Hash64Descriptor._();
         case 'float32':
           return Float32Descriptor._();
         case 'float64':
