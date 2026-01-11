@@ -200,13 +200,13 @@ class MethodErrorInfo<RequestMeta> {
   dynamic request;
 
   /// Metadata coming from the HTTP headers of the request.
-  RequestMeta request_meta;
+  RequestMeta requestMeta;
 
   MethodErrorInfo({
     required this.error,
     required this.method,
     required this.request,
-    required this.request_meta,
+    required this.requestMeta,
   });
 }
 
@@ -276,6 +276,10 @@ abstract class RequestHandler<RequestMeta> {
 ///
 /// A service manages method implementations and provides request routing,
 /// serialization, and error handling for RPC operations.
+///
+/// See https://github.com/gepheum/skir-dart-example/blob/main/bin/start_service.dart
+/// for a full example of how to create a Skir service and install it on an HTTP
+/// server using the Shelf framework.
 class Service<RequestMeta> implements RequestHandler<RequestMeta> {
   final Map<int, _MethodImpl<dynamic, dynamic, RequestMeta>> _methodImpls;
   final options = new ServiceOptions<RequestMeta>();
@@ -459,7 +463,7 @@ class Service<RequestMeta> implements RequestHandler<RequestMeta> {
         error: e,
         method: methodImpl.method,
         request: request,
-        request_meta: requestMeta,
+        requestMeta: requestMeta,
       );
       options.errorLogger(errorInfo);
       if (e is ServiceError) {
