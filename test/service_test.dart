@@ -5,38 +5,66 @@ void main() {
   group('RawResponse', () {
     test('status codes are correct', () {
       expect(
-        const RawResponse('', 200, 'application/json').statusCode,
+        const RawResponse(
+                data: '', statusCode: 200, contentType: 'application/json')
+            .statusCode,
         equals(200),
       );
       expect(
-        const RawResponse('', 200, 'text/html; charset=utf-8').statusCode,
+        const RawResponse(
+                data: '',
+                statusCode: 200,
+                contentType: 'text/html; charset=utf-8')
+            .statusCode,
         equals(200),
       );
       expect(
-        const RawResponse('', 400, 'text/plain; charset=utf-8').statusCode,
+        const RawResponse(
+                data: '',
+                statusCode: 400,
+                contentType: 'text/plain; charset=utf-8')
+            .statusCode,
         equals(400),
       );
       expect(
-        const RawResponse('', 500, 'text/plain; charset=utf-8').statusCode,
+        const RawResponse(
+                data: '',
+                statusCode: 500,
+                contentType: 'text/plain; charset=utf-8')
+            .statusCode,
         equals(500),
       );
     });
 
     test('content types are correct', () {
       expect(
-        const RawResponse('', 200, 'application/json').contentType,
+        const RawResponse(
+                data: '', statusCode: 200, contentType: 'application/json')
+            .contentType,
         equals('application/json'),
       );
       expect(
-        const RawResponse('', 200, 'text/html; charset=utf-8').contentType,
+        const RawResponse(
+                data: '',
+                statusCode: 200,
+                contentType: 'text/html; charset=utf-8')
+            .contentType,
         equals('text/html; charset=utf-8'),
       );
       expect(
-        const RawResponse('', 400, 'text/plain; charset=utf-8').contentType,
+        const RawResponse(
+                data: '',
+                statusCode: 400,
+                contentType: 'text/plain; charset=utf-8')
+            .contentType,
         equals('text/plain; charset=utf-8'),
       );
       expect(
-        const RawResponse('', 500, 'text/plain; charset=utf-8').contentType,
+        const RawResponse(
+                data: '',
+                statusCode: 500,
+                contentType: 'text/plain; charset=utf-8')
+            .contentType,
         equals('text/plain; charset=utf-8'),
       );
     });
@@ -44,7 +72,7 @@ void main() {
 
   group('ServiceBuilder', () {
     test('prevents duplicate method numbers', () {
-      final builder = Service.builder();
+      final builder = Service();
 
       // Create a mock method
       final method1 = Method<String, String>(
@@ -72,7 +100,7 @@ void main() {
     });
 
     test('allows different method numbers', () {
-      final builder = Service.builder();
+      final builder = Service();
 
       final method1 = Method<String, String>(
         'test1',
@@ -91,16 +119,17 @@ void main() {
       );
 
       expect(
-        () => builder
-            .addMethod(method1, (request, meta) async => 'response1')
-            .addMethod(method2, (request, meta) async => 'response2'),
+        () {
+          builder.addMethod(method1, (request, meta) async => 'response1');
+          builder.addMethod(method2, (request, meta) async => 'response2');
+        },
         returnsNormally,
       );
     });
   });
 
   group('Service', () {
-    late Service<HttpHeaders> service;
+    late Service<Map<String, dynamic>> service;
 
     setUp(() {
       final method = Method<String, String>(
@@ -111,9 +140,8 @@ void main() {
         "doc text",
       );
 
-      service = Service.builder()
-          .addMethod(method, (request, meta) async => 'echo: $request')
-          .build();
+      service = Service();
+      service.addMethod(method, (request, meta) async => 'echo: $request');
     });
 
     test('handles empty request body with method list', () async {
@@ -191,26 +219,27 @@ void main() {
   });
 
   group('Service with custom metadata', () {
-    test('extracts custom metadata correctly', () async {
-      final service = Service.builderWithCustomMeta<String>((headers) {
-        final auth = headers['authorization'] ?? '';
-        return auth.startsWith('Bearer ') ? auth.substring(7) : 'anonymous';
-      })
-          .addMethod<String, String>(
-            Method(
-              'echo',
-              1,
-              Serializers.string,
-              Serializers.string,
-              "doc text",
-            ),
-            (request, token) async => 'User $token: $request',
-          )
-          .build();
+    test('passes custom metadata correctly', () async {
+      final service = Service<String>();
 
-      final response = await service.handleRequest('echo:1::"hello"', {
-        'authorization': 'Bearer user123',
-      });
+      service.addMethod<String, String>(
+        Method(
+          'echo',
+          1,
+          Serializers.string,
+          Serializers.string,
+          "doc text",
+        ),
+        (request, token) async => 'User $token: $request',
+      );
+
+      // Simulate extraction
+      final headers = {'authorization': 'Bearer user123'};
+      final auth = headers['authorization'] ?? '';
+      final token =
+          auth.startsWith('Bearer ') ? auth.substring(7) : 'anonymous';
+
+      final response = await service.handleRequest('echo:1::"hello"', token);
 
       expect(response.statusCode, equals(200));
       expect(response.data, equals('"User user123: hello"'));

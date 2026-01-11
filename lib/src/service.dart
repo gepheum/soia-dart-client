@@ -280,7 +280,7 @@ class Service<RequestMeta> implements RequestHandler<RequestMeta> {
   final Map<int, _MethodImpl<dynamic, dynamic, RequestMeta>> _methodImpls;
   final options = new ServiceOptions<RequestMeta>();
 
-  Service._(this._methodImpls);
+  Service() : _methodImpls = {};
 
   /// Adds a method implementation to the service.
   void addMethod<Request, Response>(
