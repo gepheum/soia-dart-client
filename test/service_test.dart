@@ -5,38 +5,38 @@ void main() {
   group('RawResponse', () {
     test('status codes are correct', () {
       expect(
-        const RawResponse('', ResponseType.okJson).statusCode,
+        const RawResponse('', 200, 'application/json').statusCode,
         equals(200),
       );
       expect(
-        const RawResponse('', ResponseType.okHtml).statusCode,
+        const RawResponse('', 200, 'text/html; charset=utf-8').statusCode,
         equals(200),
       );
       expect(
-        const RawResponse('', ResponseType.badRequest).statusCode,
+        const RawResponse('', 400, 'text/plain; charset=utf-8').statusCode,
         equals(400),
       );
       expect(
-        const RawResponse('', ResponseType.serverError).statusCode,
+        const RawResponse('', 500, 'text/plain; charset=utf-8').statusCode,
         equals(500),
       );
     });
 
     test('content types are correct', () {
       expect(
-        const RawResponse('', ResponseType.okJson).contentType,
+        const RawResponse('', 200, 'application/json').contentType,
         equals('application/json'),
       );
       expect(
-        const RawResponse('', ResponseType.okHtml).contentType,
+        const RawResponse('', 200, 'text/html; charset=utf-8').contentType,
         equals('text/html; charset=utf-8'),
       );
       expect(
-        const RawResponse('', ResponseType.badRequest).contentType,
+        const RawResponse('', 400, 'text/plain; charset=utf-8').contentType,
         equals('text/plain; charset=utf-8'),
       );
       expect(
-        const RawResponse('', ResponseType.serverError).contentType,
+        const RawResponse('', 500, 'text/plain; charset=utf-8').contentType,
         equals('text/plain; charset=utf-8'),
       );
     });
@@ -120,7 +120,7 @@ void main() {
       final response = await service.handleRequest('', {});
 
       expect(response.statusCode, equals(200));
-      expect(response.type, equals(ResponseType.okJson));
+      expect(response.contentType, equals('application/json'));
       expect(response.data, contains('methods'));
       expect(response.data, contains('echo'));
     });
@@ -129,16 +129,16 @@ void main() {
       final response = await service.handleRequest('list', {});
 
       expect(response.statusCode, equals(200));
-      expect(response.type, equals(ResponseType.okJson));
+      expect(response.contentType, equals('application/json'));
       expect(response.data, contains('methods'));
     });
 
-    test('handles "restudio" request', () async {
-      final response = await service.handleRequest('restudio', {});
+    test('handles "studio" request', () async {
+      final response = await service.handleRequest('studio', {});
 
       expect(response.statusCode, equals(200));
-      expect(response.type, equals(ResponseType.okHtml));
-      expect(response.data, contains('RESTudio'));
+      expect(response.contentType, equals('text/html; charset=utf-8'));
+      expect(response.data, contains('Skir Studio'));
       expect(response.data, contains('<!DOCTYPE html>'));
     });
 
@@ -146,7 +146,7 @@ void main() {
       final response = await service.handleRequest('invalid', {});
 
       expect(response.statusCode, equals(400));
-      expect(response.type, equals(ResponseType.badRequest));
+      expect(response.contentType, equals('text/plain; charset=utf-8'));
       expect(response.data, contains('invalid request format'));
     });
 
@@ -154,7 +154,7 @@ void main() {
       final response = await service.handleRequest('method:abc::{}', {});
 
       expect(response.statusCode, equals(400));
-      expect(response.type, equals(ResponseType.badRequest));
+      expect(response.contentType, equals('text/plain; charset=utf-8'));
       expect(response.data, contains('can\'t parse method number'));
     });
 
@@ -162,7 +162,7 @@ void main() {
       final response = await service.handleRequest('unknown:999::{}', {});
 
       expect(response.statusCode, equals(400));
-      expect(response.type, equals(ResponseType.badRequest));
+      expect(response.contentType, equals('text/plain; charset=utf-8'));
       expect(response.data, contains('method not found'));
     });
 
@@ -173,7 +173,7 @@ void main() {
       );
 
       expect(response.statusCode, equals(200));
-      expect(response.type, equals(ResponseType.okJson));
+      expect(response.contentType, equals('application/json'));
       expect(response.data, equals('"echo: test message"'));
     });
 
@@ -184,7 +184,7 @@ void main() {
       );
 
       expect(response.statusCode, equals(200));
-      expect(response.type, equals(ResponseType.okJson));
+      expect(response.contentType, equals('application/json'));
       // Should be prettified JSON
       expect(response.data, equals('"echo: test"'));
     });
@@ -192,7 +192,7 @@ void main() {
 
   group('Service with custom metadata', () {
     test('extracts custom metadata correctly', () async {
-      final service = Service.builderWithMeta<String>((headers) {
+      final service = Service.builderWithCustomMeta<String>((headers) {
         final auth = headers['authorization'] ?? '';
         return auth.startsWith('Bearer ') ? auth.substring(7) : 'anonymous';
       })
